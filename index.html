@@ -1,45 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Attendance Chatbot</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Attendance System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🎓 Smart Attendance Chatbot System</h1>
-  <p>Created by <b>Rishu Jaswar</b></p>
 
-  <div id="login-section">
+  <h1>🎓 School Attendance System</h1>
+
+  <!-- ===== LOGIN SECTION ===== -->
+  <section id="login-section">
     <h2>Teacher Login</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-  </div>
+    <input type="text" id="username" placeholder="Enter Username">
+    <input type="password" id="password" placeholder="Enter Password">
+    <button onclick="loginTeacher()">Login</button>
+  </section>
 
-  <div id="attendance-section" style="display:none;">
-    <h2>Welcome, 👋 <span id="teacherName"></span></h2>
-    <label>Select Class:</label>
-    <select id="classSelect">
-      <option value="11A">11A</option>
-      <option value="11B">11B</option>
-    </select>
+  <!-- ===== ATTENDANCE SECTION ===== -->
+  <section id="attendance-section" style="display: none;">
+    <h2>Welcome, Teacher!</h2>
+    <p>Subject: <span id="teacher-subject"></span></p>
+    <div id="students-list"></div>
+  </section>
 
-    <label>Select Subject:</label>
-    <select id="subjectSelect">
-      <option value="CS">CS</option>
-      <option value="Maths">Maths</option>
-      <option value="Physics">Physics</option>
-    </select>
-
-    <button id="loadStudents">Load Students</button>
-    <div id="studentList"></div>
-
-    <button id="saveAttendance">💾 Save Attendance</button>
-    <button id="logoutBtn">Logout</button>
-  </div>
-
+  <!-- ===== SCRIPTS ===== -->
   <script src="students.js"></script>
   <script src="script.js"></script>
+
+  <!-- ===== FIREBASE SETUP ===== -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
+
+  <!-- Firebase Config (Replace with your real details) -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
 </body>
 </html>

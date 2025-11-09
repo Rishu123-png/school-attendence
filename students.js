@@ -1,9 +1,17 @@
 // students.js
-const studentsData = [
-  { name: "Rishu Jaswar", class: "11A", subject: "AI" },
-  { name: "Aarav Singh", class: "11B", subject: "CS" },
-  { name: "Meera Kapoor", class: "11A", subject: "Psychology" },
-  { name: "Raj Malhotra", class: "11C", subject: "Data Science" },
-  { name: "Ananya Gupta", class: "11B", subject: "PED" },
-  // 👆 You can add more students here
-];
+const studentsData = {
+  "11A": {
+    "CS": ["Rohan Sharma", "Priya Verma", "Aman Gupta"],
+    "Maths": ["Sanya Singh", "Tushar Patel"]
+  },
+  "11B": {
+    "Physics": ["Karan Mehta", "Divya Raj"],
+    "Chemistry": ["Sneha Kumar", "Arjun Rai"]
+  }
+};
+
+const teacherAccounts = {
+  teacher1: { password: "1234", class: "11A", subject: "CS" },
+  teacher2: { password: "1234", class: "11A", subject: "Maths" },
+  teacher3: { password: "1234", class: "11B", subject: "Physics" }
+};

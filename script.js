@@ -1,40 +1,57 @@
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { app } from "./firebase.js";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-// Firebase Database
+import { 
+  getDatabase, 
+  ref, 
+  push, 
+  onValue 
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+const auth = getAuth(app);
 const db = getDatabase(app);
 
-// LOGIN SECTION
+// Elements
 const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 const loginContainer = document.getElementById("login-container");
 const attendanceContainer = document.getElementById("attendance-container");
 const loginMessage = document.getElementById("loginMessage");
 const teacherNameSpan = document.getElementById("teacherName");
 
-// DUMMY LOGIN (You can link real teacher data later)
-const validUsers = {
-  teacher: "12345",
-  admin: "admin123"
-};
-
-loginBtn.addEventListener("click", () => {
-  const username = document.getElementById("username").value.trim();
+// LOGIN
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (validUsers[username] && validUsers[username] === password) {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
     loginMessage.textContent = "Login successful!";
+  } catch (error) {
+    loginMessage.textContent = "Invalid email or password!";
+  }
+});
+
+// AUTH STATE LISTENER
+onAuthStateChanged(auth, (user) => {
+  if (user) {
     loginContainer.style.display = "none";
     attendanceContainer.style.display = "block";
-    teacherNameSpan.textContent = username;
+    teacherNameSpan.textContent = user.email;
   } else {
-    loginMessage.textContent = "Invalid username or password!";
+    loginContainer.style.display = "block";
+    attendanceContainer.style.display = "none";
   }
 });
 
 // LOGOUT
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  attendanceContainer.style.display = "none";
-  loginContainer.style.display = "block";
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
 });
 
 // SAVE ATTENDANCE
@@ -58,16 +75,17 @@ saveBtn.addEventListener("click", () => {
     studentName,
     status,
     date: new Date().toLocaleString(),
+    teacher: auth.currentUser ? auth.currentUser.email : "unknown"
   };
 
   push(attendanceRef, newRecord)
     .then(() => {
-      saveMessage.textContent = "✅ Attendance saved successfully!";
+      saveMessage.textContent = "✅ Attendance saved!";
       document.getElementById("studentName").value = "";
     })
     .catch((error) => {
-      console.error("Error saving attendance:", error);
-      saveMessage.textContent = "❌ Failed to save attendance!";
+      console.error(error);
+      saveMessage.textContent = "❌ Failed to save!";
     });
 });
 
@@ -76,7 +94,7 @@ const viewHistoryBtn = document.getElementById("viewHistoryBtn");
 const historyBody = document.getElementById("historyBody");
 
 viewHistoryBtn.addEventListener("click", () => {
-  historyBody.innerHTML = ""; // clear old data
+  historyBody.innerHTML = "";
   const attendanceRef = ref(db, "attendance");
 
   onValue(attendanceRef, (snapshot) => {

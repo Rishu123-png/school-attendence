@@ -1,26 +1,19 @@
 // students.js
-
-// Example student data (you can add more later)
-const studentsData = {
+export const studentsData = {
   "11A": {
-    "AI": ["Rishu Jaswar", "Amit Singh", "Niharika Sharma"],
-    "CS": ["Priya Sharma", "Vivek Raj"],
-    "Psychology": ["Ananya Gupta", "Rohan Kumar"]
+    "Physics": ["Aman", "Bhavya", "Kriti", "Ravi", "Tanu"],
+    "Chemistry": ["Aman", "Kriti", "Neha", "Ravi", "Yash"],
+    "Maths": ["Bhavya", "Kriti", "Neha", "Ravi", "Tanu"],
+    "AI": ["Aman", "Ravi", "Tanu"]
   },
   "11B": {
-    "AI": ["Kartik Verma", "Mehul Jain"],
-    "Data Science": ["Sakshi Gupta", "Tanya Mehta"],
-    "PED": ["Aarav Mishra", "Aditi Patel"]
+    "Physics": ["Ankit", "Divya", "Mitali", "Sahil", "Vikas"],
+    "Chemistry": ["Ankit", "Divya", "Sahil", "Vikas"],
+    "Data Science": ["Divya", "Mitali", "Sahil", "Vikas"],
+    "PED": ["Ankit", "Mitali", "Vikas"]
+  },
+  "12A": {
+    "Physics": ["Aarav", "Harsh", "Isha", "Kabir", "Manav"],
+    "Psychology": ["Isha", "Kabir", "Manav"]
   }
 };
-
-// Function to get students by class and subject
-function getStudents(selectedClass, selectedSubject) {
-  if (studentsData[selectedClass] && studentsData[selectedClass][selectedSubject]) {
-    return studentsData[selectedClass][selectedSubject];
-  } else {
-    return [];
-  }
-}
-
-export { getStudents };

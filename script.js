@@ -1,83 +1,69 @@
-// === LOGIN SYSTEM ===
-const teachers = {
-  "ai_teacher": { password: "ai123", subject: "Artificial Intelligence" },
-  "ped_teacher": { password: "ped123", subject: "Physical Education" },
-  "cs_teacher": { password: "cs123", subject: "Computer Science" },
-  "psy_teacher": { password: "psy123", subject: "Psychology" },
-  "ds_teacher": { password: "ds123", subject: "Data Science" },
-};
+import { getStudents } from "./students.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-let loggedInTeacher = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const classSelect = document.getElementById("classSelect");
+  const subjectSelect = document.getElementById("subjectSelect");
+  const studentListDiv = document.getElementById("studentList");
+  const saveAttendanceBtn = document.getElementById("saveAttendance");
 
-function loginTeacher() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const teacher = teachers[username];
+  let selectedClass = "";
+  let selectedSubject = "";
 
-  if (teacher && teacher.password === password) {
-    loggedInTeacher = teacher;
-    document.getElementById("login-section").style.display = "none";
-    document.getElementById("attendance-section").style.display = "block";
-    document.getElementById("teacher-subject").innerText = teacher.subject;
-    loadStudentsForSubject(teacher.subject);
-  } else {
-    alert("Invalid username or password");
-  }
-}
-
-// === STUDENTS DATA (from students.js) ===
-function loadStudentsForSubject(subject) {
-  const container = document.getElementById("students-list");
-  container.innerHTML = "";
-  const classNames = Object.keys(studentsData);
-
-  classNames.forEach(className => {
-    const classDiv = document.createElement("div");
-    classDiv.classList.add("class-box");
-    const classTitle = document.createElement("h3");
-    classTitle.textContent = `Class ${className}`;
-    classDiv.appendChild(classTitle);
-
-    const students = studentsData[className][subject];
-    if (!students) return;
-
-    students.forEach(student => {
-      const row = document.createElement("div");
-      row.classList.add("student-row");
-      row.innerHTML = `
-        <span>${student}</span>
-        <button onclick="markAttendance('${className}','${subject}','${student}','Present')">✅ Present</button>
-        <button onclick="markAttendance('${className}','${subject}','${student}','Absent')">❌ Absent</button>
-      `;
-      classDiv.appendChild(row);
-    });
-    container.appendChild(classDiv);
+  // Handle class change
+  classSelect.addEventListener("change", () => {
+    selectedClass = classSelect.value;
+    updateStudentList();
   });
-}
 
-// === MARK ATTENDANCE ===
-function markAttendance(className, subject, studentName, status) {
-  console.log(`${studentName} in ${className} marked ${status}`);
-  alert(`${studentName} marked as ${status}`);
+  // Handle subject change
+  subjectSelect.addEventListener("change", () => {
+    selectedSubject = subjectSelect.value;
+    updateStudentList();
+  });
 
-  // Auto-save to Firebase
-  if (typeof saveAttendanceToFirebase === "function") {
-    saveAttendanceToFirebase(className, subject, studentName, status);
+  function updateStudentList() {
+    studentListDiv.innerHTML = "";
+
+    if (selectedClass && selectedSubject) {
+      const students = getStudents(selectedClass, selectedSubject);
+
+      if (students.length === 0) {
+        studentListDiv.innerHTML = "<p>No students found for this class and subject.</p>";
+        return;
+      }
+
+      students.forEach(student => {
+        const studentDiv = document.createElement("div");
+        studentDiv.className = "student-item";
+        studentDiv.innerHTML = `
+          <span>${student}</span>
+          <select id="status-${student}">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+          </select>
+        `;
+        studentListDiv.appendChild(studentDiv);
+      });
+
+      saveAttendanceBtn.style.display = "block";
+    }
   }
-}
 
-// === FIREBASE SAVE FUNCTION ===
-async function saveAttendanceToFirebase(className, subject, studentName, status) {
-  try {
-    await db.collection("attendance").add({
-      class: className,
-      subject: subject,
-      student: studentName,
-      status: status,
-      timestamp: new Date().toLocaleString(),
+  // Save attendance to Firebase
+  saveAttendanceBtn.addEventListener("click", async () => {
+    const db = getDatabase();
+    const students = getStudents(selectedClass, selectedSubject);
+
+    const attendance = {};
+    students.forEach(student => {
+      const status = document.getElementById(`status-${student}`).value;
+      attendance[student] = status;
     });
-    console.log(`✅ Saved to Firebase: ${studentName} - ${status}`);
-  } catch (error) {
-    console.error("❌ Error saving to Firebase:", error);
-  }
-}
+
+    const date = new Date().toISOString().split("T")[0];
+
+    await set(ref(db, `attendance/${selectedClass}/${selectedSubject}/${date}`), attendance);
+    alert("Attendance saved successfully! ✅");
+  });
+});

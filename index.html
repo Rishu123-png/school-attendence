@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Attendance System</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <h1>📘 School Attendance System</h1>
 
+    <!-- 🔐 Login Section -->
     <div class="login-section">
       <h2>Teacher Login</h2>
-      <input type="email" id="teacherName" placeholder="Enter Email" />
-      <input type="password" id="teacherPassword" placeholder="Enter Password" />
+      <input type="email" id="teacherName" placeholder="Enter Email">
+      <input type="password" id="teacherPassword" placeholder="Enter Password">
       <button id="loginBtn">Login</button>
     </div>
 
+    <!-- 🧑‍🏫 Attendance Section -->
     <div class="attendance-section" style="display: none;">
       <h2>Mark Attendance</h2>
       <p id="teacherInfo"></p>
@@ -35,6 +37,9 @@
         <option value="Chemistry">Chemistry</option>
         <option value="Physics">Physics</option>
         <option value="English">English</option>
+        <option value="AI">AI</option>
+        <option value="Data Science">Data Science</option>
+        <option value="Psychology">Psychology</option>
       </select>
 
       <div id="studentsList"></div>
@@ -42,29 +47,14 @@
     </div>
   </div>
 
+  <!-- 🧩 Your JavaScript Files -->
   <script src="script.js"></script>
+  <script src="students.js"></script>
 
-  <!-- 🔥 Firebase Connection with Authentication -->
+  <!-- 🔥 Firebase Integration -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+    import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
-    // ✅ Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBSWzs19870cWmGxd9-kJsKOOs755jyuU0",
-      authDomain: "school-attendence-system-9090.firebaseapp.com",
-      projectId: "school-attendence-system-9090",
-      storageBucket: "school-attendence-system-9090.firebasestorage.app",
-      messagingSenderId: "728832169882",
-      appId: "1:728832169882:web:b335869779e73ab8c20c23"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // ✅ Wait for page to load
     window.addEventListener("DOMContentLoaded", () => {
       const loginBtn = document.getElementById("loginBtn");
       const teacherName = document.getElementById("teacherName");

@@ -1,17 +1,26 @@
 // students.js
+
+// Example student data (you can add more later)
 const studentsData = {
   "11A": {
-    "CS": ["Rohan Sharma", "Priya Verma", "Aman Gupta"],
-    "Maths": ["Sanya Singh", "Tushar Patel"]
+    "AI": ["Rishu Jaswar", "Amit Singh", "Niharika Sharma"],
+    "CS": ["Priya Sharma", "Vivek Raj"],
+    "Psychology": ["Ananya Gupta", "Rohan Kumar"]
   },
   "11B": {
-    "Physics": ["Karan Mehta", "Divya Raj"],
-    "Chemistry": ["Sneha Kumar", "Arjun Rai"]
+    "AI": ["Kartik Verma", "Mehul Jain"],
+    "Data Science": ["Sakshi Gupta", "Tanya Mehta"],
+    "PED": ["Aarav Mishra", "Aditi Patel"]
   }
 };
 
-const teacherAccounts = {
-  teacher1: { password: "1234", class: "11A", subject: "CS" },
-  teacher2: { password: "1234", class: "11A", subject: "Maths" },
-  teacher3: { password: "1234", class: "11B", subject: "Physics" }
-};
+// Function to get students by class and subject
+function getStudents(selectedClass, selectedSubject) {
+  if (studentsData[selectedClass] && studentsData[selectedClass][selectedSubject]) {
+    return studentsData[selectedClass][selectedSubject];
+  } else {
+    return [];
+  }
+}
+
+export { getStudents };

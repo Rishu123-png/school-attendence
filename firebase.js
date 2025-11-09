@@ -1,11 +1,10 @@
 // firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBSWzs19870cWmGxd9-kJsKOOs755jyuU0",
   authDomain: "school-attendence-system-9090.firebaseapp.com",
+  databaseURL: "https://school-attendence-system-9090-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "school-attendence-system-9090",
   storageBucket: "school-attendence-system-9090.firebasestorage.app",
   messagingSenderId: "728832169882",
@@ -13,6 +12,3 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export { signInWithEmailAndPassword };

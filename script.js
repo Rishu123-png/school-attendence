@@ -1,15 +1,29 @@
-    import { app } from "./firebase.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+// ✅ Import Firebase and student data
+import { app } from "./firebase.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  push,
+  onValue
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { studentsData } from "./students.js";
 
+// Firebase setup
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+// === HTML ELEMENTS ===
+const loginContainer = document.getElementById("login-container");
+const mainLayout = document.getElementById("mainLayout");
+const attendanceContainer = document.getElementById("attendance-container");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
-const loginContainer = document.getElementById("login-container");
-const attendanceContainer = document.getElementById("attendance-container");
 const loginMessage = document.getElementById("loginMessage");
 const teacherNameSpan = document.getElementById("teacherName");
 
@@ -19,46 +33,71 @@ const saveMessage = document.getElementById("saveMessage");
 const saveBtn = document.getElementById("saveAttendanceBtn");
 const viewHistoryBtn = document.getElementById("viewHistoryBtn");
 const historyBody = document.getElementById("historyBody");
+const studentListDiv = document.getElementById("studentList");
 
-// LOGIN
+// Sidebar buttons (new layout)
+const markAttendanceBtn = document.getElementById("markAttendanceBtn");
+const historyNavBtn = document.getElementById("historyNavBtn");
+
+// === LOGIN ===
 loginBtn.addEventListener("click", async () => {
   const email = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
+  if (!email || !password) {
+    loginMessage.textContent = "⚠️ Please fill all fields!";
+    loginMessage.style.color = "red";
+    return;
+  }
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    loginMessage.textContent = "Login successful!";
+    loginMessage.textContent = "✅ Login successful!";
+    loginMessage.style.color = "green";
   } catch (error) {
-    loginMessage.textContent = "Invalid email or password!";
+    loginMessage.textContent = "❌ Invalid email or password!";
+    loginMessage.style.color = "red";
   }
 });
 
-// AUTH STATE
+// === AUTH STATE ===
 onAuthStateChanged(auth, (user) => {
   if (user) {
     loginContainer.style.display = "none";
+    mainLayout.style.display = "flex";
     attendanceContainer.style.display = "block";
-    teacherNameSpan.textContent = user.email;
+    teacherNameSpan.textContent = user.email.split("@")[0];
   } else {
     loginContainer.style.display = "block";
-    attendanceContainer.style.display = "none";
+    mainLayout.style.display = "none";
   }
 });
 
-// LOGOUT
+// === LOGOUT ===
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// AUTO STUDENT LIST
+// === SIDEBAR BUTTONS (Navigation) ===
+if (markAttendanceBtn && historyNavBtn) {
+  markAttendanceBtn.addEventListener("click", () => {
+    attendanceContainer.style.display = "block";
+    document.getElementById("attendanceHistory").style.display = "none";
+  });
+
+  historyNavBtn.addEventListener("click", () => {
+    attendanceContainer.style.display = "none";
+    document.getElementById("attendanceHistory").style.display = "block";
+  });
+}
+
+// === AUTO-STUDENT LIST ===
 classSelect.addEventListener("change", updateStudentList);
 subjectSelect.addEventListener("change", updateStudentList);
 
 function updateStudentList() {
   const className = classSelect.value;
   const subject = subjectSelect.value;
-  const studentListDiv = document.getElementById("studentList");
-
   studentListDiv.innerHTML = "";
 
   if (className && subject && studentsData[className] && studentsData[className][subject]) {
@@ -80,19 +119,21 @@ function updateStudentList() {
   }
 }
 
-// SAVE ATTENDANCE
+// === SAVE ATTENDANCE ===
 saveBtn.addEventListener("click", () => {
   const className = classSelect.value;
   const subject = subjectSelect.value;
 
   if (!className || !subject) {
     saveMessage.textContent = "⚠️ Please select class and subject!";
+    saveMessage.style.color = "red";
     return;
   }
 
   const students = studentsData[className]?.[subject];
   if (!students) {
     saveMessage.textContent = "No students found!";
+    saveMessage.style.color = "red";
     return;
   }
 
@@ -113,9 +154,11 @@ saveBtn.addEventListener("click", () => {
   });
 
   saveMessage.textContent = "✅ Attendance saved successfully!";
+  saveMessage.style.color = "green";
+  setTimeout(() => (saveMessage.textContent = ""), 2000);
 });
 
-// VIEW HISTORY
+// === VIEW HISTORY ===
 viewHistoryBtn.addEventListener("click", () => {
   historyBody.innerHTML = "";
   const attendanceRef = ref(db, "attendance");

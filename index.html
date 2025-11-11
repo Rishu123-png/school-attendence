@@ -1,98 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>School Attendance — Purple Card</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School Attendance System</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="page-wrap">
-
-    <!-- LEFT: Auth Card -->
-    <div class="auth-card" id="authCard">
-      <!-- LOGIN -->
-      <div id="authLogin" class="auth-block">
-        <h1 class="brand">School Attendance</h1>
-        <p class="sub">Teacher sign in</p>
-
-        <input id="loginEmail" type="email" placeholder="Email" />
-        <input id="loginPassword" type="password" placeholder="Password" />
-        <button id="loginBtn" class="btn primary">Login</button>
-
-        <p id="authMessage" class="muted"></p>
-        <p class="muted small">Don't have an account? <button id="showSignup" class="link">Create one</button></p>
-      </div>
-
-      <!-- SIGNUP -->
-      <div id="authSignup" class="auth-block" style="display:none;">
-        <h1 class="brand">Create Account</h1>
-        <p class="sub">Register as teacher</p>
-
-        <div class="avatar-container">
-          <img id="avatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="avatar"/>
-          <input id="avatarUpload" type="file" accept="image/*" />
-        </div>
-
-        <input id="fullName" type="text" placeholder="Full name" />
-        <input id="signupEmail" type="email" placeholder="Email" />
-        <input id="signupPassword" type="password" placeholder="Password (6+ chars)" />
-        <input id="signupClass" type="text" placeholder="Class you teach (e.g. 11A)" />
-        <input id="signupSubject" type="text" placeholder="Subject you teach (e.g. AI)" />
-
-        <button id="signupBtn" class="btn primary">Create account</button>
-        <p id="signupMessage" class="muted"></p>
-        <p class="muted small">Already have an account? <button id="showLogin" class="link">Login</button></p>
-      </div>
+  <!-- Authentication -->
+  <div id="authContainer" class="auth-card">
+    <!-- Login -->
+    <div id="authLogin" class="auth-box">
+      <h2>Teacher Login</h2>
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <p id="authMessage" class="msg"></p>
+      <p>Don’t have an account? <a href="#" id="showSignup">Create one</a></p>
     </div>
 
-    <!-- RIGHT: Dashboard -->
-    <div class="dashboard" id="dashboard" style="display:none;">
-      <header class="dash-header">
-        <div class="teacher-info">
-          <img id="teacherAvatar" class="teacher-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="avatar"/>
-          <div>
-            <div id="welcome" class="welcome">Welcome</div>
-            <div id="teacherMeta" class="muted small"></div>
-          </div>
-        </div>
-        <div>
-          <button id="logoutBtn" class="btn danger">Logout</button>
-        </div>
-      </header>
+    <!-- Signup -->
+    <div id="authSignup" class="auth-box" style="display:none;">
+      <h2>Create Teacher Account</h2>
+      <div class="avatar-container">
+        <img id="avatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" />
+        <input type="file" id="avatarUpload" accept="image/*" />
+      </div>
 
-      <section class="controls">
-        <div class="field">
-          <label>Class</label>
-          <select id="classSelect"><option value="">-- Select Class --</option></select>
-        </div>
-
-        <div class="field">
-          <label>Subject</label>
-          <select id="subjectSelect"><option value="">-- Select Subject --</option></select>
-        </div>
-
-        <div class="actions">
-          <button id="saveAll" class="btn primary">Save Attendance</button>
-          <button id="viewHistory" class="btn">View Attendance History</button>
-        </div>
-      </section>
-
-      <section id="studentListContainer" class="student-list"></section>
-
-      <section id="historyContainer" class="history" style="display:none;">
-        <h3>Attendance History</h3>
-        <table id="historyTable">
-          <thead>
-            <tr><th>Date</th><th>Class</th><th>Subject</th><th>Student</th><th>Status</th><th>By</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </section>
+      <input type="text" id="fullName" placeholder="Full Name" />
+      <input type="email" id="signupEmail" placeholder="Email" />
+      <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" />
+      <input type="text" id="signupClass" placeholder="Class you teach (e.g. 10A)" />
+      <input type="text" id="signupSubject" placeholder="Subject you teach (e.g. Math)" />
+      <button id="signupBtn">Create Account</button>
+      <p id="signupMessage" class="msg"></p>
+      <p>Already have an account? <a href="#" id="showLogin">Login here</a></p>
     </div>
   </div>
 
-  <!-- firebase first, then script -->
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard" style="display:none;">
+    <header>
+      <div class="teacher-header">
+        <img id="teacherAvatar" class="teacher-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" />
+        <div>
+          <h1 id="welcome">Welcome</h1>
+          <p id="teacherMeta"></p>
+        </div>
+      </div>
+      <button id="logoutBtn" class="logout">Logout</button>
+    </header>
+
+    <div class="controls">
+      <select id="classSelect">
+        <option value="">Select Class</option>
+        <option value="10A">10A</option>
+        <option value="10B">10B</option>
+        <option value="11A">11A</option>
+      </select>
+      <select id="subjectSelect">
+        <option value="">Select Subject</option>
+        <option value="Math">Math</option>
+        <option value="Science">Science</option>
+        <option value="English">English</option>
+      </select>
+      <button id="saveAll">Save Attendance</button>
+      <button id="viewHistory">View History</button>
+    </div>
+
+    <div id="studentListContainer" class="student-list"></div>
+
+    <div id="historyContainer" style="display:none;">
+      <h3>Attendance History</h3>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th><th>Class</th><th>Subject</th><th>Student</th><th>Status</th><th>Teacher</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
   <script type="module" src="firebase.js"></script>
   <script type="module" src="students.js"></script>
   <script type="module" src="script.js"></script>

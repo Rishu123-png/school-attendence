@@ -1,8 +1,8 @@
-  // script.js (module)
+// script.js (module)
 import { app } from "./firebase.js";
-import { studentsData } from "./students.js"; // must exist and export studentsData
+import { studentsData } from "./students.js"; // keep your students.js exported as `export const studentsData = {...}`
 
-// Firebase imports
+// Firebase
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -28,12 +28,11 @@ import {
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
 
-// init
 const auth = getAuth(app);
 const db = getDatabase(app);
 const storage = getStorage(app);
 
-// --- UI elements
+// UI elements
 const authLogin = document.getElementById("authLogin");
 const authSignup = document.getElementById("authSignup");
 const showSignup = document.getElementById("showSignup");
@@ -50,6 +49,7 @@ const signupPassword = document.getElementById("signupPassword");
 const signupClass = document.getElementById("signupClass");
 const signupSubject = document.getElementById("signupSubject");
 const avatarUpload = document.getElementById("avatarUpload");
+const avatarPreview = document.getElementById("avatarPreview");
 const signupBtn = document.getElementById("signupBtn");
 const signupMessage = document.getElementById("signupMessage");
 
@@ -67,7 +67,7 @@ const viewHistory = document.getElementById("viewHistory");
 const historyContainer = document.getElementById("historyContainer");
 const historyTableBody = document.querySelector("#historyTable tbody");
 
-// --- Toggle forms
+// toggle login/signup
 showSignup.addEventListener("click", () => {
   authLogin.style.display = "none";
   authSignup.style.display = "block";
@@ -79,17 +79,47 @@ showLogin.addEventListener("click", () => {
   signupMessage.textContent = "";
 });
 
-// --- Signup (create user + save teacher info)
+// preview selected avatar image
+avatarUpload?.addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  avatarPreview.src = url;
+});
+
+// helper escape id
+function escapeId(str) {
+  return str.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
+}
+
+// populate class & subject selects (from studentsData keys)
+function populateClassSubjectSelects() {
+  // classes from studentsData
+  const classes = Object.keys(studentsData || {});
+  classSelect.innerHTML = `<option value="">-- Select Class --</option>`;
+  classes.forEach(c => classSelect.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+
+  // subjects (collect unique)
+  const subjSet = new Set();
+  classes.forEach(c => {
+    Object.keys(studentsData[c] || {}).forEach(s => subjSet.add(s));
+  });
+  subjectSelect.innerHTML = `<option value="">-- Select Subject --</option>`;
+  Array.from(subjSet).sort().forEach(s => subjectSelect.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+}
+populateClassSubjectSelects();
+
+// --- SIGNUP: create user, upload avatar, save profile
 signupBtn.addEventListener("click", async () => {
   const name = fullName.value.trim();
   const email = signupEmail.value.trim();
   const password = signupPassword.value;
-  const cls = signupClass.value;
-  const subj = signupSubject.value;
+  const cls = signupClass.value.trim();
+  const subj = signupSubject.value.trim();
 
   signupMessage.textContent = "";
-  if (!name || !email || password.length < 6 || !cls || !subj) {
-    signupMessage.textContent = "Please fill all fields (password min 6 chars).";
+  if (!name || !email || !password || password.length < 6 || !cls || !subj) {
+    signupMessage.textContent = "Please complete all fields (password min 6 chars).";
     return;
   }
 
@@ -97,17 +127,20 @@ signupBtn.addEventListener("click", async () => {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
-    // Upload avatar if selected
+    // upload avatar if present
     let photoURL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-    const file = avatarUpload.files[0];
+    const file = avatarUpload?.files?.[0];
     if (file) {
       const fileRef = sRef(storage, `avatars/${uid}/${file.name}`);
       await uploadBytes(fileRef, file);
       photoURL = await getDownloadURL(fileRef);
-      await updateProfile(userCred.user, { photoURL });
+      // set auth profile photo too
+      try { await updateProfile(userCred.user, { displayName: name, photoURL }); } catch(e){ console.warn("updateProfile failed", e); }
+    } else {
+      try { await updateProfile(userCred.user, { displayName: name }); } catch(e){ /*ignore*/ }
     }
 
-    // Save teacher profile to Realtime DB
+    // save teacher profile
     await set(ref(db, `teachers/${uid}`), {
       name,
       email,
@@ -117,92 +150,87 @@ signupBtn.addEventListener("click", async () => {
       createdAt: new Date().toISOString()
     });
 
-    signupMessage.textContent = "Account created! You can now log in.";
+    signupMessage.textContent = "Account created — please login.";
     authSignup.style.display = "none";
     authLogin.style.display = "block";
     loginEmail.value = email;
     loginPassword.value = "";
+
   } catch (err) {
     console.error(err);
     signupMessage.textContent = "Error: " + (err.message || "Sign up failed");
   }
 });
 
-// --- Login
+// --- LOGIN
 loginBtn.addEventListener("click", async () => {
   const email = loginEmail.value.trim();
   const password = loginPassword.value;
   authMessage.textContent = "";
-
-  if (!email || password.length < 6) {
-    authMessage.textContent = "Enter valid email and password.";
-    return;
-  }
+  if (!email || !password) { authMessage.textContent = "Enter email & password."; return; }
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    // UI updated by onAuthStateChanged
   } catch (err) {
     console.error(err);
     authMessage.textContent = "Login failed: " + (err.message || "");
   }
 });
 
-// --- Auth state
+// --- AUTH STATE: show dashboard when logged in
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     dashboard.style.display = "block";
     authLogin.style.display = "none";
     authSignup.style.display = "none";
 
+    // load profile from DB
     try {
-      const snapshot = await get(child(ref(db), `teachers/${user.uid}`));
-      const profile = snapshot.exists() ? snapshot.val() : null;
-
+      const snap = await get(child(ref(db), `teachers/${user.uid}`));
+      const profile = snap.exists() ? snap.val() : null;
       welcome.innerText = `Welcome, ${profile?.name || user.email}`;
-      teacherMeta.innerText = profile
-        ? `${profile.subject} • ${profile.class}`
-        : user.email;
-
-      if (profile?.photoURL) {
-        teacherAvatar.src = profile.photoURL;
-      } else {
-        teacherAvatar.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-      }
-
+      teacherMeta.innerText = profile ? `${profile.subject} • ${profile.class}` : user.email;
+      teacherAvatar.src = profile?.photoURL || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     } catch (e) {
-      console.warn("No teacher profile", e);
+      console.warn("profile load failed", e);
       welcome.innerText = `Welcome, ${user.email}`;
       teacherMeta.innerText = "";
       teacherAvatar.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     }
+
   } else {
     dashboard.style.display = "none";
     authLogin.style.display = "block";
   }
 });
 
-// --- Logout
+// LOGOUT
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
+  // clear UI
+  studentListContainer.innerHTML = "";
+  historyTableBody.innerHTML = "";
+  historyContainer.style.display = "none";
 });
 
-// --- Auto show students when class+subject selected
+// --- students load when selects change
+classSelect.addEventListener("change", () => renderStudentsFor(classSelect.value, subjectSelect.value));
+subjectSelect.addEventListener("change", () => renderStudentsFor(classSelect.value, subjectSelect.value));
+
 function renderStudentsFor(className, subjectName) {
   studentListContainer.innerHTML = "";
   if (!className || !subjectName) return;
 
-  const list =
-    studentsData[className] && studentsData[className][subjectName]
-      ? [...studentsData[className][subjectName]]
-      : [];
-  list.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  const list = (studentsData[className] && studentsData[className][subjectName]) ? [...studentsData[className][subjectName]] : [];
+  list.sort((a,b)=> a.localeCompare(b, undefined, {sensitivity:'base'}));
 
   if (list.length === 0) {
-    studentListContainer.innerHTML = `<p class="small">No students configured for ${className} / ${subjectName}.</p>`;
+    studentListContainer.innerHTML = `<p class="muted">No students configured for ${className} / ${subjectName}.</p>`;
     return;
   }
 
-  list.forEach((student) => {
+  list.forEach(student => {
     const div = document.createElement("div");
     div.className = "student-row";
     div.innerHTML = `<span>${student}</span>
@@ -216,36 +244,16 @@ function renderStudentsFor(className, subjectName) {
   });
 }
 
-function escapeId(str) {
-  return str.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
-}
-
-classSelect.addEventListener("change", () =>
-  renderStudentsFor(classSelect.value, subjectSelect.value)
-);
-subjectSelect.addEventListener("change", () =>
-  renderStudentsFor(classSelect.value, subjectSelect.value)
-);
-
-// --- Save attendance for all shown students
+// --- Save attendance for all students shown
 saveAll.addEventListener("click", async () => {
   const className = classSelect.value;
   const subjectName = subjectSelect.value;
   const user = auth.currentUser;
-  if (!user) {
-    alert("Please login.");
-    return;
-  }
-  if (!className || !subjectName) {
-    alert("Select class and subject.");
-    return;
-  }
+  if (!user) { alert("Please login."); return; }
+  if (!className || !subjectName) { alert("Select class and subject."); return; }
 
   const rows = studentListContainer.querySelectorAll(".student-row");
-  if (rows.length === 0) {
-    alert("No students to save.");
-    return;
-  }
+  if (rows.length === 0) { alert("No students to save."); return; }
 
   const date = new Date().toISOString().split("T")[0];
   const ts = new Date().toISOString();
@@ -253,8 +261,7 @@ saveAll.addEventListener("click", async () => {
   try {
     for (const row of rows) {
       const name = row.querySelector("span").innerText;
-      const statusEl = row.querySelector("select");
-      const status = statusEl.value;
+      const status = row.querySelector("select").value;
       await push(ref(db, `attendance/${date}/${className}/${subjectName}`), {
         student: name,
         status,
@@ -269,24 +276,18 @@ saveAll.addEventListener("click", async () => {
   }
 });
 
-// --- View history for selected class+subject (loads last 30 entries)
+// --- View history
 viewHistory.addEventListener("click", async () => {
   historyContainer.style.display = "none";
   historyTableBody.innerHTML = "";
 
   const className = classSelect.value;
   const subjectName = subjectSelect.value;
-  if (!className || !subjectName) {
-    alert("Select class and subject to view history.");
-    return;
-  }
+  if (!className || !subjectName) { alert("Select class & subject to view history."); return; }
 
   try {
     const snapshot = await get(child(ref(db), `attendance`));
-    if (!snapshot.exists()) {
-      alert("No attendance records.");
-      return;
-    }
+    if (!snapshot.exists()) { alert("No attendance records."); return; }
     const all = snapshot.val();
 
     const rows = [];
@@ -296,28 +297,21 @@ viewHistory.addEventListener("click", async () => {
       const group = byClass[className][subjectName];
       for (const pushId of Object.keys(group)) {
         const rec = group[pushId];
-        rows.push({
-          date: dateKey,
-          student: rec.student,
-          status: rec.status,
-          teacher: rec.teacher,
-          time: rec.timestamp
-        });
+        rows.push({ date: dateKey, student: rec.student, status: rec.status, teacher: rec.teacher, time: rec.timestamp });
       }
     }
 
-    if (rows.length === 0) {
-      alert("No records for this class & subject.");
-      return;
-    }
+    if (rows.length === 0) { alert("No records for this class & subject."); return; }
 
-    rows.forEach((r) => {
+    rows.forEach(r => {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${r.date}</td><td>${className}</td><td>${subjectName}</td><td>${r.student}</td><td>${r.status}</td><td>${r.teacher}</td>`;
       historyTableBody.appendChild(tr);
     });
+
     historyContainer.style.display = "block";
-    historyContainer.scrollIntoView({ behavior: "smooth" });
+    historyContainer.scrollIntoView({ behavior: 'smooth' });
+
   } catch (err) {
     console.error(err);
     alert("Failed to load history.");

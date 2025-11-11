@@ -84,7 +84,26 @@ signupBtn.addEventListener("click", async () => {
 
   try {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = userCred.user.uid;
+const uid = userCred.user.uid;
+
+// upload avatar if selected
+let photoURL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+const file = document.getElementById("avatarUpload").files[0];
+if (file) {
+  const { getStorage, ref as sRef, uploadBytes, getDownloadURL } =
+    await import("https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js");
+  const storage = getStorage(app);
+  const fileRef = sRef(storage, `avatars/${uid}/${file.name}`);
+  await uploadBytes(fileRef, file);
+  photoURL = await getDownloadURL(fileRef);
+}
+
+// save teacher profile to Realtime DB
+await set(ref(db, `teachers/${uid}`), {
+  name, email, class: cls, subject: subj,
+  photoURL,
+  createdAt: new Date().toISOString()
+});
 
     // save teacher profile to Realtime DB
     await set(ref(db, `teachers/${uid}`), {

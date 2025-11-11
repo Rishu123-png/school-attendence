@@ -1,110 +1,176 @@
+/* 🌟 General Styles */
 body {
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(135deg, #6a11cb, #b5179e);
-  color: #fff;
   margin: 0;
-  padding: 0;
+  background: #f4f7fa;
+  color: #333;
+  transition: background 0.4s, color 0.4s;
+}
+
+/* 🌙 Dark Mode */
+body.dark {
+  background: #1e1e2f;
+  color: #e5e5e5;
+}
+
+/* Header */
+header {
+  background: linear-gradient(90deg, #004aad, #007bff);
+  color: white;
+  text-align: center;
+  padding: 1.2rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ✨ Login Page */
+.login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: calc(100vh - 80px);
+  background: linear-gradient(120deg, #004aad, #00c6ff);
 }
-
-.auth-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 30px;
-  width: 320px;
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  width: 350px;
   text-align: center;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
 }
-
-.auth-box h2 {
-  color: #fff;
+.login-box h2 {
   margin-bottom: 20px;
+  color: #004aad;
 }
-
-input {
-  width: 90%;
-  padding: 10px;
-  margin: 8px 0;
-  border: none;
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  outline: none;
+  font-size: 1rem;
 }
-
-button {
-  width: 95%;
-  padding: 10px;
-  background-color: #8e24aa;
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  background: #007bff;
   color: white;
   border: none;
   border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
-  font-weight: bold;
-  margin-top: 5px;
+  transition: 0.3s;
+}
+.login-box button:hover {
+  background: #0056b3;
+}
+body.dark .login-box {
+  background: #2a2a3c;
+  color: white;
 }
 
-button:hover {
-  background-color: #9c27b0;
+/* 🧭 Layout */
+.main-layout {
+  display: flex;
 }
 
-.msg {
-  color: #ffe;
-  font-size: 14px;
-  min-height: 20px;
-}
-
-a {
-  color: #e1bee7;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.dashboard {
-  width: 90%;
-  max-width: 700px;
-  background: #fff;
-  color: #333;
-  border-radius: 20px;
+/* Sidebar */
+#sidebar {
+  width: 220px;
+  background: #004aad;
+  color: white;
+  height: 100vh;
   padding: 20px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
 }
-
-.teacher-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+#sidebar h2 {
+  text-align: center;
+  font-size: 1.3rem;
 }
-
-.teacher-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+#sidebar ul {
+  list-style: none;
+  padding: 0;
 }
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 0;
+#sidebar li {
+  margin: 15px 0;
 }
-
-select, .logout {
-  padding: 8px;
-  border-radius: 8px;
+#sidebar button {
+  width: 100%;
+  background: #007bff;
   border: none;
-  background: #ede7f6;
+  padding: 10px;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#sidebar button:hover {
+  background: #0056b3;
 }
 
-.student-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #ddd;
+/* Container */
+.container {
+  flex-grow: 1;
+  background: white;
+  margin: 20px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+body.dark .container {
+  background: #2a2a3c;
+}
+
+/* Inputs & Buttons */
+input, select, button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+button:hover {
+  background: #0056b3;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+th {
+  background: #007bff;
+  color: white;
+}
+body.dark th {
+  background: #444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    height: auto;
+  }
 }

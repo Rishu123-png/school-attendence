@@ -98,17 +98,17 @@ opt.value = c; opt.textContent = c;
 classSelect.appendChild(opt);
 });
 
-// gather unique subjects across classes
-if (!subjectSelect) return;
-const subjSet = new Set();
-classes.forEach(c => {
-Object.keys(studentsData[c] || {}).forEach(s => subjSet.add(s));
-});
-subjectSelect.innerHTML = <option value="">Select Subject</option>;
-Array.from(subjSet).sort().forEach(s => {
-const opt = document.createElement("option");
-opt.value = s; opt.textContent = s;
-subjectSelect.appendChild(opt);
+// gather unique subjects across classes    
+if (!subjectSelect) return;    
+const subjSet = new Set();    
+classes.forEach(c => {    
+  Object.keys(studentsData[c] || {}).forEach(s => subjSet.add(s));    
+});    
+subjectSelect.innerHTML = `<option value="">Select Subject</option>`;    
+Array.from(subjSet).sort().forEach(s => {    
+  const opt = document.createElement("option");    
+  opt.value = s; opt.textContent = s;    
+  subjectSelect.appendChild(opt);    
 });
 
 }
@@ -160,24 +160,31 @@ updateSaveButtonState();
 return;
 }
 
-const list = (studentsData[className] && studentsData[className][subjectName]) ? [...studentsData[className][subjectName]] : [];
-list.sort((a,b)=> a.localeCompare(b, undefined, {sensitivity:'base'}));
+const list = (studentsData[className] && studentsData[className][subjectName]) ? [...studentsData[className][subjectName]] : [];    
+list.sort((a,b)=> a.localeCompare(b, undefined, {sensitivity:'base'}));    
 
-if (list.length === 0) {
-studentListContainer.innerHTML = <p class="msg">No students configured for ${className} / ${subjectName}.</p>;
-updateSaveButtonState();
-return;
-}
+if (list.length === 0) {    
+  studentListContainer.innerHTML = `<p class="msg">No students configured for ${className} / ${subjectName}.</p>`;    
+  updateSaveButtonState();    
+  return;    
+}    
 
-// For each student, create row with select. Disable selects if not teacher's subject
-list.forEach(student => {
-const div = document.createElement("div");
-div.className = "student-row";
-const selId = status-${escapeId(className)}-${escapeId(subjectName)}-${escapeId(student)};
-const disabledAttr = (teacherSubject && subjectName !== teacherSubject) ? "disabled" : "";
-div.innerHTML =        <span>${student}</span>       <div style="display:flex;gap:8px;align-items:center">       <select id="${selId}" ${disabledAttr}>       <option>Present</option>       <option>Absent</option>       </select>       </div>;
-studentListContainer.appendChild(div);
-});
+// For each student, create row with select. Disable selects if not teacher's subject    
+list.forEach(student => {    
+  const div = document.createElement("div");    
+  div.className = "student-row";    
+  const selId = `status-${escapeId(className)}-${escapeId(subjectName)}-${escapeId(student)}`;    
+  const disabledAttr = (teacherSubject && subjectName !== teacherSubject) ? "disabled" : "";    
+  div.innerHTML = `    
+    <span>${student}</span>    
+    <div style="display:flex;gap:8px;align-items:center">    
+      <select id="${selId}" ${disabledAttr}>    
+        <option>Present</option>    
+        <option>Absent</option>    
+      </select>    
+    </div>`;    
+  studentListContainer.appendChild(div);    
+});    
 
 updateSaveButtonState();
 
@@ -199,34 +206,34 @@ const className = classSelect.value;
 const subjectName = subjectSelect.value;
 if (!className || !subjectName) { alert("Select class and subject."); return; }
 
-// Enforce permission
-if (!teacherSubject || subjectName !== teacherSubject) {
-alert(You are not allowed to save attendance for "${subjectName}". You can save only for your subject: "${teacherSubject || 'N/A'}".);
-return;
-}
+// Enforce permission    
+if (!teacherSubject || subjectName !== teacherSubject) {    
+  alert(`You are not allowed to save attendance for "${subjectName}". You can save only for your subject: "${teacherSubject || 'N/A'}".`);    
+  return;    
+}    
 
-const rows = studentListContainer.querySelectorAll(".student-row");
-if (rows.length === 0) { alert("No students to save."); return; }
+const rows = studentListContainer.querySelectorAll(".student-row");    
+if (rows.length === 0) { alert("No students to save."); return; }    
 
-const date = new Date().toISOString().split("T")[0];
-const ts = new Date().toISOString();
+const date = new Date().toISOString().split("T")[0];    
+const ts = new Date().toISOString();    
 
-try {
-for (const row of rows) {
-const name = row.querySelector("span").innerText;
-const status = row.querySelector("select").value;
-await push(ref(db, attendance/${date}/${className}/${subjectName}), {
-student: name,
-status,
-teacher: currentUser.email,
-teacherUid,
-timestamp: ts
-});
-}
-alert("✅ Attendance saved for " + date);
-} catch (err) {
-console.error("save error", err);
-alert("Error saving attendance. See console for details.");
+try {    
+  for (const row of rows) {    
+    const name = row.querySelector("span").innerText;    
+    const status = row.querySelector("select").value;    
+    await push(ref(db, `attendance/${date}/${className}/${subjectName}`), {    
+      student: name,    
+      status,    
+      teacher: currentUser.email,    
+      teacherUid,    
+      timestamp: ts    
+    });    
+  }    
+  alert("✅ Attendance saved for " + date);    
+} catch (err) {    
+  console.error("save error", err);    
+  alert("Error saving attendance. See console for details.");    
 }
 
 });
@@ -238,47 +245,47 @@ async function loadHistoryForDate(dateStr) {
 historyTableBody.innerHTML = "";
 historyContainer.style.display = "none";
 
-if (!dateStr) { alert("Pick a date first."); return; }
+if (!dateStr) { alert("Pick a date first."); return; }    
 
-try {
-const snap = await get(ref(db, attendance/${dateStr}));
-if (!snap.exists()) { alert("No attendance records for " + dateStr); return; }
-const all = snap.val();
-const rows = [];
+try {    
+  const snap = await get(ref(db, `attendance/${dateStr}`));    
+  if (!snap.exists()) { alert("No attendance records for " + dateStr); return; }    
+  const all = snap.val();    
+  const rows = [];    
 
-const className = classSelect.value;
-const subjectName = subjectSelect.value;
+  const className = classSelect.value;    
+  const subjectName = subjectSelect.value;    
 
-if (className && subjectName) {
-const group = all[className]?.[subjectName] || null;
-if (!group) { alert("No records for that class & subject on " + dateStr); return; }
-for (const id of Object.keys(group)) {
-const rec = group[id];
-rows.push({ date: dateStr, className, subjectName, ...rec });
-}
-} else {
-for (const cls of Object.keys(all)) {
-for (const subj of Object.keys(all[cls])) {
-for (const id of Object.keys(all[cls][subj])) {
-const rec = all[cls][subj][id];
-rows.push({ date: dateStr, className: cls, subjectName: subj, ...rec });
-}
-}
-}
-if (rows.length === 0) { alert("No records for " + dateStr); return; }
-}
+  if (className && subjectName) {    
+    const group = all[className]?.[subjectName] || null;    
+    if (!group) { alert("No records for that class & subject on " + dateStr); return; }    
+    for (const id of Object.keys(group)) {    
+      const rec = group[id];    
+      rows.push({ date: dateStr, className, subjectName, ...rec });    
+    }    
+  } else {    
+    for (const cls of Object.keys(all)) {    
+      for (const subj of Object.keys(all[cls])) {    
+        for (const id of Object.keys(all[cls][subj])) {    
+          const rec = all[cls][subj][id];    
+          rows.push({ date: dateStr, className: cls, subjectName: subj, ...rec });    
+        }    
+      }    
+    }    
+    if (rows.length === 0) { alert("No records for " + dateStr); return; }    
+  }    
 
-rows.forEach(r => {
-const tr = document.createElement("tr");
-tr.innerHTML = <td>${r.date}</td><td>${r.className}</td><td>${r.subjectName}</td><td>${r.student}</td><td>${r.status}</td><td>${r.teacher || r.teacherUid || ''}</td>;
-historyTableBody.appendChild(tr);
-});
+  rows.forEach(r => {    
+    const tr = document.createElement("tr");    
+    tr.innerHTML = `<td>${r.date}</td><td>${r.className}</td><td>${r.subjectName}</td><td>${r.student}</td><td>${r.status}</td><td>${r.teacher || r.teacherUid || ''}</td>`;    
+    historyTableBody.appendChild(tr);    
+  });    
 
-historyContainer.style.display = "block";
-historyContainer.scrollIntoView({ behavior: 'smooth' });
-} catch (err) {
-console.error("history load error", err);
-alert("Failed to load history. See console for details.");
+  historyContainer.style.display = "block";    
+  historyContainer.scrollIntoView({ behavior: 'smooth' });    
+} catch (err) {    
+  console.error("history load error", err);    
+  alert("Failed to load history. See console for details.");    
 }
 
 }
@@ -320,58 +327,58 @@ await signOut(auth);
 onAuthStateChanged(auth, async (user) => {
 currentUser = user || null;
 
-if (!user) {
-// Not logged in -> ensure login UI visible, dashboard hidden
-authLogin.style.display = "block";
-dashboard.style.display = "none";
-// clear sensitive UI
-studentListContainer.innerHTML = "";
-historyTableBody.innerHTML = "";
-historyContainer.style.display = "none";
-teacherProfile = null;
-teacherSubject = null;
-teacherUid = null;
-updateSaveButtonState();
-return;
-}
+if (!user) {    
+  // Not logged in -> ensure login UI visible, dashboard hidden    
+  authLogin.style.display = "block";    
+  dashboard.style.display = "none";    
+  // clear sensitive UI    
+  studentListContainer.innerHTML = "";    
+  historyTableBody.innerHTML = "";    
+  historyContainer.style.display = "none";    
+  teacherProfile = null;    
+  teacherSubject = null;    
+  teacherUid = null;    
+  updateSaveButtonState();    
+  return;    
+}    
 
-// user logged in -> fetch teacher profile from DB
-try {
-const snap = await get(ref(db, teachers/${user.uid}));
-teacherProfile = snap.exists() ? snap.val() : null;
-} catch (e) {
-console.warn("teacher profile read failed", e);
-teacherProfile = null;
-}
+// user logged in -> fetch teacher profile from DB    
+try {    
+  const snap = await get(ref(db, `teachers/${user.uid}`));    
+  teacherProfile = snap.exists() ? snap.val() : null;    
+} catch (e) {    
+  console.warn("teacher profile read failed", e);    
+  teacherProfile = null;    
+}    
 
-// If there is no teacher profile or no subject, deny access (admin must add teacher entry)
-if (!teacherProfile || !teacherProfile.subject) {
-alert("Access denied: your account is not registered as a teacher in the system. Please contact admin.");
-await signOut(auth);
-return;
-}
+// If there is no teacher profile or no subject, deny access (admin must add teacher entry)    
+if (!teacherProfile || !teacherProfile.subject) {    
+  alert("Access denied: your account is not registered as a teacher in the system. Please contact admin.");    
+  await signOut(auth);    
+  return;    
+}    
 
-teacherUid = user.uid;
-teacherSubject = teacherProfile.subject || null;
+teacherUid = user.uid;    
+teacherSubject = teacherProfile.subject || null;    
 
-// show dashboard and hide auth
-authLogin.style.display = "none";
-authSignup?.style.display = "none";
-dashboard.style.display = "block";
+// show dashboard and hide auth    
+authLogin.style.display = "none";    
+authSignup?.style.display = "none";    
+dashboard.style.display = "block";    
 
-// show header
-welcome.textContent = Welcome, ${teacherProfile.name || user.email};
-teacherMeta.textContent = ${teacherProfile.subject} • ${teacherProfile.class || ''};
-if (teacherProfile.photoURL) teacherAvatar.src = teacherProfile.photoURL;
+// show header    
+welcome.textContent = `Welcome, ${teacherProfile.name || user.email}`;    
+teacherMeta.textContent = `${teacherProfile.subject} • ${teacherProfile.class || ''}`;    
+if (teacherProfile.photoURL) teacherAvatar.src = teacherProfile.photoURL;    
 
-// ensure selects populated and auto-select teacher subject when available
-populateClassSubjectSelects();
-if (teacherSubject) {
-const opt = Array.from(subjectSelect.options).find(o => o.value === teacherSubject);
-if (opt) subjectSelect.value = teacherSubject;
-}
-// initial render
-renderStudentsFor(classSelect.value, subjectSelect.value);
+// ensure selects populated and auto-select teacher subject when available    
+populateClassSubjectSelects();    
+if (teacherSubject) {    
+  const opt = Array.from(subjectSelect.options).find(o => o.value === teacherSubject);    
+  if (opt) subjectSelect.value = teacherSubject;    
+}    
+// initial render    
+renderStudentsFor(classSelect.value, subjectSelect.value);    
 updateSaveButtonState();
 
 });

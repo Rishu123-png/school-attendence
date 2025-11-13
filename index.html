@@ -1,17 +1,14 @@
-      <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>School Attendance System</title>
 
-  <!-- Your aesthetic CSS (keep your current style.css or replace with the version you liked) -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Flatpickr for fancy calendar -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
   <style>
-    /* small inline tweak so date picker fits inside dashboard controls */
     .flatpickr-input {
       padding: 8px;
       border-radius: 8px;
@@ -34,27 +31,7 @@
       <input type="password" id="loginPassword" placeholder="Password" />
       <button id="loginBtn">Login</button>
       <p id="authMessage" class="msg"></p>
-      <p class="switch-text">Don’t have an account? <a href="#" id="showSignup">Create one</a></p>
-    </div>
-
-    <!-- Signup -->
-    <div id="authSignup" class="auth-box" style="display:none;">
-      <h2>Create Teacher Account</h2>
-      <p class="subtitle">Register (email/password)</p>
-
-      <div class="avatar-container">
-        <img id="avatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" />
-        <input type="file" id="avatarUpload" accept="image/*" />
-      </div>
-
-      <input type="text" id="fullName" placeholder="Full Name" />
-      <input type="email" id="signupEmail" placeholder="Email" />
-      <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" />
-      <input type="text" id="signupClass" placeholder="Class you teach (e.g. 11A)" />
-      <input type="text" id="signupSubject" placeholder="Subject you teach (e.g. AI)" />
-      <button id="signupBtn">Create Account</button>
-      <p id="signupMessage" class="msg"></p>
-      <p class="switch-text">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+      <!-- Removed "create account" link -->
     </div>
   </div>
 
@@ -114,21 +91,13 @@
   <!-- include flatpickr -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-  <!-- Firebase + app scripts (floating-orbs.js removed) -->
+  <!-- Firebase + app scripts -->
   <script type="module" src="firebase.js"></script>
   <script type="module" src="students.js"></script>
   <script type="module" src="script.js"></script>
 
-  <!-- small avatar preview for signup -->
-  <script>
-    const av = document.getElementById('avatarUpload');
-    av?.addEventListener('change', e => {
-      const f = e.target.files[0];
-      if (f) document.getElementById('avatarPreview').src = URL.createObjectURL(f);
-    });
-  </script>
-      <footer class="footer">
-  🌐 Developed with 💜 by <strong>Rishu Jaswar</strong>
-      </footer>
+  <footer class="footer">
+    🌐 Developed with 💜 by <strong>Rishu Jaswar</strong>
+  </footer>
 </body>
 </html>

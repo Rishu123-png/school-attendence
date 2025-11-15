@@ -1,83 +1,102 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>School Attendance System</title>    <link rel="stylesheet" href="style.css" />  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">    <style>  
-    .flatpickr-input {  
-      padding: 8px;  
-      border-radius: 8px;  
-      border: none;  
-      background: rgba(255,255,255,0.06);  
-      color: #fff;  
-    }  
-    .calendar-wrapper { display:flex; gap:8px; align-items:center; }  
-    .calendar-label { color: #cfe6ff; font-size: 13px; }  
-  </style>  </head>  
-<body>  
-  <!-- Authentication -->  
-  <div id="authContainer" class="auth-card">  
-    <!-- Login -->  
-    <div id="authLogin" class="auth-box">  
-      <h2>Teacher Login</h2>  
-      <p class="subtitle">Sign in with your school account</p>  
-      <input type="email" id="loginEmail" placeholder="Email" />  
-      <input type="password" id="loginPassword" placeholder="Password" />  
-      <button id="loginBtn">Login</button>  
-      <p id="authMessage" class="msg"></p>  
-      <!-- Removed "create account" link -->  
-    </div>  
-  </div>    <!-- Dashboard -->    <div id="dashboard" class="dashboard" style="display:none;">  
-    <header>  
-      <div class="teacher-header">  
-        <img id="teacherAvatar" class="teacher-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" />  
-        <div>  
-          <h1 id="welcome">Welcome</h1>  
-          <p id="teacherMeta"></p>  
-        </div>  
-      </div>  
-      <button id="logoutBtn" class="logout">Logout</button>  
-    </header>  <div class="controls">  
-  <div class="field">  
-    <label class="calendar-label">Select date for history</label>  
-    <div class="calendar-wrapper">  
-      <input id="historyDate" class="flatpickr" placeholder="Pick a date" readonly />  
-      <button id="loadDate" class="btn">Load</button>  
-    </div>  
-  </div>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School Attendance System</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    .flatpickr-input {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+    .calendar-wrapper { display:flex; gap:8px; align-items:center; }
+    .calendar-label { color: #cfe6ff; font-size: 13px; }
+    .msg { color: #ffdddd; margin-top: 5px; }
+    .student-row { display:flex; justify-content: space-between; align-items:center; margin:5px 0; }
+    .btn { padding: 5px 10px; border-radius: 6px; cursor:pointer; }
+    .logout { float:right; }
+  </style>
+</head>
+<body>
 
-  <div class="field">  
-    <label>Class</label>  
-    <select id="classSelect"><option value="">Select Class</option></select>  
-  </div>  
+  <!-- Authentication -->
+  <div id="authContainer" class="auth-card">
+    <div id="authLogin" class="auth-box">
+      <h2>Teacher Login</h2>
+      <p class="subtitle">Sign in with your school account</p>
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <p id="authMessage" class="msg"></p>
+    </div>
+  </div>
 
-  <div class="field">  
-    <label>Subject</label>  
-    <select id="subjectSelect"><option value="">Select Subject</option></select>  
-  </div>  
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard" style="display:none;">
+    <header>
+      <div class="teacher-header">
+        <img id="teacherAvatar" class="teacher-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" />
+        <div>
+          <h1 id="welcome">Welcome</h1>
+          <p id="teacherMeta"></p>
+        </div>
+      </div>
+      <button id="logoutBtn" class="logout">Logout</button>
+    </header>
 
-  <div class="actions">  
-    <button id="saveAll">Save Attendance</button>  
-    <button id="viewHistory">View History (today)</button>  
-  </div>  
-</div>  
+    <div class="controls">
+      <div class="field">
+        <label class="calendar-label">Select date for history</label>
+        <div class="calendar-wrapper">
+          <input id="historyDate" class="flatpickr" placeholder="Pick a date" readonly />
+          <button id="loadDate" class="btn">Load</button>
+        </div>
+      </div>
 
-<div id="studentListContainer" class="student-list"></div>  
+      <div class="field">
+        <label>Class</label>
+        <select id="classSelect"><option value="">Select Class</option></select>
+      </div>
 
-<div id="historyContainer" style="display:none;">  
-  <h3>Attendance History</h3>  
-  <table id="historyTable">  
-    <thead>  
-      <tr>  
-        <th>Date</th><th>Class</th><th>Subject</th><th>Student</th><th>Status</th><th>Teacher</th>  
-      </tr>  
-    </thead>  
-    <tbody id="historyTableBody"></tbody>  
-  </table>  
-</div>
+      <div class="field">
+        <label>Subject</label>
+        <select id="subjectSelect"><option value="">Select Subject</option></select>
+      </div>
 
-  </div>    <!-- include flatpickr -->    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>    <!-- Firebase + app scripts -->    <script type="module" src="firebase.js"></script>    <script type="module" src="students.js"></script>    <script type="module" src="script.js"></script>    <footer class="footer">  
-    🌐 Developed with 💜 by <strong>Rishu Jaswar</strong>  
-  </footer>  
-</body>  
+      <div class="actions">
+        <button id="saveAll">Save Attendance</button>
+        <button id="viewHistory">View History (today)</button>
+      </div>
+    </div>
+
+    <div id="studentListContainer" class="student-list"></div>
+
+    <div id="historyContainer" style="display:none;">
+      <h3>Attendance History</h3>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th><th>Class</th><th>Subject</th><th>Student</th><th>Status</th><th>Teacher</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="students.js"></script>
+  <script type="module" src="script.js"></script>
+
+  <footer class="footer">
+    🌐 Developed with 💜 by <strong>Rishu Jaswar</strong>
+  </footer>
+</body>
 </html>

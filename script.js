@@ -1,367 +1,281 @@
-// ============================================================  
-//  School Attendance System - script.js (FINAL FIXED v2)  
-//  Description: Handles Firebase authentication, attendance saving,  
-//               viewing (day-wise), and teacher dashboard control.  
-//               Signup is disabled — only Firebase-created teachers  
-//               can log in.  
-//  Author: Rishu Jaswar  
-// ============================================================  
+// ======================= Firebase Setup =======================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getDatabase, ref, set, push, get, child, update, remove, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-import { app } from "./firebase.js";  
-import { studentsData } from "./students.js";  
+// Replace with your Firebase config
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_BUCKET",
+    messagingSenderId: "YOUR_MSG_ID",
+    appId: "YOUR_APP_ID"
+};
 
-import {  
-  getAuth,  
-  signInWithEmailAndPassword,  
-  signOut,  
-  onAuthStateChanged,  
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";  
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getDatabase();
 
-import {  
-  getDatabase,  
-  ref,  
-  get,  
-  push,  
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";  
+// ======================= Global Variables =======================
+let currentTeacher = null;
+let allStudents = {};
+let selectedStudentId = null;
 
-window.addEventListener("DOMContentLoaded", () => {  
-  const auth = getAuth(app);  
-  const db = getDatabase(app);  
+// ======================= Login/Signup =========================
+window.signup = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-  // UI elements  
-  const authLogin = document.getElementById("authLogin");  
-  const authSignup = document.getElementById("authSignup");  
-  const showSignup = document.getElementById("showSignup");  
-  const showLogin = document.getElementById("showLogin");  
-  const loginEmail = document.getElementById("loginEmail");  
-  const loginPassword = document.getElementById("loginPassword");  
-  const loginBtn = document.getElementById("loginBtn");  
-  const authMessage = document.getElementById("authMessage");  
-  const signupBtn = document.getElementById("signupBtn");  
-  const signupMessage = document.getElementById("signupMessage");  
-  const dashboard = document.getElementById("dashboard");  
-  const welcome = document.getElementById("welcome");  
-  const teacherMeta = document.getElementById("teacherMeta");  
-  const teacherAvatar = document.getElementById("teacherAvatar");  
-  const logoutBtn = document.getElementById("logoutBtn");  
-  const classSelect = document.getElementById("classSelect");  
-  const subjectSelect = document.getElementById("subjectSelect");  
-  const studentListContainer = document.getElementById("studentListContainer");  
-  const saveAll = document.getElementById("saveAll");  
-  const viewHistory = document.getElementById("viewHistory");  
-  const historyContainer = document.getElementById("historyContainer");  
-  const historyTableBody = document.getElementById("historyTableBody");  
-  const historyDateInput = document.getElementById("historyDate");  
-  const loadDate = document.getElementById("loadDate");  
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            const uid = userCredential.user.uid;
+            // Save teacher in DB
+            set(ref(db, 'teachers/' + uid), {
+                email: email,
+                name: "",
+                subjects: []
+            });
+            alert("Signup successful! Please enter your name & subject in dashboard.");
+        })
+        .catch((error) => alert(error.message));
+}
 
-  // Local state  
-  let currentUser = null;  
-  let teacherProfile = null;  
-  let teacherSubject = null;  
-  let teacherUid = null;  
+window.login = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-  // Hide signup & restrict creation  
-  if (authSignup) authSignup.style.display = "none";  
-  if (showSignup) showSignup.style.display = "none";  
-  if (signupBtn) signupBtn.disabled = true;  
-  if (signupMessage)  
-    signupMessage.textContent =  
-      "Account creation is disabled. Only admin-created teachers can log in.";  
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            currentTeacher = userCredential.user;
+            document.getElementById("loginDiv").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+            loadTeacherInfo();
+        })
+        .catch((error) => alert(error.message));
+}
 
-  dashboard.style.display = "none";  
-  if (authLogin) authLogin.style.display = "block";  
+window.logout = function() {
+    signOut(auth).then(() => {
+        currentTeacher = null;
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginDiv").classList.remove("hidden");
+    });
+}
 
-  // --- Populate dropdowns ---  
-  function populateClassSubjectSelects() {  
-    if (!classSelect) return;  
-    classSelect.innerHTML = `<option value="">Select Class</option>`;  
-    const classes = Object.keys(studentsData || {});  
-    classes.forEach((c) => {  
-      const opt = document.createElement("option");  
-      opt.value = c;  
-      opt.textContent = c;  
-      classSelect.appendChild(opt);  
-    });  
+// ======================= Load Teacher Info ======================
+function loadTeacherInfo() {
+    const teacherRef = ref(db, 'teachers/' + currentTeacher.uid);
+    onValue(teacherRef, (snapshot) => {
+        const data = snapshot.val();
+        document.getElementById("teacherName").innerText = data.name || "Teacher";
+        populateSubjectFilter(data.subjects || []);
+        loadStudents();
+    });
+}
 
-    if (!subjectSelect) return;  
-    const subjSet = new Set();  
-    classes.forEach((c) => {  
-      Object.keys(studentsData[c] || {}).forEach((s) => subjSet.add(s));  
-    });  
-    subjectSelect.innerHTML = `<option value="">Select Subject</option>`;  
-    Array.from(subjSet)  
-      .sort()  
-      .forEach((s) => {  
-        const opt = document.createElement("option");  
-        opt.value = s;  
-        opt.textContent = s;  
-        subjectSelect.appendChild(opt);  
-      });  
-  }  
-  populateClassSubjectSelects();  
+// ======================= Subject Filter =======================
+function populateSubjectFilter(subjects) {
+    const select = document.getElementById("subjectFilter");
+    select.innerHTML = "<option value='all'>All Subjects</option>";
+    subjects.forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub;
+        opt.innerText = sub;
+        select.appendChild(opt);
+    });
+}
 
-  // --- Fancy Calendar ---  
-  if (typeof flatpickr !== "undefined" && historyDateInput) {  
-    flatpickr(historyDateInput, {  
-      dateFormat: "Y-m-d",  
-      defaultDate: new Date(),  
-      allowInput: false,  
-    });  
-  }  
+// ======================= Load Students ========================
+function loadStudents() {
+    const subjectFilter = document.getElementById("subjectFilter").value;
+    const studentsRef = ref(db, 'students');
+    onValue(studentsRef, (snapshot) => {
+        allStudents = snapshot.val() || {};
+        displayStudents(subjectFilter);
+        displayBunkingReport();
+    });
+}
 
-  function escapeId(str) {  
-    return (str || "").replace(/\s+/g, "").replace(/[^A-Za-z0-9-]/g, "");  
-  }  
+// ======================= Display Students Table =================
+function displayStudents(filter) {
+    const table = document.getElementById("studentsTable");
+    table.innerHTML = `
+        <tr>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Subject</th>
+          <th>Attendance</th>
+          <th>Edit</th>
+          <th>Delete</th>
+        </tr>
+    `;
 
-  // --- Update save button ---  
-  function updateSaveButtonState() {  
-    if (!saveAll) return;  
-    if (!teacherSubject) {  
-      saveAll.disabled = true;  
-      saveAll.title = "Not authorized to save attendance";  
-      saveAll.style.opacity = "0.6";  
-    } else {  
-      const selectedSubject = subjectSelect?.value || "";  
-      if (selectedSubject && selectedSubject !== teacherSubject) {  
-        saveAll.disabled = true;  
-        saveAll.title = `You can only save attendance for your subject: ${teacherSubject}`;  
-        saveAll.style.opacity = "0.6";  
-      } else if (!selectedSubject) {  
-        saveAll.disabled = true;  
-        saveAll.title = "Select a subject to enable saving";  
-        saveAll.style.opacity = "0.6";  
-      } else {  
-        saveAll.disabled = false;  
-        saveAll.title = "Save attendance for displayed students";  
-        saveAll.style.opacity = "1";  
-      }  
-    }  
-  }  
+    for (let id in allStudents) {
+        const student = allStudents[id];
+        if (filter !== 'all' && student.subject !== filter) continue;
 
-  // --- Render student list ---  
-  function renderStudentsFor(className, subjectName) {  
-    studentListContainer.innerHTML = "";  
-    if (!className || !subjectName) {  
-      studentListContainer.innerHTML = `<p class="msg">Please select class and subject.</p>`;  
-      updateSaveButtonState();  
-      return;  
-    }  
+        const row = table.insertRow();
+        row.insertCell(0).innerText = student.name;
+        row.insertCell(1).innerText = student.class;
+        row.insertCell(2).innerText = student.subject;
 
-    const list =  
-      studentsData[className] && studentsData[className][subjectName]  
-        ? [...studentsData[className][subjectName]]  
-        : [];  
-    list.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));  
+        // Attendance count
+        const totalAbsent = Object.values(student.attendance || {}).filter(s => s === "absent").length;
+        row.insertCell(3).innerText = totalAbsent;
 
-    if (list.length === 0) {  
-      studentListContainer.innerHTML = `<p class="msg">No students found for ${className} / ${subjectName}.</p>`;  
-      updateSaveButtonState();  
-      return;  
-    }  
+        // Edit button
+        const editCell = row.insertCell(4);
+        const editBtn = document.createElement("button");
+        editBtn.innerText = "Edit";
+        if (student.teacher === currentTeacher.uid) {
+            editBtn.onclick = () => editStudentPrompt(id);
+        } else {
+            editBtn.disabled = true;
+        }
+        editCell.appendChild(editBtn);
 
-    list.forEach((student) => {  
-      const div = document.createElement("div");  
-      div.className = "student-row";  
-      const selId = `status-${escapeId(className)}-${escapeId(  
-        subjectName  
-      )}-${escapeId(student)}`;  
-      const disabledAttr =  
-        teacherSubject && subjectName !== teacherSubject ? "disabled" : "";  
-      div.innerHTML = `  
-        <span>${student}</span>  
-        <div style="display:flex;gap:8px;align-items:center">  
-          <select id="${selId}" ${disabledAttr}>  
-            <option>Present</option>  
-            <option>Absent</option>  
-          </select>  
-        </div>`;  
-      studentListContainer.appendChild(div);  
-    });  
+        // Delete button
+        const delCell = row.insertCell(5);
+        const delBtn = document.createElement("button");
+        delBtn.innerText = "Delete";
+        if (student.teacher === currentTeacher.uid) {
+            delBtn.onclick = () => deleteStudent(id);
+        } else {
+            delBtn.disabled = true;
+        }
+        delCell.appendChild(delBtn);
 
-    updateSaveButtonState();  
-  }  
+        // Click row to view calendar
+        row.onclick = () => openAttendanceModal(id);
+    }
+}
 
-  classSelect?.addEventListener("change", () =>  
-    renderStudentsFor(classSelect.value, subjectSelect.value)  
-  );  
-  subjectSelect?.addEventListener("change", () => {  
-    renderStudentsFor(classSelect.value, subjectSelect.value);  
-    updateSaveButtonState();  
-  });  
+// ======================= Add/Edit/Delete Students ==================
+window.addStudent = function() {
+    const name = document.getElementById("studentName").value;
+    const className = document.getElementById("studentClass").value;
+    const subject = document.getElementById("subjectFilter").value;
+    if (!name || !className || !subject) { alert("Enter all fields"); return; }
 
-  // --- Save Attendance ---  
-  saveAll?.addEventListener("click", async () => {  
-    if (!currentUser) {  
-      alert("Please login first.");  
-      return;  
-    }  
-    const className = classSelect.value;  
-    const subjectName = subjectSelect.value;  
-    if (!className || !subjectName) {  
-      alert("Select class and subject first.");  
-      return;  
-    }  
+    const newStudentRef = push(ref(db, 'students'));
+    set(newStudentRef, {
+        name: name,
+        class: className,
+        subject: subject,
+        teacher: currentTeacher.uid,
+        attendance: {}
+    });
+    document.getElementById("studentName").value = "";
+    document.getElementById("studentClass").value = "";
+}
 
-    if (!teacherSubject || subjectName !== teacherSubject) {  
-      alert(  
-        `You are not allowed to save attendance for "${subjectName}". You can only save for "${teacherSubject}".`  
-      );  
-      return;  
-    }  
+function editStudentPrompt(id) {
+    const newName = prompt("Enter new name:", allStudents[id].name);
+    if (!newName) return;
+    update(ref(db, 'students/' + id), { name: newName });
+}
 
-    const rows = studentListContainer.querySelectorAll(".student-row");  
-    if (rows.length === 0) {  
-      alert("No students found to save.");  
-      return;  
-    }  
+function deleteStudent(id) {
+    if (!confirm("Delete this student?")) return;
+    remove(ref(db, 'students/' + id));
+}
 
-    const date = new Date().toISOString().split("T")[0];  
-    const ts = new Date().toISOString();  
+// ======================= Bunking Report =========================
+function displayBunkingReport() {
+    const table = document.getElementById("bunkingTable");
+    table.innerHTML = `
+        <tr>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Subject</th>
+          <th>Absences</th>
+        </tr>
+    `;
+    const bunkers = [];
+    for (let id in allStudents) {
+        const student = allStudents[id];
+        const totalAbsent = Object.values(student.attendance || {}).filter(s => s === "absent").length;
+        if (totalAbsent > 0) bunkers.push({ ...student, totalAbsent });
 
-    try {  
-      for (const row of rows) {  
-        const name = row.querySelector("span").innerText;  
-        const status = row.querySelector("select").value;  
-        await push(ref(db, `attendance/${date}/${className}/${subjectName}`), {  
-          student: name,  
-          status,  
-          teacher: currentUser.email,  
-          teacherUid,  
-          timestamp: ts,  
-        });  
-      }  
-      alert("✅ Attendance saved successfully for " + date);  
-    } catch (err) {  
-      console.error("Save error:", err);  
-      alert("Error saving attendance. Check console for details.");  
-    }  
-  });  
+    }
+    // Sort by most absent
+    bunkers.sort((a, b) => b.totalAbsent - a.totalAbsent);
 
-  // --- View History ---  
-  async function loadHistoryForDate(dateStr) {  
-    historyTableBody.innerHTML = "";  
-    historyContainer.style.display = "none";  
-    if (!dateStr) {  
-      alert("Pick a date first.");  
-      return;  
-    }  
+    bunkers.forEach(student => {
+        const row = table.insertRow();
+        row.insertCell(0).innerText = student.name;
+        row.insertCell(1).innerText = student.class;
+        row.insertCell(2).innerText = student.subject;
+        const cell = row.insertCell(3);
+        cell.innerText = student.totalAbsent;
+        if (student.totalAbsent >= 3) {
+            cell.style.color = "red"; // highlight top bunkers
+        }
+    });
+}
 
-    try {  
-      const snap = await get(ref(db, `attendance/${dateStr}`));  
-      if (!snap.exists()) {  
-        alert("No attendance records for " + dateStr);  
-        return;  
-      }  
-      const all = snap.val();  
-      const rows = [];  
+// ======================= Attendance Modal ======================
+function openAttendanceModal(id) {
+    selectedStudentId = id;
+    const student = allStudents[id];
+    document.getElementById("modalStudentName").innerText = student.name;
+    document.getElementById("attendanceModal").classList.remove("hidden");
+    document.getElementById("modalOverlay").classList.remove("hidden");
+    loadAttendanceMonth();
+}
 
-      for (const cls of Object.keys(all)) {  
-        for (const subj of Object.keys(all[cls])) {  
-          for (const id of Object.keys(all[cls][subj])) {  
-            const rec = all[cls][subj][id];  
-            rows.push({  
-              date: dateStr,  
-              className: cls,  
-              subjectName: subj,  
-              ...rec,  
-            });  
-          }  
-        }  
-      }  
+window.closeModal = function() {
+    document.getElementById("attendanceModal").classList.add("hidden");
+    document.getElementById("modalOverlay").classList.add("hidden");
+}
 
-      rows.forEach((r) => {  
-        const tr = document.createElement("tr");  
-        tr.innerHTML = `<td>${r.date}</td><td>${r.className}</td><td>${r.subjectName}</td><td>${r.student}</td><td>${r.status}</td><td>${r.teacher}</td>`;  
-        historyTableBody.appendChild(tr);  
-      });  
+// ======================= Load Monthly Attendance =================
+window.loadAttendanceMonth = function() {
+    const month = document.getElementById("monthPicker").value; // format YYYY-MM
+    const table = document.getElementById("attendanceTable");
+    table.innerHTML = `<tr><th>Date</th><th>Status</th><th>Mark Present</th><th>Mark Absent</th></tr>`;
 
-      historyContainer.style.display = "block";  
-      historyContainer.scrollIntoView({ behavior: "smooth" });  
-    } catch (err) {  
-      console.error("History load error:", err);  
-      alert("Failed to load history. See console for details.");  
-    }  
-  }  
+    if (!selectedStudentId) return;
+    const student = allStudents[selectedStudentId];
+    const attendance = student.attendance || {};
 
-  viewHistory?.addEventListener("click", async () => {  
-    const today = new Date().toISOString().split("T")[0];  
-    await loadHistoryForDate(today);  
-  });  
+    for (let date in attendance) {
+        if (month && !date.startsWith(month)) continue;
+        const row = table.insertRow();
+        row.insertCell(0).innerText = date;
+        row.insertCell(1).innerText = attendance[date];
 
-  loadDate?.addEventListener("click", async () => {  
-    const dateStr = historyDateInput?.value;  
-    if (!dateStr) {  
-      alert("Pick date from calendar");  
-      return;  
-    }  
-    await loadHistoryForDate(dateStr);  
-  });  
+        const presentBtn = row.insertCell(2).appendChild(document.createElement("button"));
+        presentBtn.innerText = "Present";
+        presentBtn.onclick = () => markAttendance(date, "present");
 
-  // --- Login + Logout ---  
-  loginBtn?.addEventListener("click", async () => {  
-    authMessage.textContent = "";  
-    try {  
-      await signInWithEmailAndPassword(  
-        auth,  
-        loginEmail.value,  
-        loginPassword.value  
-      );  
-    } catch (err) {  
-      console.error("Login error:", err);  
-      authMessage.textContent = err.message || "Login failed.";  
-    }  
-  });  
+        const absentBtn = row.insertCell(3).appendChild(document.createElement("button"));
+        absentBtn.innerText = "Absent";
+        absentBtn.onclick = () => markAttendance(date, "absent");
+    }
+}
 
-  logoutBtn?.addEventListener("click", async () => {  
-    await signOut(auth);  
-  });  
+// ======================= Mark Attendance ======================
+function markAttendance(date, status) {
+    if (!selectedStudentId) return;
+    const path = 'students/' + selectedStudentId + '/attendance/' + date;
+    set(ref(db, path), status);
+}
 
-  // --- Auth State ---  
-  onAuthStateChanged(auth, async (user) => {  
-    currentUser = user || null;  
+// ======================= Print Monthly Report ==================
+window.printReport = function() {
+    const printContents = document.getElementById("attendanceModal").innerHTML;
+    const w = window.open("", "", "width=800,height=600");
+    w.document.write(printContents);
+    w.document.close();
+    w.print();
+}
 
-    if (!user) {  
-      authLogin.style.display = "block";  
-      dashboard.style.display = "none";  
-      teacherProfile = null;  
-      teacherSubject = null;  
-      teacherUid = null;  
-      updateSaveButtonState();  
-      return;  
-    }  
-
-    try {  
-      // ✅ FIXED PART BELOW  
-      const teacherRef = ref(db, "teachers/" + user.uid);  
-      const snap = await get(teacherRef);  
-      teacherProfile = snap.exists() ? snap.val() : null;  
-    } catch (e) {  
-      console.warn("Teacher profile read failed:", e);  
-      teacherProfile = null;  
-    }  
-
-    if (!teacherProfile || !teacherProfile.subject) {  
-      alert(  
-        "Access denied: your account is not registered as a teacher in the system."  
-      );  
-      await signOut(auth);  
-      return;  
-    }  
-
-    teacherUid = user.uid;  
-    teacherSubject = teacherProfile.subject || null;  
-
-    authLogin.style.display = "none";  
-    dashboard.style.display = "block";  
-
-    welcome.textContent = `Welcome, ${teacherProfile.name || user.email}`;  
-    teacherMeta.textContent = `${teacherProfile.subject} • ${  
-      teacherProfile.class || ""  
-    }`;  
-    if (teacherProfile.photoURL) teacherAvatar.src = teacherProfile.photoURL;  
-
-    populateClassSubjectSelects();  
-    if (teacherSubject) subjectSelect.value = teacherSubject;  
-    renderStudentsFor(classSelect.value, subjectSelect.value);  
-    updateSaveButtonState();  
-  });
+// ======================= Tabs ================================
+window.showTab = function(tabId) {
+    document.getElementById("studentsTab").classList.add("hidden");
+    document.getElementById("bunkingTab").classList.add("hidden");
+    document.getElementById(tabId).classList.remove("hidden");
+}

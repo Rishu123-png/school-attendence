@@ -1,105 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>School Attendance System</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <style>
-    .flatpickr-input {
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      background: rgba(255,255,255,0.06);
-      color: #fff;
-    }
-    .calendar-wrapper { display:flex; gap:8px; align-items:center; }
-    .calendar-label { color: #cfe6ff; font-size: 13px; }
-    .msg { color: #ffdddd; margin-top: 5px; }
-    .student-row { display:flex; justify-content: space-between; align-items:center; margin:5px 0; }
-    .btn { padding: 5px 10px; border-radius: 6px; cursor:pointer; }
-    .logout { float:right; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="script.js"></script>
 </head>
 <body>
 
-  <!-- Authentication -->
-  <div id="authContainer" class="auth-card">
-    <div id="authLogin" class="auth-box">
-      <h2>Teacher Login</h2>
-      <p class="subtitle">Sign in with your school account</p>
-      <input type="email" id="loginEmail" placeholder="Email" />
-      <input type="password" id="loginPassword" placeholder="Password" />
-      <button id="loginBtn">Login</button>
-      <p id="authMessage" class="msg"></p>
-    </div>
+<h1>School Attendance System</h1>
+
+<!-- Login/Signup -->
+<div id="loginDiv">
+  <h2>Teacher Login / Signup</h2>
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="password" id="password" placeholder="Password"><br><br>
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden">
+  <h2>Welcome <span id="teacherName"></span></h2>
+  <button onclick="logout()">Logout</button>
+  <hr>
+
+  <h3>Filter by Subject</h3>
+  <select id="subjectFilter" onchange="loadStudents()">
+    <option value="all">All Subjects</option>
+  </select>
+
+  <!-- Tabs -->
+  <div id="tabs">
+    <button onclick="showTab('studentsTab')">Students</button>
+    <button onclick="showTab('bunkingTab')">Bunking Report</button>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" class="dashboard" style="display:none;">
-    <header>
-      <div class="teacher-header">
-        <img id="teacherAvatar" class="teacher-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" />
-        <div>
-          <h1 id="welcome">Welcome</h1>
-          <p id="teacherMeta"></p>
-        </div>
-      </div>
-      <button id="logoutBtn" class="logout">Logout</button>
-    </header>
+  <!-- Students Tab -->
+  <div id="studentsTab" class="tabContent">
+    <h3>Add Student</h3>
+    <input type="text" id="studentName" placeholder="Student Name">
+    <input type="text" id="studentClass" placeholder="Class">
+    <button onclick="addStudent()">Add Student</button>
 
-    <div class="controls">
-      <div class="field">
-        <label class="calendar-label">Select date for history</label>
-        <div class="calendar-wrapper">
-          <input id="historyDate" class="flatpickr" placeholder="Pick a date" readonly />
-          <button id="loadDate" class="btn">Load</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Class</label>
-        <select id="classSelect"><option value="">Select Class</option></select>
-      </div>
-
-      <div class="field">
-        <label>Subject</label>
-        <select id="subjectSelect"><option value="">Select Subject</option></select>
-      </div>
-
-      <div class="actions">
-        <button id="saveAll">Save Attendance</button>
-        <button id="viewHistory">View History (today)</button>
-      </div>
-    </div>
-
-    <div id="studentListContainer" class="student-list"></div>
-
-    <div id="historyContainer" style="display:none;">
-      <h3>Attendance History</h3>
-      <table id="historyTable">
-        <thead>
-          <tr>
-            <th>Date</th><th>Class</th><th>Subject</th><th>Student</th><th>Status</th><th>Teacher</th>
-          </tr>
-        </thead>
-        <tbody id="historyTableBody"></tbody>
-      </table>
-    </div>
-
+    <h3>Students</h3>
+    <table id="studentsTable">
+      <tr>
+        <th>Name</th>
+        <th>Class</th>
+        <th>Subject</th>
+        <th>Attendance</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </tr>
+    </table>
   </div>
 
-  <!-- Flatpickr is still fine via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Bunking Report Tab -->
+  <div id="bunkingTab" class="tabContent hidden">
+    <h3>Bunking Report</h3>
+    <table id="bunkingTable">
+      <tr>
+        <th>Name</th>
+        <th>Class</th>
+        <th>Subject</th>
+        <th>Absences</th>
+      </tr>
+    </table>
+  </div>
+</div>
 
-  <!-- NPM Firebase + project scripts -->
-  <script type="module" src="./firebase.js"></script>
-  <script type="module" src="./students.js"></script>
-  <script type="module" src="./script.js"></script>
+<!-- Attendance Modal -->
+<div id="attendanceModal" class="hidden">
+  <h3>Attendance History for <span id="modalStudentName"></span></h3>
+  <input type="month" id="monthPicker" onchange="loadAttendanceMonth()">
+  <table id="attendanceTable">
+    <tr>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Mark Present</th>
+      <th>Mark Absent</th>
+    </tr>
+  </table>
+  <h3>Calendar View</h3>
+  <div id="calendarContainer"></div>
+  <button onclick="printReport()">Print Report</button>
+  <button onclick="closeModal()">Close</button>
+</div>
+<div id="modalOverlay" class="hidden"></div>
 
-  <footer class="footer">
-    🌐 Developed with 💜 by <strong>Rishu Jaswar</strong>
-  </footer>
+<!-- Footer -->
+<footer style="margin-top:50px; text-align:center; color:#555;">
+  Developed by Rishu Jaswar
+</footer>
+
 </body>
 </html>

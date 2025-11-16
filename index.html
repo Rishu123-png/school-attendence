@@ -11,67 +11,65 @@
 <!-- ======================= LOGIN PAGE ======================= -->
 <div id="loginPage" class="auth-card">
     <h2>Teacher Login / Signup</h2>
-    <input type="email" id="email" placeholder="Email"><br><br>
-    <input type="password" id="password" placeholder="Password"><br><br>
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
     <button onclick="signup()">Sign Up</button>
 </div>
 
 <!-- ======================= DASHBOARD PAGE ======================= -->
-<div id="dashboardPage" class="hidden">
-    <div class="dashboard">
-        <div class="teacher-header">
-            <h2>Welcome <span id="teacherName"></span></h2>
-            <button onclick="logout()">Logout</button>
-        </div>
+<div id="dashboardPage" class="hidden dashboard">
+    <div class="teacher-header">
+        <h2>Welcome <span id="teacherName"></span></h2>
+        <button onclick="logout()">Logout</button>
+    </div>
 
-        <hr>
+    <hr>
 
-        <!-- Subject Filter -->
-        <div class="controls">
-            <label>Filter by Subject:</label>
-            <select id="subjectFilter" onchange="loadStudents()"></select>
-        </div>
+    <!-- Subject Filter -->
+    <div class="controls">
+        <label>Filter by Subject:</label>
+        <select id="subjectFilter" onchange="loadStudents()"></select>
+    </div>
 
-        <!-- Tabs -->
-        <div id="tabs">
-            <button onclick="showTab('studentsTab')">Students</button>
-            <button onclick="showTab('bunkingTab')">Top Bunkers</button>
-        </div>
+    <!-- Tabs -->
+    <div id="tabs">
+        <button onclick="showTab('studentsTab')">Students</button>
+        <button onclick="showTab('bunkingTab')">Top Bunkers</button>
+    </div>
 
-        <!-- ======================= STUDENTS TAB ======================= -->
-        <div id="studentsTab" class="tabContent">
-            <h3>Add Student</h3>
-            <input type="text" id="studentName" placeholder="Student Name">
-            <input type="text" id="studentClass" placeholder="Class">
-            <select id="subjectFilterAdd"></select>
-            <button onclick="addStudent()">Add Student</button>
+    <!-- ======================= STUDENTS TAB ======================= -->
+    <div id="studentsTab" class="tabContent">
+        <h3>Add Student</h3>
+        <input type="text" id="studentName" placeholder="Student Name">
+        <input type="text" id="studentClass" placeholder="Class">
+        <select id="subjectFilterAdd"></select>
+        <button onclick="addStudent()">Add Student</button>
 
-            <h3>Student List</h3>
-            <table id="studentsTable">
-                <tr>
-                    <th>Name</th>
-                    <th>Class</th>
-                    <th>Subject</th>
-                    <th>Absences</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
-                </tr>
-            </table>
-        </div>
+        <h3>Student List</h3>
+        <table id="studentsTable">
+            <tr>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Absences</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </table>
+    </div>
 
-        <!-- ======================= BUNKERS TAB ======================= -->
-        <div id="bunkingTab" class="tabContent hidden">
-            <h3>Top Bunkers</h3>
-            <table id="bunkingTable">
-                <tr>
-                    <th>Name</th>
-                    <th>Class</th>
-                    <th>Subject</th>
-                    <th>Absences</th>
-                </tr>
-            </table>
-        </div>
+    <!-- ======================= BUNKERS TAB ======================= -->
+    <div id="bunkingTab" class="tabContent hidden">
+        <h3>Top Bunkers</h3>
+        <table id="bunkingTable">
+            <tr>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Absences</th>
+            </tr>
+        </table>
     </div>
 </div>
 
@@ -92,19 +90,17 @@
     </table>
 
     <h4>Calendar View</h4>
-    <div id="calendarContainer" style="display:flex; flex-wrap:wrap;"></div>
+    <div id="calendarContainer"></div>
 
     <button onclick="printReport()">Print Monthly Report</button>
     <button onclick="closeModal()">Close</button>
 </div>
 
 <!-- ======================= MODAL OVERLAY ======================= -->
-<div id="modalOverlay" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);"></div>
+<div id="modalOverlay" class="hidden"></div>
 
 <!-- ======================= FOOTER ======================= -->
-<footer style="text-align:center; margin-top:20px; color:#ccc;">
-    Developed by Rishu Jaswar
-</footer>
+<footer>Developed by Rishu Jaswar</footer>
 
 </body>
 </html>

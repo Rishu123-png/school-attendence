@@ -1,47 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Add Students</title>
-<link rel="stylesheet" href="style.css">
-<script type="module" src="script.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Add Student</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body onload="loadTeacherProfile()">
+<body onload="initAddStudentsPage()">
+  <div class="container">
+    <div class="row" style="justify-content:space-between;">
+      <h2>Add Student</h2>
+      <button class="small-btn" onclick="logout()">Logout</button>
+    </div>
 
-<div class="container">
-  <h2>Add Student</h2>
-  <p>Subject: <span id="teacherSubjectAdd"></span></p>
-  
-  <label>Class:</label>
-  <select id="classSelectAdd"></select>
-  
-  <input type="text" id="studentName" placeholder="Student Name">
-  <button onclick="addStudent()">Add Student</button>
-  
-  <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
-  <button onclick="logout()">Logout</button>
-</div>
+    <label>Subject</label>
+    <div id="teacherSubjectAdd" style="margin-bottom:8px;color:var(--muted)"></div>
 
-<script>
-  // Populate class dropdown
-  const classSelectAdd = document.getElementById('classSelectAdd');
-  onValue(ref(db, 'teachers/' + currentTeacher.uid + '/classes'), snapshot => {
-    classSelectAdd.innerHTML = "";
-    const classes = snapshot.val();
-    for (let key in classes) {
-      const opt = document.createElement('option');
-      opt.value = classes[key];
-      opt.innerText = classes[key];
-      classSelectAdd.appendChild(opt);
-    }
-  });
-  
-  // Set subject
-  onValue(ref(db, 'teachers/' + currentTeacher.uid + '/subject'), snapshot => {
-    document.getElementById('teacherSubjectAdd').innerText = snapshot.val();
-  });
-</script>
+    <label for="classSelectAdd">Class</label>
+    <select id="classSelectAdd"></select>
 
+    <label for="studentName">Student Name</label>
+    <input id="studentName" type="text" placeholder="Student Name">
+
+    <button onclick="addStudent()">Save Student</button>
+    <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+
+    <p class="footer">Developed by Rishu Jaswar</p>
+  </div>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

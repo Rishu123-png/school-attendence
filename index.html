@@ -3,85 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Attendance System</title>
+<title>Login - School Attendance</title>
 <link rel="stylesheet" href="style.css">
 <script type="module" src="script.js"></script>
 </head>
 <body>
-
-<!-- ================= LOGIN PAGE ================= -->
-<div id="loginPage" class="page">
+<div class="container">
   <h2>Teacher Login</h2>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Password"><br>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
-
-<!-- ================= DASHBOARD PAGE ================= -->
-<div id="dashboardPage" class="page hidden">
-  <h2>Welcome <span id="teacherName"></span></h2>
-  <p>Subject: <span id="teacherSubject"></span></p>
-  
-  <label>Select Class:</label>
-  <select id="classFilter" onchange="loadStudents()"></select><br>
-
-  <div class="dashboard-buttons">
-    <button onclick="showAddStudentPage()">Add Student</button>
-    <button onclick="showAttendancePage()">Mark Attendance</button>
-    <button onclick="showTopBunkers()">Top Bunkers</button>
-  </div>
-  
-  <button id="logoutBtn" onclick="logout()">Logout</button>
-</div>
-
-<!-- ================= ADD STUDENT PAGE ================= -->
-<div id="addStudentPage" class="page hidden">
-  <h2>Add Student</h2>
-  <p>Class: <span id="addStudentClass"></span></p>
-  <p>Subject: <span id="addStudentSubject"></span></p>
-  <input type="text" id="studentName" placeholder="Student Name"><br>
-  <button onclick="addStudent()">Save Student</button>
-  <button onclick="backToDashboard()">Back</button>
-</div>
-
-<!-- ================= MARK ATTENDANCE PAGE ================= -->
-<div id="attendancePage" class="page hidden">
-  <h2>Mark Attendance - Class: <span id="attendanceClass"></span></h2>
-  <table id="attendanceTable">
-    <tr>
-      <th>Name</th>
-      <th>Present</th>
-      <th>Absent</th>
-      <th>History</th>
-    </tr>
-  </table>
-  <button onclick="backToDashboard()">Back</button>
-</div>
-
-<!-- ================= ATTENDANCE HISTORY MODAL ================= -->
-<div id="attendanceModal" class="modal hidden">
-  <h3>Attendance History for <span id="modalStudentName"></span></h3>
-  <input type="month" id="monthPicker" onchange="loadAttendanceMonth()"><br><br>
-  <table id="attendanceMonthTable">
-    <tr><th>Date</th><th>Status</th></tr>
-  </table>
-  <button onclick="printReport()">Print Report</button>
-  <button onclick="closeModal()">Close</button>
-</div>
-<div id="modalOverlay" class="modal-overlay hidden"></div>
-
-<!-- ================= TOP BUNKERS PAGE ================= -->
-<div id="bunkersPage" class="page hidden">
-  <h2>Top Bunkers</h2>
-  <table id="bunkersTable">
-    <tr>
-      <th>Name</th>
-      <th>Class</th>
-      <th>Absences</th>
-    </tr>
-  </table>
-  <button onclick="backToDashboard()">Back</button>
-</div>
-
 </body>
 </html>

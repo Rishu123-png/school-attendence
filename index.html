@@ -9,64 +9,55 @@
 </head>
 <body>
 
-<!-- Logout Button -->
-<button id="logoutBtn" onclick="logout()" class="logoutBtn" style="display:none;">Logout</button>
+<!-- ================= Logout Button ================= -->
+<button id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
 
-<!-- ===== Page 1: Login ===== -->
+<!-- ================= Login Page ================= -->
 <div id="loginPage" class="page">
   <h2>Teacher Login</h2>
   <input type="email" id="email" placeholder="Email"><br>
   <input type="password" id="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
-  <p id="loginMsg"></p>
+  <div id="loginMsg" class="msg"></div>
 </div>
 
-<!-- ===== Page 2: Dashboard ===== -->
+<!-- ================= Dashboard Page ================= -->
 <div id="dashboardPage" class="page hidden">
-  <h2>Welcome <span id="teacherName"></span></h2>
+  <h2>Welcome, <span id="teacherName"></span></h2>
   <p>Subject: <span id="teacherSubject"></span></p>
   
-  <h3>Select Class</h3>
-  <select id="classFilter" onchange="loadStudents()">
-    <option value="">Select Class</option>
-  </select>
-
-  <div class="buttons">
+  <label>Select Class:</label>
+  <select id="classFilter" onchange="loadStudents()"></select>
+  
+  <div class="dashboardButtons">
     <button onclick="showAddStudentForm()">Add Student</button>
     <button onclick="showMarkAttendance()">Mark Attendance</button>
     <button onclick="showTopBunkers()">Top Bunkers</button>
   </div>
-
-  <!-- Students Table -->
-  <div id="studentsTableDiv" class="hidden">
-    <h3>Students in Selected Class</h3>
-    <table id="studentsTable"></table>
-  </div>
 </div>
 
-<!-- ===== Page 3: Add Student ===== -->
+<!-- ================= Add Student Page ================= -->
 <div id="addStudentPage" class="page hidden">
-  <h3>Add Student</h3>
-  <p>Subject: <span id="addStudentSubject"></span></p>
+  <h2>Add Student</h2>
   <p>Class: <span id="addStudentClass"></span></p>
+  <p>Subject: <span id="addStudentSubject"></span></p>
   <input type="text" id="studentName" placeholder="Student Name">
   <button onclick="addStudent()">Save Student</button>
-  <button onclick="backToDashboard()">Cancel</button>
-</div>
-
-<!-- ===== Page 4: Attendance ===== -->
-<div id="attendancePage" class="page hidden">
-  <h3>Mark Attendance for <span id="attendanceClassName"></span></h3>
-  <table id="attendanceTable">
-    <tr><th>Name</th><th>Present</th><th>Absent</th></tr>
-  </table>
-  <button onclick="openAttendanceModal()">View / Print Attendance History</button>
   <button onclick="backToDashboard()">Back</button>
 </div>
 
-<!-- ===== Page 5: Attendance Modal ===== -->
-<div id="attendanceModal" class="modal hidden">
-  <h3>Attendance History for <span id="modalStudentName"></span></h3>
+<!-- ================= Attendance Page ================= -->
+<div id="attendancePage" class="page hidden">
+  <h2>Mark Attendance - Class: <span id="attendanceClassName"></span></h2>
+  <div id="studentsTableDiv">
+    <table id="attendanceTable"></table>
+  </div>
+  <button onclick="backToDashboard()">Back</button>
+</div>
+
+<!-- ================= Attendance History Modal ================= -->
+<div id="attendanceModal" class="hidden">
+  <h3>Attendance History - <span id="modalStudentName"></span></h3>
   <input type="month" id="monthPicker" onchange="loadAttendanceMonth()">
   <table id="attendanceMonthTable">
     <tr><th>Date</th><th>Status</th></tr>
@@ -74,11 +65,11 @@
   <button onclick="printReport()">Print Monthly Report</button>
   <button onclick="closeModal()">Close</button>
 </div>
-<div id="modalOverlay" class="overlay hidden"></div>
+<div id="modalOverlay" class="hidden"></div>
 
-<!-- ===== Page 6: Top Bunkers ===== -->
+<!-- ================= Bunkers Page ================= -->
 <div id="bunkersPage" class="page hidden">
-  <h3>Top Bunkers</h3>
+  <h2>Top Bunkers - Subject: <span id="teacherSubject"></span></h2>
   <table id="bunkingTable">
     <tr><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th></tr>
   </table>

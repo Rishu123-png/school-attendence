@@ -1,22 +1,7 @@
-// ======================= Firebase Setup =======================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getDatabase, ref, set, push, get, child, update, remove, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-// Replace with your Firebase config
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DB_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_BUCKET",
-    messagingSenderId: "YOUR_MSG_ID",
-    appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getDatabase();
+// ======================= Imports =======================
+import { auth, db } from './firebase.js';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { ref, set, push, get, child, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // ======================= Global Variables =======================
 let currentTeacher = null;
@@ -121,7 +106,6 @@ function displayStudents(filter) {
         row.insertCell(1).innerText = student.class;
         row.insertCell(2).innerText = student.subject;
 
-        // Attendance count
         const totalAbsent = Object.values(student.attendance || {}).filter(s => s === "absent").length;
         row.insertCell(3).innerText = totalAbsent;
 
@@ -198,8 +182,8 @@ function displayBunkingReport() {
         const student = allStudents[id];
         const totalAbsent = Object.values(student.attendance || {}).filter(s => s === "absent").length;
         if (totalAbsent > 0) bunkers.push({ ...student, totalAbsent });
-
     }
+
     // Sort by most absent
     bunkers.sort((a, b) => b.totalAbsent - a.totalAbsent);
 

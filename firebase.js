@@ -1,9 +1,8 @@
-// firebase.js (npm version)
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getDatabase } from "firebase/database";
+// firebase.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-// Your Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBSWzs19870cWmGxd9-kJsKOOs755jyuU0",
   authDomain: "school-attendence-system-9090.firebaseapp.com",
@@ -14,9 +13,6 @@ const firebaseConfig = {
   appId: "1:728832169882:web:b335869779e73ab8c20c23"
 };
 
-// Initialize Firebase app
 export const app = initializeApp(firebaseConfig);
-
-// Firebase services
 export const auth = getAuth(app);
 export const db = getDatabase(app);

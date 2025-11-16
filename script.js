@@ -1,15 +1,15 @@
-// ======================= Firebase Setup =======================
+// ================= Firebase Import =================
 import { auth, db } from './firebase.js';
 import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { ref, get, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { ref, set, push, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-// ======================= Global Variables =======================
+// ================= Global Variables =================
 let currentTeacher = null;
 let allStudents = {};
-let selectedStudentId = null;
 let selectedClass = null;
+let selectedStudentId = null;
 
-// ======================= LOGIN / LOGOUT =======================
+// ================= Login =================
 window.login = async function() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -19,168 +19,227 @@ window.login = async function() {
         document.getElementById("loginDiv").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
         loadTeacherInfo();
-    } catch(err) {
-        alert(err.message);
+    } catch (error) {
+        document.getElementById("loginMsg").innerText = error.message;
     }
 }
 
+// ================= Logout =================
 window.logout = function() {
-    signOut(auth);
-    currentTeacher = null;
-    document.getElementById("dashboard").classList.add("hidden");
-    document.getElementById("loginDiv").classList.remove("hidden");
+    signOut(auth).then(() => {
+        currentTeacher = null;
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginDiv").classList.remove("hidden");
+    });
 }
 
-// ======================= LOAD TEACHER =======================
+// ================= Load Teacher Info =================
 function loadTeacherInfo() {
-    const teacherRef = ref(db, 'teachers/' + currentTeacher.uid);
-    onValue(teacherRef, snapshot => {
+    const teacherRef = ref(db, `teachers/${currentTeacher.uid}`);
+    onValue(teacherRef, (snapshot) => {
         const data = snapshot.val();
-        if(!data) return alert("Teacher not found in DB!");
-        document.getElementById("teacherName").innerText = data.name;
-        document.getElementById("teacherSubject").innerText = data.subject;
-        populateClassFilter();
+        document.getElementById("teacherName").innerText = data.name || "Teacher";
+        document.getElementById("teacherSubject").innerText = data.subject || "Subject";
+        populateClassDropdown(data.classes || {});
         loadStudents();
     });
 }
 
-// ======================= CLASS FILTER =======================
-function populateClassFilter() {
+// ================= Populate Class Dropdown =================
+function populateClassDropdown(classes) {
     const select = document.getElementById("classFilter");
-    select.innerHTML = `<option value="">All Classes</option>
-                        <option value="11A">11A</option>
-                        <option value="11B">11B</option>
-                        <option value="11C">11C</option>`;
-    select.onchange = () => {
-        selectedClass = select.value;
-        loadStudents();
+    select.innerHTML = "<option value=''>Select Class</option>";
+    for (let key in classes) {
+        const option = document.createElement("option");
+        option.value = classes[key];
+        option.innerText = classes[key];
+        select.appendChild(option);
     }
 }
 
-// ======================= LOAD STUDENTS =======================
-function loadStudents() {
+// ================= Class Filter =================
+window.loadStudents = function() {
+    selectedClass = document.getElementById("classFilter").value;
     const studentsRef = ref(db, 'students');
-    onValue(studentsRef, snapshot => {
+    onValue(studentsRef, (snapshot) => {
         allStudents = snapshot.val() || {};
         displayStudents();
-        displayBunkers();
     });
 }
 
-// ======================= DISPLAY STUDENTS =======================
+// ================= Display Students Table =================
 function displayStudents() {
+    const tableDiv = document.getElementById("studentsTableDiv");
+    tableDiv.classList.remove("hidden");
     const table = document.getElementById("studentsTable");
-    table.innerHTML = `<tr><th>Name</th><th>Class</th><th>Attendance</th><th>Edit</th><th>Delete</th></tr>`;
-    for(let id in allStudents){
+    table.innerHTML = `
+        <tr>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Edit</th>
+            <th>Delete</th>
+            <th>Mark Attendance</th>
+        </tr>
+    `;
+    for (let id in allStudents) {
         const s = allStudents[id];
-        if(s.subject !== document.getElementById("teacherSubject").innerText) continue; // Only teacher subject
-        if(selectedClass && s.class !== selectedClass) continue; // Filter class
+        if (s.teacher !== currentTeacher.uid) continue;
+        if (selectedClass && s.class !== selectedClass) continue;
 
         const row = table.insertRow();
         row.insertCell(0).innerText = s.name;
         row.insertCell(1).innerText = s.class;
+        row.insertCell(2).innerText = s.subject;
 
-        const totalAbsent = Object.values(s.attendance || {}).filter(v => v==="absent").length;
-        row.insertCell(2).innerText = totalAbsent;
-
+        // Edit button
+        const editCell = row.insertCell(3);
         const editBtn = document.createElement("button");
-        editBtn.innerText = "Edit"; editBtn.onclick = ()=>editStudent(id);
-        row.insertCell(3).appendChild(editBtn);
+        editBtn.innerText = "Edit";
+        editBtn.classList.add("edit");
+        editBtn.onclick = () => editStudentPrompt(id);
+        editCell.appendChild(editBtn);
 
+        // Delete button
+        const delCell = row.insertCell(4);
         const delBtn = document.createElement("button");
-        delBtn.innerText = "Delete"; delBtn.onclick = ()=>deleteStudent(id);
-        row.insertCell(4).appendChild(delBtn);
+        delBtn.innerText = "Delete";
+        delBtn.classList.add("delete");
+        delBtn.onclick = () => deleteStudent(id);
+        delCell.appendChild(delBtn);
 
-        row.onclick = ()=>openAttendanceModal(id);
+        // Mark Attendance button
+        const markCell = row.insertCell(5);
+        const markBtn = document.createElement("button");
+        markBtn.innerText = "Mark Attendance";
+        markBtn.onclick = () => openAttendanceModal(id);
+        markCell.appendChild(markBtn);
     }
 }
 
-// ======================= ADD / EDIT / DELETE STUDENTS =======================
+// ================= Show Add Student Form =================
+window.showAddStudentForm = function() {
+    document.getElementById("addStudentDiv").classList.remove("hidden");
+}
+
+// ================= Add Student =================
 window.addStudent = function() {
-    const name = document.getElementById("studentName").value;
-    const cls = document.getElementById("addClass").value;
-    const subject = document.getElementById("teacherSubject").innerText;
-    if(!name || !cls) return alert("Enter name and class");
+    const name = document.getElementById("studentName").value.trim();
+    if (!name || !selectedClass) { alert("Enter student name and select class."); return; }
 
-    const newRef = push(ref(db,'students'));
-    set(newRef,{
-        name, class:cls, subject, teacher:currentTeacher.uid, attendance:{}
+    const newStudentRef = push(ref(db, 'students'));
+    set(newStudentRef, {
+        name: name,
+        class: selectedClass,
+        subject: document.getElementById("teacherSubject").innerText,
+        teacher: currentTeacher.uid,
+        attendance: {}
     });
-    document.getElementById("studentName").value="";
+    document.getElementById("studentName").value = "";
+    document.getElementById("addStudentDiv").classList.add("hidden");
 }
 
-function editStudent(id){
+// ================= Edit/Delete Student =================
+function editStudentPrompt(id) {
     const newName = prompt("Enter new name:", allStudents[id].name);
-    if(!newName) return;
-    update(ref(db,'students/'+id),{name:newName});
+    if (!newName) return;
+    update(ref(db, `students/${id}`), { name: newName });
 }
 
-function deleteStudent(id){
-    if(confirm("Delete student?")) remove(ref(db,'students/'+id));
+function deleteStudent(id) {
+    if (!confirm("Delete this student?")) return;
+    remove(ref(db, `students/${id}`));
 }
 
-// ======================= ATTENDANCE MODAL =======================
-function openAttendanceModal(id){
-    selectedStudentId = id;
-    const s = allStudents[id];
-    document.getElementById("modalStudentName").innerText = s.name;
+// ================= Open Attendance Modal =================
+function openAttendanceModal(studentId) {
+    selectedStudentId = studentId;
+    const student = allStudents[studentId];
     document.getElementById("attendanceModal").classList.remove("hidden");
     document.getElementById("modalOverlay").classList.remove("hidden");
+    document.getElementById("attendanceClassName").innerText = student.class;
     loadAttendanceMonth();
 }
 
-window.closeModal = function(){
+// ================= Close Modal =================
+window.closeModal = function() {
     document.getElementById("attendanceModal").classList.add("hidden");
     document.getElementById("modalOverlay").classList.add("hidden");
 }
 
-// ======================= ATTENDANCE HISTORY =======================
-window.loadAttendanceMonth = function(){
-    if(!selectedStudentId) return;
-    const month = document.getElementById("monthPicker").value; // YYYY-MM
+// ================= Load Monthly Attendance =================
+window.loadAttendanceMonth = function() {
+    const month = document.getElementById("monthPicker").value;
     const table = document.getElementById("attendanceTable");
     table.innerHTML = `<tr><th>Date</th><th>Status</th><th>Mark Present</th><th>Mark Absent</th></tr>`;
+    if (!selectedStudentId) return;
+
     const student = allStudents[selectedStudentId];
     const attendance = student.attendance || {};
 
-    for(let date in attendance){
-        if(month && !date.startsWith(month)) continue;
+    for (let date in attendance) {
+        if (month && !date.startsWith(month)) continue;
         const row = table.insertRow();
         row.insertCell(0).innerText = date;
         row.insertCell(1).innerText = attendance[date];
 
         const presentBtn = row.insertCell(2).appendChild(document.createElement("button"));
-        presentBtn.innerText="Present"; presentBtn.onclick=()=>markAttendance(date,"present");
+        presentBtn.innerText = "Present";
+        presentBtn.onclick = () => markAttendance(date, "present");
+
         const absentBtn = row.insertCell(3).appendChild(document.createElement("button"));
-        absentBtn.innerText="Absent"; absentBtn.onclick=()=>markAttendance(date,"absent");
+        absentBtn.innerText = "Absent";
+        absentBtn.onclick = () => markAttendance(date, "absent");
     }
 }
 
-// ======================= MARK ATTENDANCE =======================
-function markAttendance(date,status){
-    if(!selectedStudentId) return;
-    set(ref(db,'students/'+selectedStudentId+'/attendance/'+date),status);
+// ================= Mark Attendance =================
+function markAttendance(date, status) {
+    if (!selectedStudentId) return;
+    const path = `students/${selectedStudentId}/attendance/${date}`;
+    set(ref(db, path), status);
 }
 
-// ======================= TOP BUNKERS =======================
-function displayBunkers(){
+// ================= Print Monthly Report =================
+window.printReport = function() {
+    const printContents = document.getElementById("attendanceModal").innerHTML;
+    const w = window.open("", "", "width=800,height=600");
+    w.document.write(printContents);
+    w.document.close();
+    w.print();
+}
+
+// ================= Top Bunkers =================
+window.showTopBunkers = function() {
+    const bunkersDiv = document.getElementById("bunkersDiv");
+    bunkersDiv.classList.remove("hidden");
     const table = document.getElementById("bunkingTable");
-    table.innerHTML = `<tr><th>Name</th><th>Class</th><th>Absences</th></tr>`;
-    const bunkers = [];
-    for(let id in allStudents){
-        const s = allStudents[id];
-        if(s.subject!==document.getElementById("teacherSubject").innerText) continue;
-        if(selectedClass && s.class !== selectedClass) continue;
-        const absentCount = Object.values(s.attendance||{}).filter(v=>"absent"===v).length;
-        if(absentCount>0) bunkers.push({...s,totalAbsent:absentCount});
-    }
-    bunkers.sort((a,b)=>b.totalAbsent-a.totalAbsent);
-    bunkers.forEach(s=>{
-        const row=table.insertRow();
-        row.insertCell(0).innerText=s.name;
-        row.insertCell(1).innerText=s.class;
-        const cell=row.insertCell(2);
-        cell.innerText=s.totalAbsent;
-        if(s.totalAbsent>=3) cell.style.color="red";
+    table.innerHTML = `<tr><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th></tr>`;
+
+    const studentsArray = Object.values(allStudents).filter(s => s.teacher === currentTeacher.uid);
+    const bunkerList = studentsArray.map(s => {
+        const totalAbsent = Object.values(s.attendance || {}).filter(v => v==="absent").length;
+        return { ...s, totalAbsent };
+    }).filter(s => s.totalAbsent > 0);
+
+    bunkerList.sort((a,b)=>b.totalAbsent - a.totalAbsent);
+
+    bunkerList.forEach(s => {
+        const row = table.insertRow();
+        row.insertCell(0).innerText = s.name;
+        row.insertCell(1).innerText = s.class;
+        row.insertCell(2).innerText = s.subject;
+        const cell = row.insertCell(3);
+        cell.innerText = s.totalAbsent;
+        if(s.totalAbsent >=3) cell.style.color="red";
     });
+}
+
+// ================= Show Mark Attendance Section =================
+window.showMarkAttendance = function() {
+    const classFilter = document.getElementById("classFilter").value;
+    if(!classFilter){ alert("Select a class first"); return; }
+    // Select first student of class to open modal as default
+    const student = Object.values(allStudents).find(s=>s.teacher===currentTeacher.uid && s.class===classFilter);
+    if(student) openAttendanceModal(Object.keys(allStudents).find(k=>allStudents[k]===student));
 }

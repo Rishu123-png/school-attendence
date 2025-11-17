@@ -2,11 +2,6 @@
 // Works with: index.html, dashboard.html, add-students.html, mark-attendance.html, top-bunkers.html
 // Uses Realtime Database (v10.12.5 CDN imports expected in firebase.js)
 
-/* IMPORTANT:
-   Keep firebase.js (v10.12.5 CDN) in project and that file must export `auth` and `db`.
-   Example firebase.js already provided earlier by you.
-*/
-
 import { auth, db } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
@@ -193,7 +188,7 @@ function renderStudentsTable() {
 
     const actionCell = row.insertCell(3);
 
-    // If student has no teacher, show Claim button + Add button to claim and edit
+    // If student has no teacher, show Claim button
     if (!s.teacher) {
       const claimBtn = document.createElement('button');
       claimBtn.innerText = 'Claim';
@@ -226,11 +221,12 @@ function renderStudentsTable() {
     };
     actionCell.appendChild(delBtn);
 
-    // Mark Attendance button (only if teacher owns or student was unassigned but teacher claimed)
+    // Mark Attendance button (only if teacher owns the student)
     const markBtn = document.createElement('button');
     markBtn.innerText = 'Mark Attendance';
     markBtn.disabled = !(s.teacher && auth.currentUser && s.teacher === auth.currentUser.uid);
     markBtn.onclick = () => {
+      localStorage.removeItem('selectedClass');
       localStorage.setItem('selectedStudentId', id);
       // If dashboard has modal, open it; else go to mark-attendance page
       if (document.getElementById('attendanceModal')) {
@@ -317,6 +313,19 @@ window.fixTeacherIds = async function () {
 };
 
 /* ======================
+   Helpers: goToMarkAttendance (for class-wide attendance)
+   ====================== */
+// Called from dashboard button: "Mark Attendance"
+window.goToMarkAttendance = function () {
+  if (!currentClassFilter) return alert('Select a class first');
+  // store selected class for mark-attendance page
+  localStorage.setItem('selectedClass', currentClassFilter);
+  // clear any selected student id so mark-attendance page opens class mode
+  localStorage.removeItem('selectedStudentId');
+  window.location.href = 'mark-attendance.html';
+};
+
+/* ======================
    Attendance modal & month view (dashboard modal version)
    ====================== */
 
@@ -328,6 +337,7 @@ export function openAttendanceModal(studentId) {
   // If modal elements aren't present (multi-page flow), redirect to mark-attendance page
   if (!modal || !overlay) {
     localStorage.setItem('selectedStudentId', studentId);
+    localStorage.removeItem('selectedClass');
     window.location.href = 'mark-attendance.html';
     return;
   }
@@ -414,15 +424,34 @@ window.loadAttendanceMonth = async function () {
 
 /* ======================
    Mark Attendance page (separate page flow)
+   - Dual mode:
+     * CLASS MODE => if localStorage.selectedClass is set
+     * SINGLE STUDENT MODE => if localStorage.selectedStudentId is set
    ====================== */
+
+function todayDateString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
 
 window.initMarkAttendancePage = async function () {
   if (!auth.currentUser) { setTimeout(window.initMarkAttendancePage, 300); return; }
 
+  // Decide mode
+  const classForMark = localStorage.getItem('selectedClass');
   selectedStudentId = localStorage.getItem('selectedStudentId') || null;
+
+  // If class mode
+  if (classForMark) {
+    // Build class attendance UI
+    await loadClassAttendanceUI(classForMark);
+    return;
+  }
+
+  // Otherwise single student mode (existing behavior)
   if (!selectedStudentId) { alert('No student selected. Go to dashboard and click "Mark Attendance".'); window.location.href = 'dashboard.html'; return; }
 
-  // fetch student
+  // fetch student and show existing per-student calendar / month UI
   try {
     const snap = await get(ref(db, `students/${selectedStudentId}`));
     const student = snap.val() || {};
@@ -440,105 +469,96 @@ window.initMarkAttendancePage = async function () {
   }
 };
 
-window.loadMarkAttendanceMonth = async function () {
-  const mp = document.getElementById('monthPickerMark');
-  const month = mp?.value;
-  if (!selectedStudentId) return;
+async function loadClassAttendanceUI(className) {
+  // className: string (e.g. "11A2")
+  // Build a simple UI inside mark-attendance.html:
+  // - Title + class
+  // - Table: Name | Present (radio checked) | Absent (radio)
+  // - Save Attendance button (writes today's date)
+  const container = document.querySelector('.container');
+  if (!container) return alert('Mark Attendance page missing container');
 
-  try {
-    const snap = await get(ref(db, `students/${selectedStudentId}`));
-    const student = snap.val() || {};
-    const attendance = student.attendance || {};
-    const table = document.getElementById('markAttendanceTable');
-    if (!table) return;
+  // Clear container and create class-mode UI
+  container.innerHTML = `
+    <div class="row" style="justify-content:space-between;">
+      <h2>Mark Attendance — Class: <span id="classTitle"></span></h2>
+      <button class="small-btn" onclick="logout()">Logout</button>
+    </div>
+    <div style="margin-top:8px;">
+      <div>Class: <strong id="classTitleText"></strong></div>
+      <div style="margin-top:8px;">
+        <label for="attendanceDate">Date</label>
+        <input id="attendanceDate" type="date" value="${todayDateString()}">
+      </div>
+    </div>
+    <div class="table" style="margin-top:12px;">
+      <table id="classAttendanceTable">
+        <tr><th>Name</th><th>Present</th><th>Absent</th></tr>
+      </table>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button id="saveClassAttendanceBtn">Save Attendance</button>
+      <button id="cancelClassAttendanceBtn">Cancel</button>
+    </div>
+    <p class="footer">Developed by Rishu Jaswar</p>
+  `;
 
-    table.innerHTML = `<tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr>`;
+  document.getElementById('classTitle').innerText = className;
+  document.getElementById('classTitleText').innerText = className;
 
-    const [y, m] = (month || '').split('-').map(Number);
-    if (!y || !m) {
-      // show existing entries only
-      Object.keys(attendance).sort().forEach(date => {
-        const status = attendance[date];
-        const r = table.insertRow();
-        r.insertCell(0).innerText = date;
-        r.insertCell(1).innerText = status || '-';
-        const p = r.insertCell(2).appendChild(document.createElement('button'));
-        p.innerText = 'Present'; p.onclick = async () => { await set(ref(db, `students/${selectedStudentId}/attendance/${date}`), 'present'); loadMarkAttendanceMonth(); };
-        const a = r.insertCell(3).appendChild(document.createElement('button'));
-        a.innerText = 'Absent'; a.onclick = async () => { await set(ref(db, `students/${selectedStudentId}/attendance/${date}`), 'absent'); loadMarkAttendanceMonth(); };
-      });
-      return;
-    }
-
-    const days = new Date(y, m, 0).getDate();
-    for (let d = 1; d <= days; d++) {
-      const dd = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const status = attendance[dd] || '';
-      const r = table.insertRow();
-      r.insertCell(0).innerText = dd;
-      const stCell = r.insertCell(1); stCell.innerText = status || '-';
-      const p = r.insertCell(2).appendChild(document.createElement('button'));
-      p.innerText = 'Present'; p.onclick = async () => { await set(ref(db, `students/${selectedStudentId}/attendance/${dd}`), 'present'); loadMarkAttendanceMonth(); };
-      const a = r.insertCell(3).appendChild(document.createElement('button'));
-      a.innerText = 'Absent'; a.onclick = async () => { await set(ref(db, `students/${selectedStudentId}/attendance/${dd}`), 'absent'); loadMarkAttendanceMonth(); };
-      if (status === 'present') stCell.style.color = 'lightgreen';
-      if (status === 'absent') stCell.style.color = '#ff7b7b';
-    }
-  } catch (err) {
-    console.error('loadMarkAttendanceMonth error', err);
-  }
-};
-
-/* ======================
-   Print monthly report (modal or mark-attendance page)
-   ====================== */
-window.printReport = function () {
-  const table = document.getElementById('markAttendanceTable') || document.getElementById('attendanceMonthTable');
-  if (!table) return alert('Nothing to print');
-  const w = window.open('', '', 'width=900,height=700');
-  const title = (document.getElementById('studentNameLabel')?.innerText) || (document.getElementById('modalStudentName')?.innerText) || 'Attendance Report';
-  w.document.write(`<h3>Monthly Attendance Report — ${title}</h3>`);
-  w.document.write(table.outerHTML);
-  w.document.close();
-  w.print();
-};
-
-/* ======================
-   Top bunkers page
-   ====================== */
-window.initTopBunkersPage = async function () {
-  if (!auth.currentUser) { setTimeout(window.initTopBunkersPage, 300); return; }
+  // Load students belonging to this teacher and class
   try {
     const snap = await get(ref(db, 'students'));
     const data = snap.val() || {};
-    const bunkers = [];
+    const rows = [];
     for (const id in data) {
       const s = data[id];
       if (!s) continue;
-      // only show bunkers for students owned by this teacher
+      if (s.class !== className) continue;
+      // Only allow teacher's own students
       if (!(s.teacher && s.teacher === auth.currentUser.uid)) continue;
-      const absentCount = Object.values(s.attendance || {}).filter(v => v === 'absent').length;
-      if (absentCount > 0) bunkers.push({ id, ...s, totalAbsent: absentCount });
+      rows.push({ id, name: s.name || '' });
     }
-    bunkers.sort((a, b) => b.totalAbsent - a.totalAbsent);
-    const table = document.getElementById('bunkersTable');
+
+    const table = document.getElementById('classAttendanceTable');
     if (!table) return;
-    table.innerHTML = `<tr><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th></tr>`;
-    bunkers.forEach(s => {
+
+    if (rows.length === 0) {
       const r = table.insertRow();
-      r.insertCell(0).innerText = s.name;
-      r.insertCell(1).innerText = s.class;
-      r.insertCell(2).innerText = s.subject;
-      const cell = r.insertCell(3); cell.innerText = s.totalAbsent;
-      if (s.totalAbsent >= 3) cell.classList.add('top-bunker');
-    });
-  } catch (err) {
-    console.error('initTopBunkersPage error', err);
-  }
-};
+      const c = r.insertCell(0);
+      c.colSpan = 3;
+      c.innerText = 'No students found in this class for your account.';
+    } else {
+      rows.forEach((st, idx) => {
+        const r = table.insertRow();
+        r.insertCell(0).innerText = st.name;
+        // Present radio
+        const pcell = r.insertCell(1);
+        const presentInput = document.createElement('input');
+        presentInput.type = 'radio';
+        presentInput.name = `att_${st.id}`;
+        presentInput.value = 'present';
+        presentInput.checked = true; // default present
+        pcell.appendChild(presentInput);
+        // Absent radio
+        const acell = r.insertCell(2);
+        const absentInput = document.createElement('input');
+        absentInput.type = 'radio';
+        absentInput.name = `att_${st.id}`;
+        absentInput.value = 'absent';
+        acell.appendChild(absentInput);
 
-/* ======================
-   Helpers
-   ====================== */
+        // store studentId as attribute for later reading
+        r.dataset.studentId = st.id;
+      });
+    }
 
-// Quick helper used in dashboard to jump to mark attendance for first stud
+    // Save & Cancel button handlers
+    document.getElementById('saveClassAttendanceBtn').onclick = async () => {
+      const dateInput = document.getElementById('attendanceDate').value || todayDateString();
+      await saveClassAttendance(rows, dateInput);
+    };
+    document.getElementById('cancelClassAttendanceBtn').onclick = () => {
+      localStorage.removeItem('selectedClass');
+      window.location.href = 'dashboard.html';
+    

@@ -1,4 +1,4 @@
-// firebase.js - Firebase CDN version 10.12.5 (MATCHING script.js)
+// firebase.js - Firebase CDN version 10.12.5
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:728832169882:web:b335869779e73ab8c20c23"
 };
 
+// Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);

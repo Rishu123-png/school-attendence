@@ -92,3 +92,18 @@ th, td {
     font-size: 12px;
   }
 }
+/* Fix: Prevent any overlay from blocking login page */
+*[style*="position: fixed"],
+*[style*="position: absolute"] {
+  pointer-events: auto;
+}
+
+#loginBtn {
+  position: relative;
+  z-index: 9999999 !important;
+}
+
+.container {
+  position: relative;
+  z-index: 999999 !important;
+}

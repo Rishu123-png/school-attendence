@@ -1,7 +1,7 @@
 // script.js
 // Works with: index.html, dashboard.html, add-students.html, mark-attendance.html, top-bunkers.html
 // Uses Realtime Database (v10.12.5 CDN imports expected in firebase.js)
-
+console.log("SCRIPT JS LOADED");
 import { auth, db } from "./firebase.js";
 import {
   signInWithEmailAndPassword,

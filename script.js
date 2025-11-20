@@ -817,13 +817,13 @@ async function loadMarksForStudent(studentId) {
     }
     if (data['UT-2']) {
       document.getElementById('ut2Score').value = data['UT-2'].score ?? '';
-      document.getElementById('ut2Max').value = data['UT-2'].max ?? document.getElementById('ut2Max').value || '';
+      document.getElementById('ut2Max').value = data['UT-2'].max ?? (document.getElementById('ut2Max').value || '');
     } else {
       document.getElementById('ut2Score').value = '';
     }
     if (data['Annual']) {
       document.getElementById('annualScore').value = data['Annual'].score ?? '';
-      document.getElementById('annualMax').value = data['Annual'].max ?? document.getElementById('annualMax').value || '';
+      document.getElementById('annualMax').value = data['Annual'].max ?? (document.getElementById('annualMax').value || '');
     } else {
       document.getElementById('annualScore').value = '';
     }

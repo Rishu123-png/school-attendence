@@ -1,13 +1,19 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mark Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body onload="initMarkAttendancePage()">
+
   <div class="page">
+
     <main class="container">
+
+      <!-- Header -->
       <header class="header">
         <div class="brand">
           <div class="logo">RJ</div>
@@ -21,36 +27,67 @@
         </div>
       </header>
 
-      <!-- class attendance UI will be rendered by script when selectedClass is set -->
-      <div id="classAttendanceUI" style="display:none; margin-top:6px;"></div>
+      <!-- === Class Attendance UI (auto-rendered from script.js) === -->
+      <div id="classAttendanceUI" style="display:none; margin-top:12px;"></div>
 
-      <!-- single student UI -->
-      <div id="singleStudentUI" style="display:none; margin-top:6px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div><strong>Student: </strong><span id="studentNameLabel"></span></div>
-          <div><label for="monthPickerMark" class="label">Month</label><input id="monthPickerMark" type="month"></div>
+      <!-- === Single Student UI === -->
+      <div id="singleStudentUI" style="display:none; margin-top:20px;">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          background: rgba(255,255,255,0.03);
+          padding:14px 18px;
+          border-radius: var(--radius);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        ">
+          <div style="font-size:16px;">
+            <strong>Student:</strong>
+            <span id="studentNameLabel" style="color:#fff; margin-left:5px;"></span>
+          </div>
+
+          <div>
+            <label class="label" for="monthPickerMark">Month</label>
+            <input id="monthPickerMark" type="month">
+          </div>
         </div>
 
+        <!-- Attendance Table -->
         <div class="table-wrap">
           <table id="markAttendanceTable">
-            <thead><tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr></thead>
-            <tbody></tbody>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Present</th>
+                <th>Absent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by script.js -->
+            </tbody>
           </table>
         </div>
 
-        <div class="action-row" style="margin-top:12px;">
+        <!-- Action Buttons -->
+        <div class="action-row" style="margin-top:16px;">
           <button class="btn-ghost" onclick="printReport()">Print Monthly Report</button>
           <button class="btn-ghost" onclick="exportAttendanceCSV()">Export CSV</button>
           <button class="btn-ghost" onclick="exportAttendanceExcel()">Export Excel</button>
           <button class="btn-ghost" onclick="location.href='dashboard.html'">Back</button>
         </div>
+
       </div>
 
-      <p class="footer">Developed by<strong> Rishu Jaswar</strong></p>
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+
     </main>
   </div>
 
+  <!-- Firebase & Main Script -->
   <script type="module" src="./firebase.js"></script>
   <script type="module" src="./script.js"></script>
+
 </body>
 </html>

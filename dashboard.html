@@ -2,57 +2,65 @@
 <html>
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard - School Attendance</title>
+  <title>Dashboard — School Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initDashboardPage()">
-  <div class="container">
-    <div class="row" style="justify-content:space-between; align-items:center;">
-      <div>
-        <h2>Welcome, <span id="teacherName">Teacher</span></h2>
-        <div style="color:var(--muted)">Subject: <strong id="teacherSubject"></strong></div>
+  <div class="page">
+    <main class="container">
+      <header class="header">
+        <div class="brand">
+          <div class="logo">SA</div>
+          <div>
+            <h1>Welcome, <span id="teacherName">Teacher</span></h1>
+            <p style="color:var(--muted)">Subject: <strong id="teacherSubject">—</strong></p>
+          </div>
+        </div>
+
+        <div class="top-controls">
+          <select id="classSelect" style="min-width:160px; background:rgba(255,255,255,0.03); color:#fff; border-radius:10px; padding:8px;">
+            <option value="">-- Select class --</option>
+          </select>
+          <button class="btn-ghost" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Quick Actions</h3>
+          <p style="color:var(--muted)">Add students, mark attendance and manage marks.</p>
+          <div class="action-row">
+            <button onclick="location.href='add-students.html'">Add Student</button>
+            <button onclick="goToMarkAttendance()">Mark Attendance</button>
+            <button onclick="location.href='marks.html'">Marks & Prediction</button>
+            <button onclick="location.href='top-bunkers.html'">Top Bunkers</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Class Summary</h3>
+          <p style="color:var(--muted)">Select a class to view enrolled students and absences.</p>
+          <div style="margin-top:14px;">
+            <span class="badge">Students: <span id="studentsCount">—</span></span>
+          </div>
+        </div>
       </div>
-      <div>
-        <button class="small-btn" onclick="logout()">Logout</button>
+
+      <div class="card" style="margin-top:18px;">
+        <h3>Students</h3>
+        <div class="table-wrap">
+          <table id="studentsTable">
+            <thead><tr><th>Name</th><th>Class</th><th>Absences</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <label for="classSelect">Select Class</label>
-    <select id="classSelect"></select>
-
-    <div class="row" style="margin-top:12px;">
-      <button onclick="window.location.href='add-students.html'">Add Student</button>
-      <button onclick="goToMarkAttendance()">Mark Attendance</button>
-<button onclick="window.location.href='marks.html'">Marks & Prediction</button>
-      <button onclick="window.location.href='top-bunkers.html'">Top Bunkers</button>
-    </div>
-
-    <div class="table">
-      <table id="studentsTable"><tr><th>Name</th><th>Class</th><th>Absences</th><th>Actions</th></tr></table>
-    </div>
-
-    <!-- Modal for calendar history (works in single-page dashboard scenario) -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
-    <div id="attendanceModal" class="modal">
-      <h3>Attendance for <span id="modalStudentName"></span></h3>
-      <label>Month</label>
-      <input id="monthPicker" type="month" onchange="loadAttendanceMonth()">
-      <div class="table">
-        <table id="attendanceMonthTable"><tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr></table>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button onclick="printReport()">Print Report</button>
-        <button onclick="exportAttendanceCSVModal()">Export CSV</button>
-        <button onclick="closeModal()">Close</button>
-      </div>
-    </div>
-
-    <p class="footer">Developed by Rishu Jaswar</p>
+      <p class="footer">Developed by Rishu Jaswar</p>
+    </main>
   </div>
 
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="script.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>eruda.init();</script>
+  <script type="module" src="./firebase.js"></script>
+  <script type="module" src="./script.js"></script>
 </body>
 </html>

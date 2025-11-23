@@ -199,3 +199,18 @@ tr:hover td { background: linear-gradient(90deg, rgba(107,108,255,0.03), rgba(25
 
 /* small fixed util z-index to avoid accidental blocking but small value */
 #loginBtn, .container { position: relative; z-index: 10; }
+/* ================================
+   LOGO IMAGE SUPPORT (RJ Logo)
+   ================================ */
+
+.brand-logo {
+  height: 46px;     /* Adjust logo size */
+  width: auto;
+  display: block;
+}
+
+.logo {
+  background: none !important; /* remove old gradient box */
+  padding: 0;
+  box-shadow: none !important;
+}

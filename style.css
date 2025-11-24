@@ -2,7 +2,7 @@
 
 /* Reset + base */
 
-{ box-sizing: border-box; margin:0; padding:0; }
+*{ box-sizing: border-box; margin:0; padding:0; }
 :root{
 --bg0: #0b0716;
 --card: rgba(255,255,255,0.06);
@@ -214,4 +214,18 @@ display: block;
 background: none !important; /* remove old gradient box */
 padding: 0;
 box-shadow: none !important;
+}
+/* Fix Present / Absent radio spacing */
+.status-cell {
+  display: flex;
+  gap: 18px;     /* Change the distance here */
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width:600px){
+  .status-cell {
+    flex-direction: row;
+    gap: 12px;
+  }
 }

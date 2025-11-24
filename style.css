@@ -174,7 +174,7 @@ font-size:13px;
    ============================ */
 
 /* Fix container + padding for mobile */
-@media (max-width:600px){
+@media (max-width:500px){
 .container {
 max-width:100%;
 padding:18px;

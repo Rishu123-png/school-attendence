@@ -1,204 +1,240 @@
-/* style.css — Option C: Vibrant Gradient + Glass UI */
-
-/* Reset */
-* { box-sizing: border-box; margin:0; padding:0; }
-
-:root{
---bg0: #0b0716;
---card: rgba(255,255,255,0.06);
---muted: rgba(255,255,255,0.7);
---glass: rgba(255,255,255,0.05);
---accentA: #ff6bc4;
---accentB: #6b6cff;
---accentC: #37d6ff;
---success: #4ad07a;
---danger: #ff6b6b;
---radius: 16px;
---container-width: 980px;
-font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+/* =============================
+   GLOBAL RESET + ROOT VARIABLES
+   ============================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html,body {
-height:100%;
-background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
-color:#fff;
+:root {
+  --bg0: #0b0716;
+  --muted: rgba(255,255,255,0.7);
+  --accentA: #ff6bc4;
+  --accentB: #6b6cff;
+  --accentC: #37d6ff;
+  --success: #4ad07a;
+  --danger: #ff6b6b;
+  --container-width: 980px;
+  font-family: "Poppins", system-ui;
 }
 
-/* Page wrapper */
+/* =============================
+   BODY + PAGE BACKGROUND
+   ============================= */
+html, body {
+  height: 100%;
+  background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
+  color: #fff;
+}
+
+/* =============================
+   MAIN PAGE WRAPPER
+   ============================= */
 .page {
-min-height:100vh;
-display:flex;
-align-items:flex-start;
-justify-content:center;
-padding:48px 20px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 44px 16px;
 }
 
-/* Main container */
+/* =============================
+   MAIN CONTAINER (GLASS CARD)
+   ============================= */
 .container {
-width:100%;
-max-width:var(--container-width);
-background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-border-radius:24px;
-padding:28px;
-box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
-backdrop-filter: blur(8px) saturate(120%);
-position:relative;
-overflow:hidden;
+  width: 100%;
+  max-width: var(--container-width);
+  background: rgba(255,255,255,0.03);
+  border-radius: 22px;
+  padding: 24px;
+  backdrop-filter: blur(8px) saturate(120%);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Decorative gradient bands */
+/* Decorative Glow */
 .container::before {
-content:"";
-position:absolute; inset:-40% -30% auto auto;
-width:600px; height:600px;
-background: radial-gradient(circle at 20% 20%, rgba(255,107,196,0.08), transparent 20%),
-radial-gradient(circle at 80% 80%, rgba(107,108,255,0.06), transparent 20%);
-transform: rotate(12deg);
-pointer-events:none;
+  content: "";
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle at 20% 20%, rgba(255,107,196,0.08), transparent 20%),
+              radial-gradient(circle at 80% 80%, rgba(107,108,255,0.06), transparent 20%);
+  transform: rotate(12deg);
 }
 
-/* Header */
-.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+/* =============================
+   HEADER + LOGO
+   ============================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  align-items: center;
+}
 
-.brand { display:flex; align-items:center; gap:12px; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .brand-logo {
-height: 46px;
-width:auto;
-display:block;
+  height: 44px;
+  width: auto;
 }
 
 .logo {
-background:none !important;
-padding:0;
-box-shadow:none !important;
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0;
 }
 
-.brand h1 { font-size:18px;letter-spacing:0.2px; }
-.brand p { font-size:12px; color:var(--muted); }
+.brand h2 { font-size: 20px; }
+.brand p { font-size: 12px; color: var(--muted); }
 
-/* Buttons */
-.btn {
-padding:100px 14px;
-border-radius:12px;
-font-weight:600;
+/* =============================
+   BUTTONS
+   ============================= */
+.btn-cta,
+.btn,
+.btn-ghost {
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
 }
-
-/* Hero */
-.hero {
-display:flex;
-align-items:center;
-gap:30px;
-padding:28px;
-}
-.hero-left { flex:1; }
-.hero-right { width:360px; max-width:40%; }
-
-.hero h2 {
-font-size:44px;
-margin-bottom:12px;
-text-shadow: 0 6px 18px rgba(107,108,255,0.08);
-}
-.hero p { color:var(--muted); margin-bottom:18px; }
 
 .btn-cta {
-background: linear-gradient(135deg,var(--accentA), var(--accentB));
-border:none;
-color:#fff;
-padding:12px 18px;
-border-radius:12px;
-font-weight:700;
-box-shadow: 0 10px 30px rgba(107,108,255,0.12);
+  background: linear-gradient(135deg,var(--accentA), var(--accentB));
+  border: none;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(107,108,255,0.2);
 }
 
-/* Inputs */
-.label { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--muted);
+}
+
+/* =============================
+   INPUTS
+   ============================= */
+.label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  display: block;
+}
 
 input, select {
-width:100%;
-padding:12px 14px;
-border-radius:12px;
-background: rgba(255,255,255,0.03);
-border: 1px solid rgba(255,255,255,0.04);
-color:#fff;
-transition:.16s;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  color: #fff;
+  margin-bottom: 10px;
 }
+
 input:focus, select:focus {
-box-shadow: 0 6px 18px rgba(107,108,255,0.08);
-transform: translateY(-2px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(107,108,255,0.1);
 }
 
-/* Table */
-.table-wrap { margin-top:20px; overflow:auto; border-radius:12px; }
+/* =============================
+   TABLES (Students + Attendance)
+   ============================= */
+.table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border-radius: 12px;
+}
 
 table {
-width:100%;
-border-collapse:collapse;
-min-width:700px;
+  width: 100%;
+  min-width: 650px;   /* Ensures content fits */
+  border-collapse: collapse;
 }
 
-th,td {
-padding:12px 14px;
-border-bottom:1px solid rgba(255,255,255,0.02);
-}
-
-/* Modal */
-.modal-overlay {
-position:fixed;
-inset:0;
-background: rgba(0,0,0,0.6);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999;
-}
-
-.attendance-modal {
-width:92%;
-max-width:520px;
-background: rgba(255,255,255,0.03);
-padding:18px;
-border-radius:14px;
-}
-
-/* Footer */
-.footer {
-margin-top:18px;
-text-align:center;
-color:var(--muted);
-font-size:13px;
-}
-
-/* ============================
-   RESPONSIVE FIXES (mobile)
-   ============================ */
-
-/* Fix container + padding for mobile */
-@media (max-width:500px){
-.container {
-max-width:100%;
-padding:18px;
-margin:12px;
-border-radius:16px;
-}
-}
-
-/* Fix table for mobile */
-@media (max-width:600px){
-table {
-min-width:100%;
-font-size:14px;
-}
 th, td {
-padding:10px;
-}
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 14px;
 }
 
-/* Show Present + Absent properly */
-@media (max-width:600px){
-.status-cell {
-display:flex;
-flex-direction:column;
-gap:6px;
+thead tr {
+  background: rgba(255,255,255,0.05);
 }
+
+/* Hover effect */
+tr:hover td {
+  background: rgba(255,255,255,0.03);
+}
+
+/* Radio (Present/Absent) fix for mobile */
+.status-cell {
+  display: flex;
+  gap: 18px;
+}
+
+/* =============================
+   ACTION ROW (Export/Print)
+   ============================= */
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.action-row button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* =============================
+   FOOTER
+   ============================= */
+.footer {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* =============================
+   MOBILE RESPONSIVE FIXES
+   ============================= */
+
+/* Container mobile padding */
+@media (max-width: 520px) {
+  .container {
+    padding: 16px;
+    border-radius: 16px;
+  }
+}
+
+/* Smaller hero text on phone */
+@media (max-width: 520px) {
+  .hero h2 { font-size: 26px; }
+}
+
+/* Table shrink for mobile */
+@media (max-width: 600px) {
+  table {
+    min-width: 100%;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px;
+  }
+
+  /* Present/Absent stack vertically */
+  .status-cell {
+    flex-direction: column;
+    gap: 4px;
+  }
 }

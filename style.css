@@ -1,216 +1,179 @@
-/* style.css — Option C: Vibrant Gradient + Glass UI (Canva-like) */
+/* ---------------------------------------
+   SIMPLE PHONE UI THEME (merged)
+   --------------------------------------- */
 
-/* Reset + base */
-*{ box-sizing: border-box; margin:0; padding:0; }
+/* RESET */
+*{ margin:0; padding:0; box-sizing:border-box; }
+
 :root{
---bg0: #0b0716;
---card: rgba(255,255,255,0.06);
---muted: rgba(255,255,255,0.7);
---glass: rgba(255,255,255,0.05);
---accentA: #ff6bc4;
---accentB: #6b6cff;
---accentC: #37d6ff;
---success: #4ad07a;
---danger: #ff6b6b;
---radius: 16px;
---container-width: 980px;
-font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --bg: #ffffff;
+  --text: #222;
+  --muted: #777;
+  --primary: #4A6CFF;
+  --success: #28c76f;
+  --danger: #ff4c4c;
+
+  --radius: 12px;
+  font-family: "Poppins", sans-serif;
 }
 
-html,body { height:100%; background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%); color:#fff; }
-
-/* page wrapper */
-.page {
-min-height:100vh;
-display:flex;
-align-items:flex-start;
-justify-content:center;
-padding:48px 20px;
+/* BASE PAGE */
+html,body{
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* container */
-.container {
-width:100%;
-max-width:var(--container-width);
-background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-border-radius:24px;
-padding:28px;
-box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
-backdrop-filter: blur(8px) saturate(120%);
-overflow:hidden;
-position:relative;
+/* PAGE CENTER */
+.page{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:20px;
 }
 
-/* gradient decoration */
-.container::before{
-content:"";
-position:absolute; inset:-40% -30% auto auto;
-width:600px; height:600px;
-background: radial-gradient(circle at 20% 20%, rgba(255,107,196,0.08), transparent 20%),
-radial-gradient(circle at 80% 80%, rgba(107,108,255,0.06), transparent 20%);
-}
-
-/* header */
-.header {
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-margin-bottom:18px;
-}
-
-.brand {
-display:flex;
-align-items:center;
-gap:12px;
-}
-.logo {
-width:44px; height:44px; border-radius:10px;
-background: linear-gradient(135deg,var(--accentA),var(--accentB));
-display:flex; align-items:center; justify-content:center;
-}
-.brand h1 { font-size:18px; }
-.brand p { font-size:12px; color:var(--muted); }
-
-/* top controls */
-.top-controls { display:flex; gap:12px; align-items:center; }
-.top-controls .btn { padding:10px 14px; border-radius:12px; font-weight:600; }
-
-/* hero */
-.hero {
-display:flex;
-align-items:center;
-gap:30px;
-padding:28px;
-}
-.hero-left { flex:1; }
-.hero-right { width:360px; max-width:40%; }
-
-.hero h2 {
-font-size:44px;
-line-height:1.02;
-margin-bottom:12px;
-color:#fff;
-}
-.hero p { color:var(--muted); font-size:15px; margin-bottom:18px; }
-
-/* CTA */
-.btn-cta {
-background: linear-gradient(135deg,var(--accentA), var(--accentB));
-border:none;
-color:#fff;
-padding:12px 18px;
-border-radius:12px;
-font-weight:700;
-cursor:pointer;
-}
-.btn-ghost {
-background: transparent;
-border:1px solid rgba(255,255,255,0.06);
-color:var(--muted);
-padding:10px 14px;
-border-radius:12px;
-}
-
-/* login card */
-.login-card {
-max-width:420px;
-margin: 12px auto 0;
-background: var(--glass);
-padding:22px;
-border-radius:16px;
-box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-}
-
-/* inputs */
-.label { font-size:13px; color:var(--muted); margin-bottom:6px; }
-input, select {
-width:100%;
-padding:12px 14px;
-border-radius:12px;
-background: rgba(255,255,255,0.03);
-border: 1px solid rgba(255,255,255,0.04);
-color:#fff;
-}
-input:focus, select:focus { box-shadow: 0 6px 18px rgba(107,108,255,0.08); }
-
-/* grid */
-.grid {
-display:grid;
-grid-template-columns: repeat(2, 1fr);
-gap:16px;
-margin-top:18px;
-}
-.card {
-background: var(--glass);
-padding:18px;
-border-radius:14px;
-box-shadow: 0 8px 30px rgba(2,6,23,0.45);
-}
-
-/* table */
-.table-wrap { margin-top:20px; overflow:auto; }
-table {
-width:100%;
-border-collapse:collapse;
-min-width:650px;
-}
-th, td { padding:12px 14px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.02); }
-
-/* table buttons */
-.table-btn { padding:8px 10px; border-radius:10px; font-weight:600; }
-.table-btn.primary { background: linear-gradient(90deg,var(--accentB),var(--accentC)); }
-.table-btn.danger { background: linear-gradient(90deg,#ff6b6b,#ff8a8a); }
-
-/* footer */
-.footer { margin-top:18px; text-align:center; }
-
-/* ======================================
-   FIXED — MARK ATTENDANCE RADIO SPACING
-====================================== */
-
-.status-cell {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-}
-
-.radio-opt {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  padding: 4px 8px;
-}
-
-/* mobile spacing */
-@media (max-width:600px){
-  .status-cell {
-    gap: 10px;
-  }
-
-  .radio-opt {
-    font-size: 14px;
-  }
-}
-
-/* Fix Mark Attendance button size on mobile */
-#markAttendanceBtn,
-.mark-btn {
-  padding:12px 18px !important;
-  font-size:16px;
-  border-radius:12px;
+/* MAIN CONTAINER */
+.container{
   width:100%;
-  max-width:260px;
-  margin:auto;
-  display:block;
+  max-width:850px;
+  background:#fff;
+  padding:18px;
+  border-radius: var(--radius);
+  border:1px solid #eaeaea;
 }
 
-/* LOGO FIX */
-.brand-logo {
-height: 46px;
-width:auto;
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
 }
-.logo { background:none!important; box-shadow:none!important; }
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.logo{
+  width:40px;
+  height:auto;
+}
+
+/* Inputs */
+input, select{
+  width:100%;
+  padding:12px;
+  border-radius:var(--radius);
+  border:1px solid #dcdcdc;
+  outline:none;
+  margin-top:6px;
+  font-size:14px;
+}
+
+input:focus, select:focus{
+  border-color: var(--primary);
+}
+
+/* Buttons */
+.btn-cta{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  font-weight:600;
+  width:100%;
+}
+
+.btn-ghost{
+  border:1px solid #ccc;
+  background:#f7f7f7;
+  color:#222;
+  padding:12px;
+  border-radius:var(--radius);
+}
+
+/* Cards */
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:var(--radius);
+  border:1px solid #ececec;
+  margin-top:12px;
+}
+
+/* TABLE */
+.table-wrap{
+  overflow:auto;
+  margin-top:16px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:600px;
+}
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid #eee;
+}
+
+thead th{
+  background:#f7f7f7;
+  font-weight:600;
+}
+
+/* TABLE BUTTONS */
+.table-btn{
+  padding:7px 10px;
+  border:none;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.table-btn.primary{ background:var(--primary); color:#fff; }
+.table-btn.danger{ background:var(--danger); color:#fff; }
+
+/* BADGES */
+.badge{
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:12px;
+  background:#f0f0f0;
+  color:#444;
+}
+
+/* ATTENDANCE MODAL */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.attendance-modal{
+  width:92%;
+  max-width:420px;
+  background:#fff;
+  padding:18px;
+  border-radius:var(--radius);
+  border:1px solid #eaeaea;
+}
+
+/* PRESENT / ABSENT RADIO DISTANCE */
+.status-cell{
+  display:flex;
+  justify-content:center;
+  gap:18px;  /* change spacing here */
+}
+
+@media(max-width:600px){
+  .status-cell{
+    gap:12px;
+  }
+}

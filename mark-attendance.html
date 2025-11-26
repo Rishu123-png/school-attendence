@@ -1,66 +1,59 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mark Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body onload="initMarkAttendancePage()">
 
-<main class="container">
+  <div class="page">
+    <main class="container">
+      <header class="header">
+        <div class="brand">
+          <h1 id="pageTitle">Mark Attendance</h1>
+          <p>Keep accurate daily records</p>
+        </div>
+        <div class="row">
+          <button class="small-btn" onclick="logout()">Logout</button>
+        </div>
+      </header>
 
-    <div class="row" style="justify-content:space-between;">
-      <h2>Mark Attendance</h2>
-      <button class="small-btn" onclick="logout()">Logout</button>
-    </div>
+      <!-- Class or Student UI will be rendered by script.js -->
+      <div id="classAttendanceUI" style="display:none; margin-top:6px;"></div>
 
-    <div style="margin-top:8px;">
-      <div>
-        Student: <strong id="studentNameLabel"></strong>
+      <div id="singleStudentUI" style="display:none; margin-top:6px;">
+        <div class="card row space" style="align-items:center;">
+          <div>
+            <strong>Student:</strong> <span id="studentNameLabel"></span>
+          </div>
+          <div style="min-width:160px;">
+            <label for="monthPickerMark">Month</label>
+            <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()">
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="markAttendanceTable">
+            <thead><tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <button class="btn-ghost" onclick="printReport()">Print Monthly Report</button>
+          <button class="btn-ghost" onclick="exportAttendanceCSV()">Export CSV</button>
+          <button class="btn-ghost" onclick="exportAttendanceExcel()">Export Excel</button>
+          <button class="btn-primary" onclick="openAnalyticsForStudent()">View Analytics</button>
+          <button class="btn-ghost" onclick="location.href='dashboard.html'">Back</button>
+        </div>
       </div>
 
-      <label for="monthPickerMark">Month</label>
-      <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()">
-    </div>
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+    </main>
+  </div>
 
-    <div class="table">
-      <table id="markAttendanceTable">
-        <tr>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Present</th>
-          <th>Absent</th>
-        </tr>
-
-        <!-- NEW TEMPLATE ROW (hidden) -->
-        <tr id="attendanceRowTemplate" style="display:none;">
-            <td class="dateCell"></td>
-            <td class="statusCell"></td>
-            <td>
-                <button class="markPresentBtn">Present</button>
-            </td>
-            <td>
-                <button class="markAbsentBtn">Absent</button>
-            </td>
-        </tr>
-
-      </table>
-    </div>
-
-    <div class="row" style="margin-top:12px;">
-      <button onclick="printReport()">Print Monthly Report</button>
-      <button onclick="window.location.href='view_history.html'">View History</button>
-      <button onclick="window.location.href='dashboard.html'">Back</button>
-    </div>
-
-    <p class="footer">Developed by Rishu Jaswar</p>
-
-</main>
-
-<script type="module" src="firebase.js"></script>
-<script type="module" src="script.js"></script>
-
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

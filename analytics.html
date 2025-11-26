@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Analytics</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="initAnalyticsPage()">
+  <div class="page">
+    <main class="container">
+      <header class="header">
+        <div class="brand">
+          <h1>Attendance Analytics</h1>
+          <p>Monthly & subject-based</p>
+        </div>
+        <div class="row">
+          <button class="small-btn" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <div class="card">
+        <label for="analyticsClassSelect">Class</label>
+        <select id="analyticsClassSelect"></select>
+        <label for="analyticsMonth">Month</label>
+        <input id="analyticsMonth" type="month">
+        <div style="margin-top:10px;" class="row">
+          <button class="btn-primary" onclick="renderAnalytics()">Show Charts</button>
+          <button class="btn-ghost" onclick="location.href='mark_attendance.html'">Back</button>
+        </div>
+      </div>
+
+      <div id="chartsArea" style="margin-top:12px;"></div>
+
+      <p class="footer">Developed by Rishu Jaswar</p>
+    </main>
+  </div>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

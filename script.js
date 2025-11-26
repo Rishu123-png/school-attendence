@@ -897,6 +897,7 @@ window.openAnalyticsForStudent = function () {
   localStorage.setItem('analyticsStudentId', selectedStudentId);
   window.location.href = 'analytics.html';
 };
+
 /* ======================================================
    Small helper used by marks prediction (not duplicated)
    ====================================================== */

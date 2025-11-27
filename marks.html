@@ -1,23 +1,28 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Marks & Prediction</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js for performance chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body onload="initMarksPage()">
 <div class="page">
     <main class="container">
      <header class="header">
-       <div class= "brand">
+       <div class="brand">
         <div class="logo">
-       <img src="file_00000000c03c7209b1ecb68f6232b521 (1).png" class=" brand-logo">
-</div>
-          <div>
-            <h2>Marks & Prediction</h2>
-            <p style="color:var(--muted)">Enter scores and recompute predictions</p>
-          </div>
+          <img src="file_00000000c03c7209b1ecb68f6232b521 (1).png" class="brand-logo">
         </div>
+        <div>
+          <h2>Marks & Prediction</h2>
+          <p style="color:var(--muted)">Enter scores and recompute predictions</p>
+        </div>
+      </div>
+
         <div class="top-controls">
           <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
           <button class="btn-cta" onclick="logout()">Logout</button>
@@ -25,12 +30,16 @@
       </header>
 
       <label class="label">Select Student</label>
-      <select id="marksStudentSelect"><option value="">-- Select student --</option></select>
+      <select id="marksStudentSelect">
+        <option value="">-- Select student --</option>
+      </select>
 
       <div id="marksForm" style="display:none; margin-top:12px;">
         <h3 id="marksStudentName"></h3>
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+          
+          <!-- UT-1 -->
           <div style="flex:1; min-width:210px;">
             <label class="label">UT-1 (score / max)</label>
             <div style="display:flex; gap:8px;">
@@ -39,6 +48,7 @@
             </div>
           </div>
 
+          <!-- Half Yearly -->
           <div style="flex:1; min-width:210px;">
             <label class="label">Half-Yearly (score / max)</label>
             <div style="display:flex; gap:8px;">
@@ -47,6 +57,7 @@
             </div>
           </div>
 
+          <!-- UT-2 -->
           <div style="flex:1; min-width:210px;">
             <label class="label">UT-2 (score / max)</label>
             <div style="display:flex; gap:8px;">
@@ -55,6 +66,7 @@
             </div>
           </div>
 
+          <!-- Annual -->
           <div style="flex:1; min-width:210px;">
             <label class="label">Annual (score / max)</label>
             <div style="display:flex; gap:8px;">
@@ -62,21 +74,45 @@
               <input id="annualMax" type="number" placeholder="100" value="100">
             </div>
           </div>
+
         </div>
 
+        <!-- Buttons -->
         <div class="action-row" style="margin-top:14px;">
           <button id="saveMarksBtn" class="btn-cta">Save Marks</button>
           <button id="predictBtn" class="btn-cta">Recompute Prediction</button>
           <button id="clearMarksBtn" class="btn-cta">Clear</button>
         </div>
 
+        <!-- Prediction Summary -->
         <div style="margin-top:14px;">
           <h4>Prediction</h4>
           <pre id="predictionSummary" style="color:var(--muted); white-space:pre-wrap;"></pre>
         </div>
+
+
+        <!-- ⭐ STUDY HOURS PREDICTION SECTION -->
+        <div class="marks-section" style="margin-top:20px;">
+          <h3>Study Hours & Prediction</h3>
+
+          <label class="label">Daily Study Hours</label>
+          <input type="number" id="studyHours" placeholder="Enter study hours">
+
+          <button class="btn-cta" onclick="predictStudyHourMarks()">Predict Marks From Study Hours</button>
+          <p id="studyHourPrediction" style="margin-top:8px; color:var(--muted);"></p>
+        </div>
+
+
+        <!-- ⭐ PERFORMANCE CHART SECTION -->
+        <div class="marks-section" style="margin-top:20px;">
+          <h3>Performance Chart</h3>
+          <canvas id="performanceChart" height="180"></canvas>
+        </div>
+
+
       </div>
 
-      <p class="footer">Developed by<strong> Rishu Jaswar</strong></p>
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
     </main>
   </div>
 

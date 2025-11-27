@@ -1103,36 +1103,6 @@ const studyHourPrediction = document.getElementById("studyHourPrediction");  // 
 
 
 /* ----------------------------------------------
-   FIX: LOAD MARKS PAGE
----------------------------------------------- */
-export function initMarksPage() {
-  const teacher = JSON.parse(localStorage.getItem("teacherData"));
-  if (!teacher) { window.location.href = "login.html"; return; }
-
-  const studentSelect = marksStudentSelect;
-  const form = document.getElementById("marksForm");
-
-  const classId = teacher.classAssigned;
-  const studentsRef = ref(db, `classes/${classId}/students`);
-
-  onValue(studentsRef, snap => {
-    studentSelect.innerHTML = `<option value="">-- Select student --</option>`;
-    snap.forEach(st => {
-      studentSelect.innerHTML += `<option value="${st.key}">${st.val().name}</option>`;
-    });
-  });
-
-  studentSelect.onchange = () => {
-    const id = studentSelect.value;
-    if (!id) return (form.style.display = "none");
-
-    form.style.display = "block";
-    loadStudentMarks(id);
-  };
-}
-
-
-/* ----------------------------------------------
    FIX: LOAD STUDENT MARKS
 ---------------------------------------------- */
 function loadStudentMarks(studentId) {

@@ -1100,35 +1100,3 @@ const annualMax = document.getElementById("annualMax");
 const marksStudentSelect = document.getElementById("marksStudentSelect");
 const predictionSummary = document.getElementById("predictionSummary");
 const studyHourPrediction = document.getElementById("studyHourPrediction");  // ← missing earlier
-
-
-/* ----------------------------------------------
-   FIX: LOAD STUDENT MARKS
----------------------------------------------- */
-function loadStudentMarks(studentId) {
-  const teacher = JSON.parse(localStorage.getItem("teacherData"));
-  const classId = teacher.classAssigned;
-
-  const marksRef = ref(db, `classes/${classId}/students/${studentId}/marks`);
-
-  onValue(marksRef, snap => {
-    const d = snap.val() || {};
-
-    document.getElementById("marksStudentName").innerText =
-      d.name || "";
-
-    ut1Score.value = d.ut1Score || "";
-    ut1Max.value = d.ut1Max || "";
-
-    hyScore.value = d.hyScore || "";
-    hyMax.value = d.hyMax || "";
-
-    ut2Score.value = d.ut2Score || "";
-    ut2Max.value = d.ut2Max || "25";
-
-    annualScore.value = d.annualScore || "";
-    annualMax.value = d.annualMax || "100";
-
-    drawPerformanceChart(d);
-  });
-}

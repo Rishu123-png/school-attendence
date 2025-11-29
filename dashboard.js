@@ -2,7 +2,7 @@
 import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-import { waitForAuth } from "./global.js";
+import { waitForAuth } from "./script.js";
 
 let teacherProfile = null;
 export let allStudents = {}; // exported so other modules may read cache

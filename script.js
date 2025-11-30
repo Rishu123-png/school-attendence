@@ -1092,4 +1092,4 @@ const annualMax = document.getElementById("annualMax");
 
 const marksStudentSelect = document.getElementById("marksStudentSelect");
 const predictionSummary = document.getElementById("predictionSummary");
-window.initMarksPage = initMarksPage;
+

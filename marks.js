@@ -36,7 +36,7 @@ function tryGet(fn, fallback = null) {
 }
 
 
-/* ----------------- DOM refs (may be null if page missing elements) ----------------- */
+/* ----------------- DOM refs ------------------ */
 const studentSelect = $("marksStudentSelect");
 const marksForm = $("marksForm");
 const marksStudentName = $("marksStudentName");
@@ -54,7 +54,7 @@ const saveMarksBtn = $("saveMarksBtn");
 const predictBtn = $("predictBtn");
 const clearMarksBtn = $("clearMarksBtn");
 const studyHoursInput = $("studyHours");
-const studyPredictBtn = null; // optional button in markup uses onclick inline
+const studyPredictBtn = null;
 
 const predictionSummary = $("predictionSummary");
 const studyHourPrediction = $("studyHourPrediction");
@@ -70,50 +70,43 @@ function waitForUserReady(cb, tries = 30) {
   setTimeout(() => waitForUserReady(cb, tries - 1), 200);
 }
 
-/* ----------------- Main init (exported) ------------------ */
+/* ----------------- Main init ------------------ */
 export function initMarksPage() {
-  // If page DOM not present, do nothing
   if (!studentSelect) {
     console.warn("marks.js: marksStudentSelect not found — page likely not marks.html");
     return;
   }
 
-  // wait for auth currentUser
   waitForUserReady(async () => {
     const user = auth.currentUser;
     if (!user) {
-      // not logged in — redirect to login
       window.location.href = "index.html";
       return;
     }
 
-    // Wire UI handlers
     studentSelect.innerHTML = `<option value="">-- Loading students --</option>`;
     studentSelect.onchange = handleStudentSelectChange;
 
     if (saveMarksBtn) saveMarksBtn.onclick = handleSaveMarks;
     if (predictBtn) predictBtn.onclick = recomputePrediction;
     if (clearMarksBtn) clearMarksBtn.onclick = clearMarks;
-    // study hours inline button in HTML calls predictStudyHourMarks(); keep function global:
+
     window.predictStudyHourMarks = predictStudyHourMarks;
 
-    // Load teacher's students and populate dropdown
     await loadTeacherStudents(user.uid);
   });
 }
 
-/* ----------------- Load students that belong to teacher ------------------ */
+/* ----------------- Load students ------------------ */
 async function loadTeacherStudents(teacherUid) {
   try {
     const studentsRef = ref(db, "students");
-    // We'll use onValue to keep it reactive (if you prefer one-shot use get())
     onValue(studentsRef, snap => {
       const data = snap.val() || {};
       const arr = [];
       for (const id in data) {
         const s = data[id];
         if (!s) continue;
-        // Filter to teacher's students
         if (s.teacher && s.teacher === teacherUid) {
           arr.push({ id, name: s.name || "(no name)" });
         }
@@ -123,7 +116,6 @@ async function loadTeacherStudents(teacherUid) {
       studentSelect.innerHTML = `<option value="">-- Select student --</option>`;
       if (arr.length === 0) {
         studentSelect.innerHTML += `<option value="">(No students found)</option>`;
-        // hide form
         if (marksForm) marksForm.style.display = "none";
         safeText(marksStudentName, "");
         return;
@@ -136,9 +128,6 @@ async function loadTeacherStudents(teacherUid) {
         studentSelect.appendChild(opt);
       });
 
-      // If only one student, optionally select it:
-      // (commented out to require teacher choose)
-      // if (arr.length === 1) { studentSelect.value = arr[0].id; studentSelect.dispatchEvent(new Event('change')); }
     });
   } catch (err) {
     console.error("loadTeacherStudents error", err);
@@ -146,7 +135,7 @@ async function loadTeacherStudents(teacherUid) {
   }
 }
 
-/* ----------------- Student select change ------------------ */
+/* ----------------- Student select ------------------ */
 function handleStudentSelectChange(e) {
   const id = studentSelect.value;
   if (!id) {
@@ -157,7 +146,7 @@ function handleStudentSelectChange(e) {
   loadStudentMarks(id);
 }
 
-/* ----------------- Load a student's marks + name ------------------ */
+/* ----------------- Load marks ------------------ */
 async function loadStudentMarks(studentId) {
   if (!studentId) return;
   try {
@@ -170,10 +159,8 @@ async function loadStudentMarks(studentId) {
     safeText(marksStudentName, stu.name || "(Student)");
 
     const marks = (stu.marks) ? stu.marks : (stu.marks === undefined ? {} : stu.marks);
-    // support both `marks` under student and older code that put marks directly (defensive)
     const d = marks || {};
 
-    // Fill inputs (if exist)
     if (ut1Score) ut1Score.value = tryGet(() => d.ut1Score ?? "", "");
     if (ut1Max) ut1Max.value = tryGet(() => d.ut1Max ?? "25", "25");
     if (hyScore) hyScore.value = tryGet(() => d.hyScore ?? "", "");
@@ -183,7 +170,6 @@ async function loadStudentMarks(studentId) {
     if (annualScore) annualScore.value = tryGet(() => d.annualScore ?? "", "");
     if (annualMax) annualMax.value = tryGet(() => (d.annualMax ?? "100"), "100");
 
-    // Update chart
     drawPerformanceChart({
       ut1Score: Number(d.ut1Score || 0),
       hyScore: Number(d.hyScore || 0),
@@ -201,7 +187,6 @@ async function handleSaveMarks() {
   const studentId = studentSelect.value;
   if (!studentId) return alert("Select a student first.");
 
-  // read values safely
   const payload = {
     ut1Score: (ut1Score?.value || "").toString(),
     ut1Max: (ut1Max?.value || "25").toString(),
@@ -214,7 +199,6 @@ async function handleSaveMarks() {
   };
 
   try {
-    // write to students/<id>/marks
     await update(ref(db, `students/${studentId}/marks`), payload);
     alert("Marks saved successfully.");
   } catch (err) {
@@ -223,7 +207,7 @@ async function handleSaveMarks() {
   }
 }
 
-/* ----------------- Clear inputs ------------------ */
+/* ----------------- Clear ------------------ */
 function clearMarks() {
   if (ut1Score) ut1Score.value = "";
   if (ut1Max) ut1Max.value = "25";
@@ -238,7 +222,7 @@ function clearMarks() {
   drawPerformanceChart({ ut1Score:0, hyScore:0, ut2Score:0, annualScore:0 });
 }
 
-/* ----------------- Prediction logic ------------------ */
+/* ----------------- FIXED Prediction logic ------------------ */
 function recomputePrediction() {
   const ut1 = Number(ut1Score?.value || 0);
   const hy = Number(hyScore?.value || 0);
@@ -248,15 +232,20 @@ function recomputePrediction() {
     return;
   }
 
-  const predictedUT2 = Math.round(ut1 * 0.4 + hy * 0.6);
-  const predictedAnnual = Math.round(hy * 0.5 + predictedUT2 * 0.5);
+  const ut1MaxVal = Number(ut1Max?.value || 25);
+  const ut2MaxVal = Number(ut2Max?.value || 25);
+  const hyMaxVal = Number(hyMax?.value || 100);
+  const annualMaxVal = Number(annualMax?.value || 100);
+
+  const predictedUT2 = Math.round((ut1 / ut1MaxVal) * ut2MaxVal);
+  const predictedAnnual = Math.round((hy / hyMaxVal) * annualMaxVal);
 
   if (ut2Score) ut2Score.value = predictedUT2;
   if (annualScore) annualScore.value = predictedAnnual;
 
-  if (predictionSummary) predictionSummary.innerText = `Predicted UT-2: ${predictedUT2}\nPredicted Annual: ${predictedAnnual}`;
+  if (predictionSummary)
+    predictionSummary.innerText = `Predicted UT-2: ${predictedUT2}\nPredicted Annual: ${predictedAnnual}`;
 
-  // update chart with predicted values
   drawPerformanceChart({
     ut1Score: ut1,
     hyScore: hy,
@@ -265,7 +254,7 @@ function recomputePrediction() {
   });
 }
 
-/* ----------------- Study hours -> estimate ------------------ */
+/* ----------------- Study hours prediction ------------------ */
 function predictStudyHourMarks() {
   const hours = Number(studyHoursInput?.value || 0);
   if (!hours) {
@@ -279,9 +268,8 @@ function predictStudyHourMarks() {
   if (studyHourPrediction) studyHourPrediction.innerText = `Estimated Score: ${predicted}/100\nStatus: ${category}`;
 }
 
-/* ----------------- Chart drawing ------------------ */
+/* ----------------- Chart ------------------ */
 function drawPerformanceChart(marks) {
-  // marks: { ut1Score, hyScore, ut2Score, annualScore }
   if (!performanceCanvas) return;
   const ctx = performanceCanvas.getContext("2d");
   const dataArr = [
@@ -291,12 +279,9 @@ function drawPerformanceChart(marks) {
     Number(marks.annualScore || 0)
   ];
 
-  // destroy previous chart
   try { if (chartInstance) chartInstance.destroy(); } catch (e) {}
 
-  // Chart.js must be present on the page
   if (typeof Chart === "undefined") {
-    // fallback: no Chart.js; just return
     console.warn("Chart.js not loaded — skipping chart draw.");
     return;
   }
@@ -325,8 +310,5 @@ function drawPerformanceChart(marks) {
   });
 }
 
-/* Expose initMarksPage globally so onload attr works if used */
 window.initMarksPage = initMarksPage;
-
-/* Also expose the study-hour function (in case HTML button uses onclick attr) */
 window.predictStudyHourMarks = predictStudyHourMarks;

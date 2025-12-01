@@ -221,31 +221,43 @@ function clearMarks() {
   if (studyHourPrediction) studyHourPrediction.innerText = "";
   drawPerformanceChart({ ut1Score:0, hyScore:0, ut2Score:0, annualScore:0 });
 }
-
-/* ----------------- FIXED Prediction logic ------------------ */
+/* ----------------- FIXED Prediction logic (Final Model) ------------------ */
 function recomputePrediction() {
   const ut1 = Number(ut1Score?.value || 0);
   const hy = Number(hyScore?.value || 0);
 
-  if (!ut1 || !hy) {
-    if (predictionSummary) predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
+  const ut1MaxVal = Number(ut1Max?.value || 25);
+  const hyMaxVal = Number(hyMax?.value || 100);
+  const ut2MaxVal = Number(ut2Max?.value || 25);
+  const annualMaxVal = Number(annualMax?.value || 100);
+
+  if (ut1 <= 0 || hy <= 0) {
+    if (predictionSummary)
+      predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
     return;
   }
 
-  const ut1MaxVal = Number(ut1Max?.value || 25);
-  const ut2MaxVal = Number(ut2Max?.value || 25);
-  const hyMaxVal = Number(hyMax?.value || 100);
-  const annualMaxVal = Number(annualMax?.value || 100);
+  // Convert to performance ratio
+  const ut1_ratio = ut1 / ut1MaxVal;
+  const hy_ratio = hy / hyMaxVal;
 
-  const predictedUT2 = Math.round((ut1 / ut1MaxVal) * ut2MaxVal);
-  const predictedAnnual = Math.round((hy / hyMaxVal) * annualMaxVal);
+  // Final prediction model (Average performance)
+  const avgPerformance = (ut1_ratio + hy_ratio) / 2;
 
+  // Predictions
+  const predictedUT2 = Math.round(avgPerformance * ut2MaxVal);
+  const predictedAnnual = Math.round(avgPerformance * annualMaxVal);
+
+  // Fill input boxes
   if (ut2Score) ut2Score.value = predictedUT2;
   if (annualScore) annualScore.value = predictedAnnual;
 
+  // Print summary
   if (predictionSummary)
-    predictionSummary.innerText = `Predicted UT-2: ${predictedUT2}\nPredicted Annual: ${predictedAnnual}`;
+    predictionSummary.innerText =
+      `Predicted UT-2: ${predictedUT2}\nPredicted Annual: ${predictedAnnual}`;
 
+  // Update chart
   drawPerformanceChart({
     ut1Score: ut1,
     hyScore: hy,
@@ -254,6 +266,8 @@ function recomputePrediction() {
   });
 }
 
+  
+
 /* ----------------- Study hours prediction ------------------ */
 function predictStudyHourMarks() {
   const hours = Number(studyHoursInput?.value || 0);
@@ -261,10 +275,10 @@ function predictStudyHourMarks() {
     if (studyHourPrediction) studyHourPrediction.innerText = "Enter study hours.";
     return;
   }
-  let predicted = Math.min(100, Math.round(hours * 7));
+  let predicted = Math.min(100, Math.round(hours * 3));
   let category = "Average";
-  if (predicted > 85) category = "Topper";
-  else if (predicted < 40) category = "Failer";
+  if (predicted > 8) category = "Topper";
+  else if (predicted < 2) category = "Failer";
   if (studyHourPrediction) studyHourPrediction.innerText = `Estimated Score: ${predicted}/100\nStatus: ${category}`;
 }
 

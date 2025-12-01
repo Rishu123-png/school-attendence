@@ -35,6 +35,7 @@ function tryGet(fn, fallback = null) {
   try { return fn(); } catch (e) { return fallback; }
 }
 
+
 /* ----------------- DOM refs (may be null if page missing elements) ----------------- */
 const studentSelect = $("marksStudentSelect");
 const marksForm = $("marksForm");

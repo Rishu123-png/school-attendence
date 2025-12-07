@@ -848,7 +848,7 @@ window.renderAnalytics = async function () {
     ctrl.className = 'row';
     ctrl.style.marginTop = '10px';
     const exportBtn = document.createElement('button');
-    exportBtn.className = 'btn-ghost';
+    exportBtn.className = 'btn-cta';
     exportBtn.innerText = 'Export Monthly Excel';
     exportBtn.onclick = async () => {
       // Build CSV: header days + students rows
@@ -869,7 +869,7 @@ window.renderAnalytics = async function () {
     ctrl.appendChild(exportBtn);
 
     const printBtn = document.createElement('button');
-    printBtn.className = 'btn-primary';
+    printBtn.className = 'btn-cta';
     printBtn.innerText = 'Print Report';
     printBtn.onclick = () => {
       const w = window.open('', '', 'width=900,height=700');

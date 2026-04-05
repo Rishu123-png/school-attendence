@@ -54,37 +54,29 @@ html, body {
   pointer-events: none;
 }
 
+/* header (logo + nav) */
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:18px;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+display:flex;
+align-items:center;
+gap:12px;
 }
-
 .logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accentA), var(--accentB));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 18px rgba(107,108,255,0.12);
-  font-weight: 700;
-  font-size: 18px;
-  color: #fff;
-  flex-shrink: 0;
+width:44px; height:44px; border-radius:10px;
+background: linear-gradient(135deg,var(--accentA),var(--accentB));
+display:flex; align-items:center; justify-content:center;
+box-shadow: 0 6px 18px rgba(107,108,255,0.12);
+font-weight:700;
 }
-
-.brand h1 { font-size: 18px; letter-spacing: 0.2px; }
-.brand p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.brand h1 { font-size:18px; letter-spacing:0.2px; }
+.brand p { font-size:12px; color:var(--muted); margin-top:2px; }
 
 .top-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 

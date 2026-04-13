@@ -1,4 +1,6 @@
-
+function renderstudentsTable(...args) {
+  renderStudentsTable(...args);
+}
 // script.js
 // Master script for all pages: login, dashboard, add-student, mark-attendance, analytics, top-bunkers, marks
 // Uses firebase.js (auth & db) and firebase CDN database/auth methods (v10.12.5)

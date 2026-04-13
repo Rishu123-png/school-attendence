@@ -151,7 +151,7 @@ try{
   }
 }
 
-function renderStudentsTable() {
+function renderStudentsTable(filterClass = ") {
   const table = document.getElementById('studentsTable');
   if (!table) return;
 
@@ -163,7 +163,7 @@ function renderStudentsTable() {
     const s = allStudents[id];
     if (!s) continue;
 
-    if (currentClassFilter && s.class !== currentClassFilter) continue;
+    if (ClassFilter && s.class !== ClassFilter) continue;
 
     if (s.teacher && auth.currentUser && s.teacher !== auth.currentUser.uid) continue;
 

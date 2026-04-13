@@ -143,9 +143,9 @@ export async function loadStudents(selectedClass = '') {
 
   const studentsRef = ref(db, 'students');
 try{
-    const snap = await get(students ref);
-    allstudents = snap.val()||{};
-    renderstudentsTable();
+    const snap = await get(studentsRef);
+    allStudents = snap.val() || {};
+    renderstudentsTable(currentClassFilter);
    } catch(error){
     console.error(error);
   }
@@ -185,7 +185,7 @@ function renderStudentsTable() {
 
     const editBtn = document.createElement('button');
 editBtn.innerText = 'Edit';
-
+actionCell.appendChild(editBtn);
 editBtn.onclick = async () => {
   const newName = prompt('Edit student name', s.name || '');
   if (!newName) return;

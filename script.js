@@ -138,14 +138,17 @@ window.initDashboardPage = function () {
   loadStudents();
 };
 
-export function loadStudents(selectedClass = '') {
+export async function loadStudents(selectedClass = '') {
   currentClassFilter = selectedClass || currentClassFilter || '';
 
   const studentsRef = ref(db, 'students');
-  onValue(studentsRef, snap => {
-    allStudents = snap.val() || {};
-    renderStudentsTable();
-  });
+try{
+    const snap = await get(students ref);
+    allstudents = snap.val()||{};
+    renderstudentsTable();
+   } catch(error){
+    console.error(error);
+  }
 }
 
 function renderStudentsTable() {
@@ -202,17 +205,24 @@ editBtn.onclick = async () => {
   }
 };
 
-    const delBtn = document.createElement('button');
-    delBtn.innerText = 'Delete';
-    delBtn.disabled = !(s.teacher && auth.currentUser && s.teacher === auth.currentUser.uid);
-    delBtn.onclick = async () => {
-      if (!confirm('Delete this student?')) return;
-      try {
-        await set(ref(db, `students/${id}`), null);
-      } catch (err) { alert('Delete failed'); console.error(err); }
-    };
-    actionCell.appendChild(delBtn);
+  const delBtn = document.createElement('button');
+delBtn.innerText = 'Delete';
 
+delBtn.onclick = async () => {
+  if (!confirm('Delete this student?')) return;
+
+  try {
+    await set(ref(db, `students/${id}`), null);
+
+    // 🔥 reload manually (NO LOOP)
+    await loadStudents(currentClassFilter);
+
+  } catch (err) {
+    console.error(err);
+    alert('Delete failed');
+  }
+};
+actionCell.appendChild(delBtn);
     const markBtn = document.createElement('button');
     markBtn.innerText = 'Mark Attendance';
     markBtn.disabled = !(s.teacher && auth.currentUser && s.teacher === auth.currentUser.uid);

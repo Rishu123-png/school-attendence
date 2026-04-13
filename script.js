@@ -181,16 +181,26 @@ function renderStudentsTable() {
     }
 
     const editBtn = document.createElement('button');
-    editBtn.innerText = 'Edit';
-    editBtn.disabled = !(s.teacher && auth.currentUser && s.teacher === auth.currentUser.uid);
-    editBtn.onclick = async () => {
-      const newName = prompt('Edit student name', s.name || '');
-      if (!newName) return;
-      try {
-        await set(ref(db, `students/${String(id)}/name`), newName);
-      } catch (err) { alert('Failed to edit name'); console.error(err); }
-    };
-    actionCell.appendChild(editBtn);
+editBtn.innerText = 'Edit';
+
+editBtn.onclick = async () => {
+  const newName = prompt('Edit student name', s.name || '');
+  if (!newName) return;
+
+  if (!id || typeof id !== "string") {
+    console.error("Invalid student ID:", id);
+    alert("Error: invalid student ID");
+    return;
+  }
+
+  try {
+    await set(ref(db, `students/${id}/name`), newName);
+    loadStudents(currentClassFilter); // reload safely
+  } catch (err) {
+    console.error(err);
+    alert('Failed to edit name');
+  }
+};
 
     const delBtn = document.createElement('button');
     delBtn.innerText = 'Delete';

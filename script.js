@@ -118,9 +118,6 @@ export async function loadTeacherProfile() {
    - loadStudents subscribes to 'students' node and caches allStudents
    - renderStudentsTable generates rows with action buttons
    ====================================================== */
-function renderstudentsTable(...args) {
-  renderStudentsTable(...args);
-}
 window.initDashboardPage = function () {
   if (!auth.currentUser) {
     setTimeout(window.initDashboardPage, 300);

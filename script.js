@@ -145,7 +145,7 @@ try{
     const snap = await get(studentsRef);
     allStudents = snap.val() || {};
     renderStudentsTable(currentClassFilter);
-   } catch(error){
+   } catch (error){
     console.error(error);
   }
 }

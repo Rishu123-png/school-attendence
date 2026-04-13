@@ -187,7 +187,7 @@ function renderStudentsTable() {
       const newName = prompt('Edit student name', s.name || '');
       if (!newName) return;
       try {
-        await set(ref(db, `students/${id}/name`), newName);
+        await set(ref(db, `students/${String(id)}/name`), newName);
       } catch (err) { alert('Failed to edit name'); console.error(err); }
     };
     actionCell.appendChild(editBtn);

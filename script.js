@@ -145,7 +145,7 @@ export async function loadStudents(selectedClass = '') {
 try{
     const snap = await get(studentsRef);
     allStudents = snap.val() || {};
-    renderstudentsTable(currentClassFilter);
+    renderStudentsTable(currentClassFilter);
    } catch(error){
     console.error(error);
   }

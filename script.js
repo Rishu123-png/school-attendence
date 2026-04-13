@@ -1,6 +1,4 @@
-function renderstudentsTable(...args) {
-  renderStudentsTable(...args);
-}
+
 // script.js
 // Master script for all pages: login, dashboard, add-student, mark-attendance, analytics, top-bunkers, marks
 // Uses firebase.js (auth & db) and firebase CDN database/auth methods (v10.12.5)
@@ -120,7 +118,9 @@ export async function loadTeacherProfile() {
    - loadStudents subscribes to 'students' node and caches allStudents
    - renderStudentsTable generates rows with action buttons
    ====================================================== */
-
+function renderstudentsTable(...args) {
+  renderStudentsTable(...args);
+}
 window.initDashboardPage = function () {
   if (!auth.currentUser) {
     setTimeout(window.initDashboardPage, 300);

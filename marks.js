@@ -95,6 +95,9 @@ async function loadTeacherStudents(teacherUid) {
       const s = data[id];
       if (!s) continue;
 
+console.log("Logged UID:", teacherUid);
+console.log("Student teacher:", s.teacher);
+
       // 🔥 FIXED: safer teacher filter
       if (!s.teacher || s.teacher === teacherUid) {
         arr.push({ id, name: s.name || "(no name)" });

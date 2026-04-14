@@ -354,6 +354,7 @@ function drawPerformanceChart(marks) {
     }
   });
 }
+function predictStudyHourMarks{}{ ... }
 
 window.initMarksPage = initMarksPage;
 window.predictStudyHourMarks = predictStudyHourMarks;

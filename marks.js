@@ -86,38 +86,42 @@ export function initMarksPage() {
 /* ----------------- Load students ------------------ */
 async function loadTeacherStudents(teacherUid) {
   try {
-    const studentsRef = ref(db, "students");
-    onValue(studentsRef, snap => {
-      const data = snap.val() || {};
-      const arr = [];
-      for (const id in data) {
-        const s = data[id];
-        if (!s) continue;
-        if (s.teacher && s.teacher === teacherUid) {
-          arr.push({ id, name: s.name || "(no name)" });
-        }
+    const snap = await get(ref(db, "students"));
+    const data = snap.val() || {};
+
+    const arr = [];
+
+    for (const id in data) {
+      const s = data[id];
+      if (!s) continue;
+
+      // 🔥 FIXED: safer teacher filter
+      if (!s.teacher || s.teacher === teacherUid) {
+        arr.push({ id, name: s.name || "(no name)" });
       }
+    }
 
-      if (!studentSelect) return;
-      studentSelect.innerHTML = `<option value="">-- Select student --</option>`;
-      if (arr.length === 0) {
-        studentSelect.innerHTML += `<option value="">(No students found)</option>`;
-        if (marksForm) marksForm.style.display = "none";
-        safeText(marksStudentName, "");
-        return;
-      }
+    if (!studentSelect) return;
 
-      arr.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.innerText = s.name;
-        studentSelect.appendChild(opt);
-      });
+    studentSelect.innerHTML = `<option value="">-- Select student --</option>`;
 
+    if (arr.length === 0) {
+      studentSelect.innerHTML += `<option value="">(No students found)</option>`;
+      if (marksForm) marksForm.style.display = "none";
+      safeText(marksStudentName, "");
+      return;
+    }
+
+    arr.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.innerText = s.name;
+      studentSelect.appendChild(opt);
     });
+
   } catch (err) {
     console.error("loadTeacherStudents error", err);
-    alert("Failed to load students. Open console for details.");
+    alert("Failed to load students.");
   }
 }
 

@@ -354,7 +354,30 @@ function drawPerformanceChart(marks) {
     }
   });
 }
-function predictStudyHourMarks{}{ ... }
 
-window.initMarksPage = initMarksPage;
+
+function predictStudyHourMarks() {
+  const hours = Number(studyHoursInput?.value || 0);
+
+  if (!hours || hours <= 0) {
+    if (studyHourPrediction) {
+      studyHourPrediction.innerText = "Enter valid study hours.";
+    }
+    return;
+  }
+
+  let predicted = Math.round((hours / 10) * 100);
+  predicted = Math.min(100, predicted);
+
+  let category = "";
+  if (predicted >= 80) category = "Topper";
+  else if (predicted >= 50) category = "Average";
+  else category = "Failer";
+
+  if (studyHourPrediction) {
+    studyHourPrediction.innerText =
+      `Estimated Score: ${predicted}/100\nStatus: ${category}`;
+  }
+}
+
 window.predictStudyHourMarks = predictStudyHourMarks;

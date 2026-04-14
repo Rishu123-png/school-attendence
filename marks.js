@@ -321,6 +321,8 @@ async function recomputePrediction() {
     annualScore: predictedAnnual
   });
 }
+document.getElementById("attendanceInfo").innerText =
+  `Attendance Used: ${(attendancePercent*100).toFixed(1)}%`;
 /* ----------------- Chart ------------------ */
 function drawPerformanceChart(marks) {
   if (!performanceCanvas) return;

@@ -1,19 +1,5 @@
 // marks.js
-// Marks & Prediction page logic (standalone module)
-//
-// Usage: <script type="module" src="marks.js"></script>
-// Requires:
-//  - firebase.js exporting { auth, db } (your existing file)
-//  - Chart.js included in the page (via CDN <script> tag)
-//
-// Features:
-//  - Lists students that have `teacher === auth.currentUser.uid`
-//  - Loads and displays marks saved at `students/<id>/marks`
-//  - Save marks -> update students/<id>/marks
-//  - Recompute predictions (UT-2 & Annual) from UT-1 & Half-Yearly
-//  - Predict marks from study hours
-//  - Draw performance chart (Chart.js)
-//  - Graceful handling when user not logged in / no students / missing DOM
+// Marks & Prediction page logic 
 
 import { auth, db } from "./firebase.js";
 import {
@@ -263,6 +249,12 @@ async function recomputePrediction() {
 
   let attendancePercent = totalDays > 0 ? presentDays / totalDays : 1;
 
+const attendanceInfoEl = document.getElementById("attendanceInfo");
+if (attendanceInfoEl) {
+  attendanceInfoEl.innerText =
+    `Attendance Used: ${(attendancePercent * 100).toFixed(1)}%`;
+}
+
   // 🔻 Attendance penalty
   let attendancePenalty = 0;
   if (attendancePercent < 0.5) attendancePenalty = 0.4;
@@ -321,8 +313,6 @@ async function recomputePrediction() {
     annualScore: predictedAnnual
   });
 }
-document.getElementById("attendanceInfo").innerText =
-  `Attendance Used: ${(attendancePercent*100).toFixed(1)}%`;
 /* ----------------- Chart ------------------ */
 function drawPerformanceChart(marks) {
   if (!performanceCanvas) return;

@@ -385,3 +385,4 @@ function predictStudyHourMarks() {
 }
 
 window.predictStudyHourMarks = predictStudyHourMarks;
+window.initMarksPage = initMarksPage;

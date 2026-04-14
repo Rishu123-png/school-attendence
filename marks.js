@@ -221,10 +221,11 @@ function clearMarks() {
   if (studyHourPrediction) studyHourPrediction.innerText = "";
   drawPerformanceChart({ ut1Score:0, hyScore:0, ut2Score:0, annualScore:0 });
 }
-/* ----------------- FIXED Prediction logic (Final Model) ------------------ */
-function recomputePrediction() {
+/* ----------------- AI + ATTENDANCE CORRELATION ------------------ */
+async function recomputePrediction() {
   const ut1 = Number(ut1Score?.value || 0);
   const hy = Number(hyScore?.value || 0);
+  const hours = Number(studyHoursInput?.value || 0);
 
   const ut1MaxVal = Number(ut1Max?.value || 25);
   const hyMaxVal = Number(hyMax?.value || 100);
@@ -232,65 +233,93 @@ function recomputePrediction() {
   const annualMaxVal = Number(annualMax?.value || 100);
 
   if (ut1 <= 0 || hy <= 0) {
-    if (predictionSummary)
-      predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
+    predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
     return;
   }
 
-  // Convert to performance ratio
+  // 🔹 STEP 1: Academic performance
   const ut1_ratio = ut1 / ut1MaxVal;
   const hy_ratio = hy / hyMaxVal;
+  const base = (ut1_ratio * 0.4) + (hy_ratio * 0.6);
 
-  // Final prediction model (Average performance)
-  const avgPerformance = (ut1_ratio + hy_ratio) / 2;
+  // 🔹 STEP 2: Study hours
+  const studyFactor = Math.min(hours / 10, 1);
 
-  // Predictions
-  const predictedUT2 = Math.round(avgPerformance * ut2MaxVal);
-  const predictedAnnual = Math.round(avgPerformance * annualMaxVal);
+  // 🔹 STEP 3: Trend
+  const trend = hy_ratio - ut1_ratio;
 
-  // Fill input boxes
-  if (ut2Score) ut2Score.value = predictedUT2;
-  if (annualScore) annualScore.value = predictedAnnual;
+  // 🔹 STEP 4: ATTENDANCE FETCH
+  const studentId = studentSelect.value;
+  const snap = await get(ref(db, `students/${studentId}/attendance`));
+  const attendanceData = snap.val() || {};
 
-  // Print summary
-  if (predictionSummary)
-    predictionSummary.innerText =
-      `Predicted UT-2: ${predictedUT2}\nPredicted Annual: ${predictedAnnual}`;
+  let totalDays = 0;
+  let presentDays = 0;
 
-  // Update chart
+  for (const date in attendanceData) {
+    totalDays++;
+    if (attendanceData[date] === "present") presentDays++;
+  }
+
+  let attendancePercent = totalDays > 0 ? presentDays / totalDays : 1;
+
+  // 🔻 Attendance penalty
+  let attendancePenalty = 0;
+  if (attendancePercent < 0.5) attendancePenalty = 0.4;
+  else if (attendancePercent < 0.7) attendancePenalty = 0.25;
+  else if (attendancePercent < 0.85) attendancePenalty = 0.1;
+
+  // 🔹 STEP 5: Final AI performance
+  let finalPerformance =
+      base
+    + (studyFactor * 0.2)
+    + (trend * 0.2)
+    - attendancePenalty;
+
+  finalPerformance = Math.max(0, Math.min(1, finalPerformance));
+
+  // 🔹 STEP 6: Predictions
+  const predictedUT2 = Math.round(finalPerformance * ut2MaxVal);
+  const predictedAnnual = Math.round(finalPerformance * annualMaxVal);
+
+  ut2Score.value = predictedUT2;
+  annualScore.value = predictedAnnual;
+
+  // 🔹 EXTRA ANALYSIS
+  const confidence = Math.round((1 - Math.abs(ut1_ratio - hy_ratio)) * 100);
+
+  let risk = "LOW";
+  if (finalPerformance < 0.4) risk = "HIGH";
+  else if (finalPerformance < 0.7) risk = "MEDIUM";
+
+  let remark = "";
+  if (attendancePercent < 0.5) {
+    remark = "Very low attendance is severely affecting performance.";
+  } else if (attendancePercent < 0.7) {
+    remark = "Attendance is low. Improvement needed.";
+  } else if (trend < 0) {
+    remark = "Performance is declining. Focus required.";
+  } else {
+    remark = "Good performance and attendance.";
+  }
+
+  // 🧾 OUTPUT
+  predictionSummary.innerText =
+    `Predicted UT-2: ${predictedUT2}\n` +
+    `Predicted Annual: ${predictedAnnual}\n\n` +
+    `Performance: ${(finalPerformance*100).toFixed(1)}%\n` +
+    `Attendance: ${(attendancePercent*100).toFixed(1)}%\n` +
+    `Confidence: ${confidence}%\n` +
+    `Risk Level: ${risk}\n\n` +
+    `AI Remark:\n${remark}`;
+
+  // Chart update
   drawPerformanceChart({
     ut1Score: ut1,
     hyScore: hy,
     ut2Score: predictedUT2,
     annualScore: predictedAnnual
   });
-}
-
-  
-
-/* ----------------- Realistic Study hours prediction ------------------ */
-function predictStudyHourMarks() {
-  const hours = Number(studyHoursInput?.value);
-
-  if (isNaN(hours) || hours <= 0) {
-    if (studyHourPrediction) studyHourPrediction.innerText = "Enter valid study hours.";
-    return;
-  }
-
-  // Realistic prediction formula (curved for diminishing returns)
-  // Max marks = 100, assuming 0–12 study hours
-  let predicted = Math.round((hours / 12) * 100);
-  predicted = Math.min(100, predicted);
-
-  // Determine category
-  let category = "";
-  if (predicted >= 80) category = "Topper";
-  else if (predicted >= 50) category = "Average";
-  else category = "Failer";
-
-  if (studyHourPrediction) {
-    studyHourPrediction.innerText = `Estimated Score: ${predicted}/100\nStatus: ${category}`;
-  }
 }
 /* ----------------- Chart ------------------ */
 function drawPerformanceChart(marks) {

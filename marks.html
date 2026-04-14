@@ -9,6 +9,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
 <div class="page">
   <main class="container">
@@ -21,7 +22,7 @@
 
         <div>
           <h2>Marks & Prediction</h2>
-          <p style="color:var(--muted)">Enter scores and recompute predictions</p>
+          <p style="color:var(--muted)">AI-based student performance analysis</p>
         </div>
       </div>
 
@@ -66,7 +67,7 @@
           <label class="label">UT-2 (score / max)</label>
           <div style="display:flex; gap:8px;">
             <input id="ut2Score" type="number" placeholder="(pred)">
-            <input id="ut2Max" type="number" placeholder="25" value="25">
+            <input id="ut2Max" type="number" value="25">
           </div>
         </div>
 
@@ -75,7 +76,7 @@
           <label class="label">Annual (score / max)</label>
           <div style="display:flex; gap:8px;">
             <input id="annualScore" type="number" placeholder="(pred)">
-            <input id="annualMax" type="number" placeholder="100" value="100">
+            <input id="annualMax" type="number" value="100">
           </div>
         </div>
 
@@ -88,24 +89,38 @@
         <button id="clearMarksBtn" class="btn-cta">Clear</button>
       </div>
 
-      <!-- Prediction summary -->
-      <div style="margin-top:14px;">
-        <h4>Prediction</h4>
-        <pre id="predictionSummary" style="color:var(--muted); white-space:pre-wrap;"></pre>
+      <!-- 🔮 AI Prediction Output -->
+      <div style="margin-top:16px;">
+        <h4>AI Prediction Result</h4>
+
+        <div id="predictionSummary"
+          style="background:#111; padding:12px; border-radius:10px; color:#0f0; font-family:monospace;">
+        </div>
       </div>
 
-      <!-- Study hours -->
+      <!-- 📚 Study Hours -->
       <div class="marks-section" style="margin-top:20px;">
-        <h3>Study Hours & Prediction</h3>
+        <h3>Study Hours Input</h3>
 
-        <label class="label">Daily Study Hours</label>
-        <input type="number" id="studyHours" placeholder="Enter study hours">
+        <label class="label">Daily Study Hours (0–10)</label>
+        <input type="number" id="studyHours" placeholder="e.g. 5">
 
-        <button class="btn-cta" onclick="predictStudyHourMarks()">Predict Marks From Study Hours</button>
+        <button class="btn-cta" onclick="predictStudyHourMarks()">
+          Predict Marks From Study Hours
+        </button>
+
         <p id="studyHourPrediction" style="margin-top:8px; color:var(--muted);"></p>
       </div>
 
-      <!-- Chart -->
+      <!-- 📊 Attendance Impact -->
+      <div class="marks-section" style="margin-top:20px;">
+        <h3>Attendance Impact</h3>
+        <p id="attendanceInfo" style="color:#ccc;">
+          Attendance will affect AI prediction.
+        </p>
+      </div>
+
+      <!-- 📈 Chart -->
       <div class="marks-section" style="margin-top:20px;">
         <h3>Performance Chart</h3>
         <canvas id="performanceChart" height="180"></canvas>
@@ -121,19 +136,17 @@
 <!-- Firebase -->
 <script type="module" src="./firebase.js"></script>
 
-<!-- Global Script (login, auth, dashboard) -->
+<!-- Main Script -->
 <script type="module" src="./script.js"></script>
 
-<!-- Marks Script (handles marks page only) -->
+<!-- Marks Script -->
 <script type="module" src="./marks.js"></script>
 
-
-
-<!-- Init ONLY after both scripts are loaded -->
+<!-- Init -->
 <script>
   window.addEventListener("DOMContentLoaded", () => {
     if (window.initMarksPage) {
-      window.initMarksPage(); // ✔️ now this will exist
+      window.initMarksPage();
     }
   });
 
@@ -141,8 +154,10 @@
     if (window.logout) window.logout();
   });
 </script>
-<!-- Load Eruda (debugger) -->
+
+<!-- Debugger -->
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>
+
 </body>
 </html>

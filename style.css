@@ -604,3 +604,11 @@ canvas {
 
 /* z-index safety */
 #loginBtn, .container { position: relative; z-index: 1; }
+
+#themeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+#themeToggle .theme-icon { font-size: 13px; line-height: 1; }
+

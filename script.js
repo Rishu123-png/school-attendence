@@ -914,50 +914,6 @@ window.openAnalyticsForStudent = function () {
   localStorage.setItem('analyticsStudentId', selectedStudentId);
   window.location.href = 'analytics.html';
 };
-<script>
-  (function () {
-    const root = document.documentElement;
-    const STORAGE_KEY = 'theme';
-
-    // Apply saved theme (or system preference) on first load
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved || (prefersDark ? 'dark' : 'light');
-    if (initial === 'dark') root.classList.add('dark');
-
-    function syncButton() {
-      const btn = document.getElementById('themeToggle');
-      if (!btn) return;
-      const isDark = root.classList.contains('dark');
-      const icon = btn.querySelector('.theme-icon');
-      const label = btn.querySelector('.theme-label');
-      if (icon)  icon.textContent  = isDark ? '☀' : '☾';
-      if (label) label.textContent = isDark ? 'Light' : 'Dark';
-      btn.setAttribute('aria-pressed', String(isDark));
-    }
-
-    function bind() {
-      const btn = document.getElementById('themeToggle');
-      if (!btn) return;
-      btn.addEventListener('click', () => {
-        root.classList.toggle('dark');
-        localStorage.setItem(
-          STORAGE_KEY,
-          root.classList.contains('dark') ? 'dark' : 'light'
-        );
-        syncButton();
-      });
-      syncButton();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bind);
-    } else {
-      bind();
-    }
-  })();
-</script>
-
 /* ======================================================
    Small helper used by marks prediction (not duplicated)
    ====================================================== */

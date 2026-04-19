@@ -330,14 +330,30 @@ if (attendanceInfoEl) {
   else if (attendancePercent < 0.7) attendancePenalty = 0.25;
   else if (attendancePercent < 0.85) attendancePenalty = 0.1;
 
-  // 🔹 STEP 5: Final AI performance
-  let finalPerformance =
+  // 🔹 STEP 5: AI Prediction (TensorFlow)
+
+const aiPrediction = predictWithAI(
+  ut1_ratio,
+  hy_ratio,
+  attendancePercent,
+  studyFactor
+);
+
+let finalPerformance;
+
+if (aiPrediction !== null && !isNaN(aiPrediction)) {
+  finalPerformance = aiPrediction;
+} else {
+  // fallback (your old logic)
+  finalPerformance =
       base
     + (studyFactor * 0.2)
     + (trend * 0.2)
     - attendancePenalty;
+}
 
-  finalPerformance = Math.max(0, Math.min(1, finalPerformance));
+// keep normalization (VERY IMPORTANT)
+finalPerformance = Math.max(0, Math.min(1, finalPerformance));
 
   // 🔹 STEP 6: Predictions
   const predictedUT2 = Math.round(finalPerformance * ut2MaxVal);

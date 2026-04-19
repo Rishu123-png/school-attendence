@@ -9,6 +9,67 @@ import {
   update
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
+/* ----------------- TensorFlow AI मॉडल ------------------ */
+
+let tfModel = null;
+
+async function initAIModel() {
+  if (tfModel) return;
+
+  tfModel = tf.sequential();
+
+  tfModel.add(tf.layers.dense({
+    units: 8,
+    inputShape: [4],
+    activation: 'relu'
+  }));
+
+  tfModel.add(tf.layers.dense({ units: 1 }));
+
+  tfModel.compile({
+    optimizer: 'adam',
+    loss: 'meanSquaredError'
+  });
+
+  await trainAIModel();
+}
+
+/* ----------------- Training Data ------------------ */
+async function trainAIModel() {
+  const trainingData = [
+    { input: [0.8, 0.85, 0.9, 0.5], output: [0.8] },
+    { input: [0.6, 0.7, 0.75, 0.4], output: [0.65] },
+    { input: [0.4, 0.5, 0.6, 0.3], output: [0.5] },
+    { input: [0.3, 0.4, 0.5, 0.2], output: [0.4] },
+    { input: [0.9, 0.95, 0.95, 0.6], output: [0.9] }
+  ];
+
+  const inputs = tf.tensor2d(trainingData.map(d => d.input));
+  const outputs = tf.tensor2d(trainingData.map(d => d.output));
+
+  await tfModel.fit(inputs, outputs, {
+    epochs: 200,
+    shuffle: true
+  });
+
+  console.log("✅ AI Model Trained");
+}
+
+/* ----------------- Prediction ------------------ */
+function predictWithAI(ut1, hy, attendance, hours) {
+  if (!tfModel) return null;
+
+  const input = tf.tensor2d([[
+    ut1,
+    hy,
+    attendance,
+    hours
+  ]]);
+
+  const output = tfModel.predict(input);
+  return output.dataSync()[0]; // 0–1 range
+}
+
 /* ----------------- Utilities ------------------ */
 function $(id) { return document.getElementById(id); }
 

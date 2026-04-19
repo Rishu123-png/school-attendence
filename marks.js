@@ -140,34 +140,7 @@ export function initMarksPage() {
 
     window.predictStudyHourMarks = predictStudyHourMarks;
 
-    async function initAIModel() {
-  try {
-    tfModel = await tf.loadLayersModel('localstorage://student-model');
-    console.log("✅ Model Loaded");
-  } catch {
-    console.log("⚠️ Training new model...");
-    
-    tfModel = tf.sequential();
-
-    tfModel.add(tf.layers.dense({
-      units: 8,
-      inputShape: [4],
-      activation: 'relu'
-    }));
-
-    tfModel.add(tf.layers.dense({ units: 1 }));
-
-    tfModel.compile({
-      optimizer: 'adam',
-      loss: 'meanSquaredError'
-    });
-
-    await trainAIModel();
-
-    await tfModel.save('localstorage://student-model');
-    console.log("✅ Model Saved");
-  }
-}
+    await initAIModel();
     await loadTeacherStudents(user.uid);
   });
 }

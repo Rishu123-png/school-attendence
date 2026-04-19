@@ -140,6 +140,7 @@ export function initMarksPage() {
 
     window.predictStudyHourMarks = predictStudyHourMarks;
 
+    await initAIModel();
     await loadTeacherStudents(user.uid);
   });
 }

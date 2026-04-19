@@ -923,3 +923,14 @@ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 /* ======================================================
    End of merged script
    ====================================================== */
+// Sidebar toggle
+window.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("menuToggle");
+  const sidebar = document.getElementById("sidebar");
+
+  if (btn && sidebar) {
+    btn.onclick = () => {
+      sidebar.classList.toggle("active");
+    };
+  }
+});

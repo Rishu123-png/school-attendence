@@ -1,42 +1,29 @@
 <!doctype html>
 <html>
 <head>
-<button id="menuToggle" class="menu-btn">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard — School Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initDashboardPage()">
 
-<!-- Overlay -->
-<div id="overlay" class="overlay"></div>
+<!-- ☰ Toggle Button -->
+<button id="menuToggle" class="menu-btn">☰</button>
 
+<!-- Sidebar -->
 <div id="sidebar" class="sidebar">
 
-  <!-- 🔰 PROFILE HEADER -->
-  <div class="sidebar-profile">
-    <img src="file_00000000c03c7209b1ecb68f6232b521 (1).png" class="sidebar-logo">
-
-    <div>
-      <h3 id="teacherName">Loading...</h3>
-      <p class="sidebar-role">Teacher Panel</p>
-    </div>
+  <div class="sidebar-header">
+    <img src="your-logo.png" class="sidebar-logo">
+    <h3 id="teacherName">Teacher Name</h3>
+    <p id="teacherSubject">Subject</p>
   </div>
 
-  <!-- MENU -->
   <div class="sidebar-menu">
     <button onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button onclick="location.href='attendance.html'">📅 Attendance</button>
+    <button onclick="location.href='mark-attendance.html'">📅 Attendance</button>
     <button onclick="location.href='marks.html'">📊 Marks</button>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="sidebar-footer">
-    <button id="themeToggle">🌗 Toggle Theme</button>
+    <button onclick="toggleTheme()">🌙 Toggle Theme</button>
   </div>
 
 </div>

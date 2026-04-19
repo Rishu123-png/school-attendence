@@ -8,23 +8,32 @@
 <body onload="initDashboardPage()">
 
 <!-- ☰ Toggle Button -->
-<button id="menuToggle" class="menu-btn">☰</button>
+<button id="menuToggle" class="menu-btn">☰
+<span>  <button onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+</span>
+<span><button onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+</span>
+<span><button onclick="location.href='marks.html'">📊 Marks</button>
+</span>
+<span><button onclick="toggleTheme()">🌙 Toggle Theme</button>
+  </div>
+</span>
+</button>
 
 <!-- Sidebar -->
 <div id="sidebar" class="sidebar">
 
   <div class="sidebar-header">
-    <img src="your-logo.png" class="sidebar-logo">
+    <img src="file_00000000c03c7209b1ecb68f6232b521 (1).png" class="sidebar-logo">
     <h3 id="teacherName">Teacher Name</h3>
     <p id="teacherSubject">Subject</p>
   </div>
 
   <div class="sidebar-menu">
-    <button onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-    <button onclick="location.href='marks.html'">📊 Marks</button>
-    <button onclick="toggleTheme()">🌙 Toggle Theme</button>
-  </div>
+  
+    
+    
+    
 
 </div>
 
@@ -33,7 +42,7 @@
      <header class="header">
        <div class= "brand">
         <div class="logo">
-       <img src="file_00000000c03c7209b1ecb68f6232b521 (1).png" class=" brand-logo">
+       
 </div>
           <div>
             <h1>Welcome, <span id="teacherName">Teacher</span></h1>

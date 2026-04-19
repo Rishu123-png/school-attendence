@@ -138,7 +138,6 @@
 
 <!-- Main Scripts -->
 <script type="module" src="./script.js"></script>
-<script type="module" src="./marks.js"></script>
 
 <!-- Init -->
 <script type="module">
@@ -148,9 +147,10 @@
     initMarksPage();
   });
 </script>
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+ <script> document.getElementById("logoutBtn").addEventListener("click", () => {
     if (window.logout) window.logout();
   });
+
 </script>
 
 <!-- Debugger -->

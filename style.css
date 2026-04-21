@@ -207,40 +207,85 @@ table { min-width: 420px; }
 LOGO IMAGE SUPPORT (RJ Logo)
 ================================ */
 
-.brand-logo {
-height: 46px;     /* Adjust logo size */
-width: auto;
-display: block;
-}
-.logo {
-background: none !important; /* remove old gradient box */
-padding: 0;
-box-shadow: none !important;
-}
-/* Profile section */
-.sidebar-profile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+/* Toggle button */
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  font-size: 22px;
+  background: #111;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
 }
 
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 260px;
+  height: 100%;
+  background: #0b0b1f;
+  box-shadow: 4px 0 25px rgba(0,0,0,0.6);
+  transition: 0.3s;
+  z-index: 1002;
+  padding: 20px;
+}
+
+/* Active */
+.sidebar.active {
+  left: 0;
+}
+
+/* Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 1000;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Logo */
 .sidebar-logo {
-  width: 45px;
-  height: 45px;
-  border-radius: 12px;
-  object-fit: cover;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  width: 70px;
+  display: block;
+  margin: auto;
+  margin-bottom: 10px;
 }
 
-.sidebar-profile h3 {
-  margin: 0;
-  font-size: 16px;
+/* Header */
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.sidebar-role {
-  font-size: 12px;
-  color: #aaa;
+/* Menu */
+.sidebar-menu button {
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  border: none;
+  background: #151540;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sidebar-menu button:hover {
+  background: #1f1f60;
 }

@@ -212,7 +212,7 @@ LOGO IMAGE SUPPORT (RJ Logo)
   position: fixed;
   top: 15px;
   left: 15px;
-  z-index: 1001;
+  z-index: 2000;
   font-size: 22px;
   background: #111;
   color: white;
@@ -225,14 +225,18 @@ LOGO IMAGE SUPPORT (RJ Logo)
 .sidebar {
   position: fixed;
   top: 0;
-  left: -270px;
+  left: -100%;
   width: 260px;
-  height: 100%;
+  max-width: 80%;
+  height: 100vh;
   background: #0b0b1f;
   box-shadow: 4px 0 25px rgba(0,0,0,0.6);
-  transition: 0.3s;
+  transition: 0.3s ease;
   z-index: 1002;
   padding: 20px;
+
+  display: flex;
+  flex-direction: column;
 }
 
 /* Active */
@@ -251,7 +255,7 @@ LOGO IMAGE SUPPORT (RJ Logo)
   opacity: 0;
   pointer-events: none;
   transition: 0.3s;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 .sidebar-overlay.active {
@@ -262,9 +266,10 @@ LOGO IMAGE SUPPORT (RJ Logo)
 /* Logo */
 .sidebar-logo {
   width: 70px;
-  display: flex;
-  margin: auto;
-  margin-bottom: 10px;
+  height: 70px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 10px auto;
 }
 
 /* Header */

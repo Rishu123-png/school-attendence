@@ -225,7 +225,7 @@ LOGO IMAGE SUPPORT (RJ Logo)
 .sidebar {
   position: fixed;
   top: 0;
-  left: -260px;
+  left: -270px;
   width: 260px;
   height: 100%;
   background: #0b0b1f;
@@ -262,7 +262,7 @@ LOGO IMAGE SUPPORT (RJ Logo)
 /* Logo */
 .sidebar-logo {
   width: 70px;
-  display: block;
+  display: flex;
   margin: auto;
   margin-bottom: 10px;
 }

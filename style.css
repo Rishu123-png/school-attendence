@@ -1,236 +1,208 @@
-style.css
+/* =========================================
+   🔥 PREMIUM GLASS UI + THEME SYSTEM
+========================================= */
 
-/* style.css — Option C: Vibrant Gradient + Glass UI (Canva-like) */
-
-/* Reset + base */
-
-{ box-sizing: border-box; margin:0; padding:0; }
-:root{
---bg0: #0b0716;
---card: rgba(255,255,255,0.06);
---muted: rgba(255,255,255,0.7);
---glass: rgba(255,255,255,0.05);
---accentA: #ff6bc4; /* pink /
---accentB: #6b6cff; / violet /
---accentC: #37d6ff; / cyan */
---success: #4ad07a;
---danger: #ff6b6b;
---radius: 16px;
---container-width: 980px;
-font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* =========================================
+   🌙 DARK MODE (DEFAULT)
+========================================= */
+:root {
+  --bg: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
+  --card: rgba(255,255,255,0.06);
+  --glass: rgba(255,255,255,0.05);
+  --text: #ffffff;
+  --muted: rgba(255,255,255,0.7);
 
-html,body { height:100%; background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%); color:#fff; -webkit-font-smoothing:antialiased; }
+  --accentA: #ff6bc4;
+  --accentB: #6b6cff;
+  --accentC: #37d6ff;
 
-/* page wrapper - center content with soft outer padding */
+  --shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* =========================================
+   ☀️ LIGHT MODE
+========================================= */
+body.light-mode {
+  --bg: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+  --card: rgba(255,255,255,0.7);
+  --glass: rgba(255,255,255,0.6);
+  --text: #111;
+  --muted: #555;
+  --shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   GLOBAL
+========================================= */
+body {
+  font-family: "Poppins", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  animation: fadeIn 0.6s ease;
+}
+
 .page {
-min-height:100vh;
-display:flex;
-align-items:flex-start;
-justify-content:center;
-padding:48px 20px;
+  display: flex;
+  justify-content: center;
+  padding: 40px 15px;
 }
 
-/* main container card */
 .container {
-width:100%;
-max-width:var(--container-width);
-background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-border-radius:24px;
-padding:28px;
-box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
-backdrop-filter: blur(8px) saturate(120%);
-position:relative;
-overflow:hidden;
+  width: 100%;
+  max-width: 980px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
 }
 
-/* subtle decorative gradient bands (Option C vibe) */
-.container::before{
-content:"";
-position:absolute; inset:-40% -30% auto auto;
-width:600px; height:600px;
-background: radial-gradient(circle at 20% 20%, rgba(255,107,196,0.08), transparent 20%),
-radial-gradient(circle at 80% 80%, rgba(107,108,255,0.06), transparent 20%);
-transform: translate3d(-10px,-10px,0) rotate(12deg);
-pointer-events:none;
-}
-
-/* header (logo + nav) */
+/* =========================================
+   HEADER
+========================================= */
 .header {
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-margin-bottom:18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 .brand {
-display:flex;
-align-items:center;
-gap:12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.logo {
-width:44px; height:44px; border-radius:10px;
-background: linear-gradient(135deg,var(--accentA),var(--accentB));
-display:flex; align-items:center; justify-content:center;
-box-shadow: 0 6px 18px rgba(107,108,255,0.12);
-font-weight:700;
+
+.brand h2 {
+  font-size: 20px;
 }
-.brand h1 { font-size:18px; letter-spacing:0.2px; }
-.brand p { font-size:12px; color:var(--muted); margin-top:2px; }
 
-/* top controls */
-.top-controls { display:flex; gap:12px; align-items:center; }
-.top-controls .btn { padding:10px 14px; border-radius:12px; font-weight:600; }
-
-/* hero (for landing) */
-.hero {
-display:flex;
-align-items:center;
-gap:30px;
-padding:28px;
+.top-controls {
+  display: flex;
+  gap: 10px;
 }
-.hero-left { flex:1; }
-.hero-right { width:360px; max-width:40%; }
 
-.hero h2 {
-font-size:44px;
-line-height:1.02;
-margin-bottom:12px;
-letter-spacing:-0.6px;
-color: #fff;
-text-shadow: 0 6px 18px rgba(107,108,255,0.08);
-}
-.hero p { color:var(--muted); font-size:15px; margin-bottom:18px; }
-
-/* CTA button */
+/* =========================================
+   BUTTONS
+========================================= */
 .btn-cta {
-background: linear-gradient(135deg,var(--accentA), var(--accentB));
-border: none; color:#fff; padding:12px 18px; border-radius:12px; font-weight:700;
-box-shadow: 0 10px 30px rgba(107,108,255,0.12); cursor:pointer;
-}
-.btn-ghost {
-background: transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted); padding:10px 14px; border-radius:12px;
-}
-
-/* login small card */
-.login-card {
-max-width:420px;
-margin: 12px auto 0;
-background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-padding:22px;
-border-radius:16px;
-box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  background: linear-gradient(135deg,var(--accentA), var(--accentB));
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(107,108,255,0.2);
 }
 
-/* labels & inputs */
-.label { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
-input[type="email"], input[type="password"], input[type="text"], select, input[type="number"], input[type="date"], input[type="month"] {
-width:100%;
-padding:12px 14px;
-border-radius:12px;
-background: rgba(255,255,255,0.03);
-border: 1px solid rgba(255,255,255,0.04);
-color:#fff;
-outline:none;
-transition: all .16s ease;
+.btn-cta:hover {
+  transform: scale(1.05);
 }
-input:focus, select:focus { box-shadow: 0 6px 18px rgba(107,108,255,0.08); transform: translateY(-2px); }
 
-/* layout helpers */
-.row { display:flex; gap:12px; align-items:center; }
-.col { flex:1; }
+/* =========================================
+   INPUTS
+========================================= */
+.label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  display: block;
+}
 
-/* grid cards on dashboard */
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--glass);
+  border: none;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* =========================================
+   GRID / CARDS
+========================================= */
 .grid {
-display:grid;
-grid-template-columns: repeat(2, 1fr);
-gap:16px;
-margin-top:18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
 }
+
 .card {
-background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-padding:18px;
-border-radius:14px;
-box-shadow: 0 8px 30px rgba(2,6,23,0.45);
+  background: var(--card);
+  backdrop-filter: blur(15px);
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
 }
-.card h3 { margin-bottom:8px; }
 
-/* action buttons */
-.action-row { display:flex; gap:12px; margin-top:14px; flex-wrap:wrap; }
-.action-row button { flex:1; min-width:140px; }
+.card:hover {
+  transform: translateY(-5px);
+}
 
-/* students table */
-.table-wrap { margin-top:20px; overflow:auto; border-radius:12px; }
+/* =========================================
+   TABLE
+========================================= */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 15px;
+}
+
 table {
-width:100%;
-border-collapse:collapse;
-min-width:700px;
-}
-thead tr { background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); }
-th, td { padding:12px 14px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.02); font-size:14px; color:#fff; }
-tr:hover td { background: linear-gradient(90deg, rgba(107,108,255,0.03), rgba(255,107,196,0.02)); }
-
-/* small action buttons inside table */
-.table-btn { padding:8px 10px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background: rgba(255,255,255,0.03); color:#fff; }
-.table-btn.primary { background: linear-gradient(90deg,var(--accentB),var(--accentC)); box-shadow: 0 6px 18px rgba(107,108,255,0.12); }
-.table-btn.danger { background: linear-gradient(90deg,#ff6b6b,#ff8a8a); }
-
-/* badges */
-.badge { display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.04); color:var(--muted); font-weight:600; font-size:13px; }
-
-/* modal overlay & modal */
-.modal-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:9999; }
-.attendance-modal { width:92%; max-width:520px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); padding:18px; border-radius:14px; }
-
-/* footer small */
-.footer { margin-top:18px; text-align:center; color:var(--muted); font-size:13px; }
-
-/* responsive */
-@media (max-width:980px){
-.grid { grid-template-columns: 1fr; }
-.hero { flex-direction:column; }
-.hero-right { width:100%; max-width:100%; }
-.container { padding:20px; }
-table { min-width: 540px; }
-}
-@media (max-width:560px){
-.container { padding:18px; margin:18px 10px; border-radius:14px; }
-.hero h2 { font-size:28px; }
-table { min-width: 420px; }
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
 }
 
-/* small fixed util z-index to avoid accidental blocking but small value /
-#loginBtn, .container { position: relative; z-index: 10; }
-/ ================================
-LOGO IMAGE SUPPORT (RJ Logo)
-================================ */
+th, td {
+  padding: 10px;
+  text-align: left;
+  color: var(--text);
+}
 
-/* Toggle button */
+tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
 .menu-btn {
   position: fixed;
   top: 15px;
   left: 15px;
   z-index: 2000;
   font-size: 22px;
-  background: #111;
-  color: white;
+  background: var(--glass);
+  color: var(--text);
   border: none;
   padding: 10px;
   border-radius: 8px;
 }
 
-/* Sidebar */
 .sidebar {
   position: fixed;
   top: 0;
   left: -100%;
   width: 260px;
-  max-width: 80%;
   height: 100vh;
-  background: #0b0b1f;
-  box-shadow: 4px 0 25px rgba(0,0,0,0.6);
+
+  background: var(--card);
+  backdrop-filter: blur(20px);
+
+  color: var(--text);
+  box-shadow: var(--shadow);
+
   transition: 0.3s ease;
   z-index: 1002;
   padding: 20px;
@@ -239,12 +211,10 @@ LOGO IMAGE SUPPORT (RJ Logo)
   flex-direction: column;
 }
 
-/* Active */
 .sidebar.active {
   left: 0;
 }
 
-/* Overlay */
 .sidebar-overlay {
   position: fixed;
   top: 0;
@@ -263,158 +233,47 @@ LOGO IMAGE SUPPORT (RJ Logo)
   pointer-events: all;
 }
 
-/* Logo */
 .sidebar-logo {
   width: 70px;
   height: 70px;
   object-fit: contain;
   display: block;
-  margin: 0 auto 10px auto;
+  margin: auto;
 }
 
-/* Header */
 .sidebar-header {
   text-align: center;
   margin-bottom: 20px;
 }
 
-/* Menu */
 .sidebar-menu button {
   width: 100%;
   margin: 8px 0;
   padding: 12px;
   border: none;
-  background: #151540;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-/* ===============================
-   🌙 DARK MODE (DEFAULT)
-================================ */
-:root {
-  --bg: linear-gradient(135deg, #0b0b1f, #12123a);
-  --card: rgba(255, 255, 255, 0.05);
-  --glass: rgba(255, 255, 255, 0.08);
-  --text: #ffffff;
-  --muted: #aaa;
-  --accent: #6c5ce7;
-  --shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-/* ===============================
-   ☀️ LIGHT MODE
-================================ */
-body.light-mode {
-  --bg: linear-gradient(135deg, #f5f7fa, #e4e7eb);
-  --card: rgba(255, 255, 255, 0.7);
-  --glass: rgba(255, 255, 255, 0.6);
-  --text: #111;
-  --muted: #555;
-  --accent: #4f46e5;
-  --shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-/* ===============================
-   GLOBAL
-================================ */
-body {
-  background: var(--bg);
-  color: var(--text);
-  transition: all 0.4s ease;
-}
-
-/* ===============================
-   🧊 GLASS CARD (PREMIUM)
-================================ */
-.card {
-  background: var(--card);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  padding: 18px;
-  box-shadow: var(--shadow);
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
-/* ===============================
-   🔘 BUTTONS (PREMIUM GLOW)
-================================ */
-.btn-cta {
   background: var(--glass);
   color: var(--text);
-  border: none;
-  border-radius: 14px;
-  padding: 12px;
-  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: 0.3s;
 }
 
-.btn-cta:hover {
-  background: var(--accent);
+.sidebar-menu button:hover {
+  background: var(--accentB);
   color: white;
-  transform: scale(1.05);
 }
 
-/* ===============================
-   📊 TABLE
-================================ */
-table {
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-th, td {
-  padding: 10px;
-  color: var(--text);
-}
-
-/* ===============================
-   🧾 TEXT
-================================ */
-p {
+/* =========================================
+   FOOTER
+========================================= */
+.footer {
+  text-align: center;
+  margin-top: 20px;
   color: var(--muted);
 }
 
-/* ===============================
-   📦 SIDEBAR (PREMIUM)
-================================ */
-.sidebar {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  color: var(--text);
-  box-shadow: var(--shadow);
-}
-
-/* ===============================
-   🎯 MENU BUTTON
-================================ */
-.menu-btn {
-  background: var(--card);
-  color: var(--text);
-  backdrop-filter: blur(10px);
-}
-
-/* ===============================
-   ✨ SMOOTH FADE ANIMATION
-================================ */
-* {
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-/* Smooth page fade */
-body {
-  animation: fadeIn 0.6s ease;
-}
-
+/* =========================================
+   ANIMATION
+========================================= */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -423,5 +282,14 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
 }

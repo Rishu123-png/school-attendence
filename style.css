@@ -294,3 +294,17 @@ LOGO IMAGE SUPPORT (RJ Logo)
 .sidebar-menu button:hover {
   background: #1f1f60;
 }
+body.light-mode {
+  background: #f5f5f5;
+  color: #111;
+}
+
+body.light-mode .sidebar {
+  background: #ffffff;
+  color: black;
+}
+
+body.light-mode .sidebar-menu button {
+  background: #ddd;
+  color: black;
+}

@@ -7,6 +7,9 @@
 
 console.log("SCRIPT JS LOADED (merged)");
 
+import { initSidebar } from "./sidebar.js";
+import { initTheme } from "./theme.js";
+
 import { auth, db } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
@@ -119,22 +122,27 @@ export async function loadTeacherProfile() {
    - renderStudentsTable generates rows with action buttons
    ====================================================== */
 window.initDashboardPage = function () {
-  if (!auth.currentUser) {
-    setTimeout(window.initDashboardPage, 300);
-    return;
-  }
+  if (!auth.currentUser) {
+    setTimeout(window.initDashboardPage, 300);
+    return;
+  }
 
-  loadTeacherProfile();
+  // 🔥 Initialize UI systems FIRST
+  initSidebar();
+  initTheme();
 
-  const classSel = document.getElementById('classSelect');
-  if (classSel) {
-    classSel.onchange = () => {
-      currentClassFilter = classSel.value || '';
-      loadStudents(currentClassFilter);
-    };
-  }
+  // 🔥 Then load data
+  loadTeacherProfile();
 
-  loadStudents();
+  const classSel = document.getElementById('classSelect');
+  if (classSel) {
+    classSel.onchange = () => {
+      currentClassFilter = classSel.value || '';
+      loadStudents(currentClassFilter);
+    };
+  }
+
+  loadStudents();
 };
 
 export async function loadStudents(selectedClass = '') {

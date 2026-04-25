@@ -1,56 +1,59 @@
-/* =========================================
-   🔥 PREMIUM GLASS UI + THEME SYSTEM
-========================================= */
-
-/* RESET */
+/* ===============================
+   RESET
+================================ */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* =========================================
-   🌙 DARK MODE (DEFAULT)
-========================================= */
+/* ===============================
+   ROOT VARIABLES
+================================ */
 :root {
-  --bg: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
-  --card: rgba(255,255,255,0.06);
-  --glass: rgba(255,255,255,0.05);
+  --bg: linear-gradient(135deg, #0b0b1f, #12123a);
+  --card: rgba(255, 255, 255, 0.05);
+  --glass: rgba(255, 255, 255, 0.08);
   --text: #ffffff;
-  --muted: rgba(255,255,255,0.7);
-
+  --muted: #aaa;
+  --accent: #6c5ce7;
   --accentA: #ff6bc4;
   --accentB: #6b6cff;
   --accentC: #37d6ff;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.5);
+  --container-width: 980px;
 
-  --shadow: 0 10px 40px rgba(0,0,0,0.5);
+  font-family: "Poppins", system-ui;
 }
 
-/* =========================================
-   ☀️ LIGHT MODE
-========================================= */
+/* ===============================
+   LIGHT MODE
+================================ */
 body.light-mode {
   --bg: linear-gradient(135deg, #f5f7fa, #e4e7eb);
-  --card: rgba(255,255,255,0.7);
-  --glass: rgba(255,255,255,0.6);
+  --card: rgba(255, 255, 255, 0.7);
+  --glass: rgba(255, 255, 255, 0.6);
   --text: #111;
   --muted: #555;
+  --accent: #4f46e5;
   --shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-/* =========================================
-   GLOBAL
-========================================= */
+/* ===============================
+   BODY
+================================ */
 body {
-  font-family: "Poppins", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  animation: fadeIn 0.6s ease;
+  transition: 0.3s ease;
 }
 
+/* ===============================
+   PAGE + CONTAINER
+================================ */
 .page {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   padding: 40px 15px;
@@ -58,22 +61,21 @@ body {
 
 .container {
   width: 100%;
-  max-width: 980px;
+  max-width: var(--container-width);
   background: var(--card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
   border-radius: 20px;
-  padding: 24px;
+  padding: 25px;
   box-shadow: var(--shadow);
 }
 
-/* =========================================
+/* ===============================
    HEADER
-========================================= */
+================================ */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
 }
 
 .brand {
@@ -82,128 +84,93 @@ body {
   gap: 10px;
 }
 
-.brand h2 {
-  font-size: 20px;
+.brand-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
 }
 
-.top-controls {
-  display: flex;
-  gap: 10px;
-}
-
-/* =========================================
+/* ===============================
    BUTTONS
-========================================= */
+================================ */
 .btn-cta {
-  background: linear-gradient(135deg,var(--accentA), var(--accentB));
+  background: var(--glass);
+  color: var(--text);
   border: none;
-  color: white;
-  padding: 10px 14px;
   border-radius: 12px;
-  font-weight: 600;
+  padding: 10px 14px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(107,108,255,0.2);
+  transition: 0.3s;
 }
 
 .btn-cta:hover {
+  background: var(--accent);
+  color: white;
   transform: scale(1.05);
 }
 
-/* =========================================
+/* ===============================
    INPUTS
-========================================= */
-.label {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 5px;
-  display: block;
-}
-
+================================ */
 input, select {
   width: 100%;
   padding: 10px;
   border-radius: 10px;
-  background: var(--glass);
-  border: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--card);
   color: var(--text);
-  margin-bottom: 10px;
 }
 
-/* =========================================
-   GRID / CARDS
-========================================= */
+.label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ===============================
+   GRID + CARDS
+================================ */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2,1fr);
   gap: 15px;
 }
 
 .card {
   background: var(--card);
-  backdrop-filter: blur(15px);
-  padding: 16px;
-  border-radius: 16px;
+  border-radius: 15px;
+  padding: 15px;
   box-shadow: var(--shadow);
 }
 
-.card:hover {
-  transform: translateY(-5px);
-}
-
-/* =========================================
+/* ===============================
    TABLE
-========================================= */
+================================ */
 .table-wrap {
-  overflow-x: auto;
-  margin-top: 15px;
+  overflow: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--card);
 }
 
 th, td {
   padding: 10px;
-  text-align: left;
-  color: var(--text);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-tr:hover {
-  background: rgba(255,255,255,0.05);
-}
-
-/* =========================================
+/* ===============================
    SIDEBAR
-========================================= */
-.menu-btn {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 2000;
-  font-size: 22px;
-  background: var(--glass);
-  color: var(--text);
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-}
-
+================================ */
 .sidebar {
   position: fixed;
   top: 0;
   left: -100%;
   width: 260px;
   height: 100vh;
-
   background: var(--card);
   backdrop-filter: blur(20px);
-
-  color: var(--text);
-  box-shadow: var(--shadow);
-
-  transition: 0.3s ease;
+  transition: 0.3s;
   z-index: 1002;
   padding: 20px;
 
@@ -215,13 +182,14 @@ tr:hover {
   left: 0;
 }
 
+/* Overlay */
 .sidebar-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background:black;
   opacity: 0;
   pointer-events: none;
   transition: 0.3s;
@@ -229,67 +197,78 @@ tr:hover {
 }
 
 .sidebar-overlay.active {
-  opacity: 1;
+  opacity: 0.5;
   pointer-events: all;
 }
 
+/* Logo */
 .sidebar-logo {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
-  display: block;
   margin: auto;
 }
 
+/* Sidebar text */
 .sidebar-header {
   text-align: center;
   margin-bottom: 20px;
 }
 
+/* Menu */
 .sidebar-menu button {
   width: 100%;
   margin: 8px 0;
   padding: 12px;
+  border-radius: 10px;
   border: none;
   background: var(--glass);
   color: var(--text);
-  border-radius: 10px;
   cursor: pointer;
 }
 
-.sidebar-menu button:hover {
-  background: var(--accentB);
-  color: white;
+/* ===============================
+   MENU BUTTON
+================================ */
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 2000;
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  border: none;
 }
 
-/* =========================================
+/* ===============================
    FOOTER
-========================================= */
+================================ */
 .footer {
   text-align: center;
   margin-top: 20px;
   color: var(--muted);
 }
 
-/* =========================================
-   ANIMATION
-========================================= */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =========================================
+/* ===============================
    RESPONSIVE
-========================================= */
+================================ */
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===============================
+   ANIMATION
+================================ */
+body {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(10px);}
+  to { opacity:1; transform: translateY(0);}
 }

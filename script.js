@@ -5,7 +5,7 @@
 //
 // NOTE: keep firebase.js filled with your Firebase config for this to work.
 
-console.log("SCRIPT JS LOADED (merged)"
+console.log("SCRIPT JS LOADED (merged)");
 
 import { auth, db } from "./firebase.js";
 import {

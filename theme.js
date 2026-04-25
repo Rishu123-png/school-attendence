@@ -1,23 +1,20 @@
-export function initTheme() {
-  const btn = document.getElementById("themeToggle");
+const btn = document.getElementById("themeToggle");
 
-  if (!btn) {
-    console.warn("Theme button not found");
-    return;
-  }
+// Toggle theme
+btn.addEventListener("click", () => {
+  document.body.classList.toggle("light-mode");
 
-  // Load saved theme
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("light-mode") ? "light" : "dark"
+  );
+});
+
+// Load saved theme
+window.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem("theme");
+
   if (savedTheme === "light") {
     document.body.classList.add("light-mode");
   }
-
-  // Toggle logic
-  btn.addEventListener("click", () => {
-    document.body.classList.toggle("light-mode");
-
-    const isLight = document.body.classList.contains("light-mode");
-
-    localStorage.setItem("theme", isLight ? "light" : "dark");
-  });
-}
+});

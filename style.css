@@ -291,20 +291,137 @@ LOGO IMAGE SUPPORT (RJ Logo)
   transition: 0.2s;
 }
 
-.sidebar-menu button:hover {
-  background: #1f1f60;
+/* ===============================
+   🌙 DARK MODE (DEFAULT)
+================================ */
+:root {
+  --bg: linear-gradient(135deg, #0b0b1f, #12123a);
+  --card: rgba(255, 255, 255, 0.05);
+  --glass: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
+  --muted: #aaa;
+  --accent: #6c5ce7;
+  --shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
+
+/* ===============================
+   ☀️ LIGHT MODE
+================================ */
 body.light-mode {
-  background: #f5f5f5;
-  color: #111;
+  --bg: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+  --card: rgba(255, 255, 255, 0.7);
+  --glass: rgba(255, 255, 255, 0.6);
+  --text: #111;
+  --muted: #555;
+  --accent: #4f46e5;
+  --shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-body.light-mode .sidebar {
-  background: #ffffff;
-  color: black;
+/* ===============================
+   GLOBAL
+================================ */
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.4s ease;
 }
 
-body.light-mode .sidebar-menu button {
-  background: #ddd;
-  color: black;
+/* ===============================
+   🧊 GLASS CARD (PREMIUM)
+================================ */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* ===============================
+   🔘 BUTTONS (PREMIUM GLOW)
+================================ */
+.btn-cta {
+  background: var(--glass);
+  color: var(--text);
+  border: none;
+  border-radius: 14px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.btn-cta:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* ===============================
+   📊 TABLE
+================================ */
+table {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 10px;
+  color: var(--text);
+}
+
+/* ===============================
+   🧾 TEXT
+================================ */
+p {
+  color: var(--muted);
+}
+
+/* ===============================
+   📦 SIDEBAR (PREMIUM)
+================================ */
+.sidebar {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* ===============================
+   🎯 MENU BUTTON
+================================ */
+.menu-btn {
+  background: var(--card);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+}
+
+/* ===============================
+   ✨ SMOOTH FADE ANIMATION
+================================ */
+* {
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth page fade */
+body {
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

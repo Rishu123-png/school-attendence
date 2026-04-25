@@ -122,7 +122,16 @@
 <!-- Scripts -->
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-<script type="module" src="./theme.js"></script>
+
+<script type="module">
+  import { initSidebar } from "./sidebar.js";
+  import { initTheme } from "./theme.js";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    initSidebar();
+    initTheme();
+  });
+</script>
 
 <!-- Debugger -->
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>

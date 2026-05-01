@@ -240,7 +240,7 @@ body.light-mode {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -270px;
+  left: -260px;
   width: 260px;
   height: 100%;
   background: #0b0b1f;

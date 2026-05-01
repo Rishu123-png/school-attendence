@@ -240,19 +240,24 @@ body.light-mode {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -260px;
+  left: 0;
   width: 260px;
-  height: 100%;
+  height: 100vh;
+
   background: #0b0b1f;
-  transition: 0.3s;
-  z-index: 1002;
   padding: 20px;
+
+  transform: translateX(-100%);   /* 👈 hidden */
+  transition: transform 0.3s ease;
+
+  z-index: 1002;
   display: flex;
   flex-direction: column;
 }
 
+/* OPEN */
 .sidebar.active {
-  left: 0;
+  transform: translateX(0);
 }
 
 .sidebar-overlay {

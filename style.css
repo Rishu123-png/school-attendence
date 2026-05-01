@@ -248,6 +248,7 @@ body.light-mode {
   padding: 20px;
 
   transform: translateX(-100%);   /* 👈 hidden */
+visibility: hidden;
   transition: transform 0.3s ease;
 
   z-index: 1002;
@@ -258,6 +259,7 @@ body.light-mode {
 /* OPEN */
 .sidebar.active {
   transform: translateX(0);
+visibility: visible;
 }
 
 .sidebar-overlay {

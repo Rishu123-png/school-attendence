@@ -21,7 +21,8 @@ font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica
 }
 
 
-html,body { height:100%; background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%); color:#fff; -webkit-font-smoothing:antialiased; }
+html { height:100%; }
+body { height:100%; background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%); color:#fff; -webkit-font-smoothing:antialiased; transition: background 0.3s, color 0.3s; }
 
 /* page wrapper - center content with soft outer padding */
 .page {

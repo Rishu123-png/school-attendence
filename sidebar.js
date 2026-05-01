@@ -1,6 +1,3 @@
-import { initSidebar } from "./sidebar.js";
-import { initTheme } from "./theme.js";
-
 
 
 

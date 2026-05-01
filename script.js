@@ -7,8 +7,6 @@
 
 console.log("SCRIPT JS LOADED (merged)");
 
-import { initSidebar } from "./sidebar.js";
-import { initTheme } from "./theme.js";
 
 import { auth, db } from "./firebase.js";
 import {

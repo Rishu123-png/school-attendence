@@ -1,20 +1,24 @@
-/* RESET */
+/* =========================
+   RESET
+========================= */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* ROOT VARIABLES */
+/* =========================
+   ROOT VARIABLES
+========================= */
 :root{
   --bg0: #0b0716;
   --card: rgba(255,255,255,0.06);
   --muted: rgba(255,255,255,0.7);
   --glass: rgba(255,255,255,0.05);
 
-  --accentA: #ff6bc4; /* pink */
-  --accentB: #6b6cff; /* violet */
-  --accentC: #37d6ff; /* cyan */
+  --accentA: #ff6bc4;
+  --accentB: #6b6cff;
+  --accentC: #37d6ff;
 
   --success: #4ad07a;
   --danger: #ff6b6b;
@@ -25,7 +29,9 @@
   font-family: "Poppins", system-ui, sans-serif;
 }
 
-/* BODY */
+/* =========================
+   BODY
+========================= */
 html, body {
   height: 100%;
 }
@@ -34,22 +40,37 @@ body {
   background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
   color:#fff;
   transition: 0.3s;
-}
 
-body {
   line-height: 1.6;
+  letter-spacing: 0.3px;
 }
 
-h1, h2, h3 {
-  line-height: 1.3;
+/* =========================
+   TYPOGRAPHY (FIX SPACING)
+========================= */
+h1 {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 18px;
   margin-bottom: 10px;
 }
 
 p {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  color: var(--muted);
 }
 
-/* LIGHT MODE */
+/* =========================
+   LIGHT MODE
+========================= */
 body.light-mode {
   --bg0: #f5f7fa;
   --card: rgba(255,255,255,0.9);
@@ -58,7 +79,9 @@ body.light-mode {
   color: #111;
 }
 
-/* CONTAINER */
+/* =========================
+   CONTAINER
+========================= */
 .container {
   width:100%;
   max-width:var(--container-width);
@@ -72,19 +95,23 @@ body.light-mode {
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 .header {
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:28px;
+  margin-bottom:30px;
 }
 
-/* GRID */
+/* =========================
+   GRID (MORE SPACE)
+========================= */
 .grid {
   display:grid;
   grid-template-columns: repeat(2,1fr);
-  gap:22px;
+  gap:24px;
   margin-top:24px;
 }
 
@@ -92,38 +119,92 @@ body.light-mode {
   .grid { grid-template-columns:1fr; }
 }
 
-/* CARD */
+/* =========================
+   CARD (IMPROVED LOOK)
+========================= */
 .card {
   background: var(--card);
-  padding:22px;
+  padding:24px;
   border-radius:18px;
   backdrop-filter: blur(12px);
+
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transition: 0.3s;
 }
 
-/* BUTTON */
-.btn-cta {
-  background: linear-gradient(135deg,var(--accentA),var(--accentB));
-  border:none;
-  padding:12px;
-  border-radius:12px;
-  color:white;
-  cursor:pointer;
-}
-
-/* TABLE */
-table {
-  width:100%;
-  border-collapse:collapse;
-}
-
-th, td {
-  padding:12px;
+.card:hover {
+  transform: translateY(-3px);
 }
 
 /* =========================
-   SIDEBAR (FINAL FIXED)
+   BUTTONS (BETTER SPACING)
 ========================= */
+.btn-cta {
+  background: linear-gradient(135deg,var(--accentA),var(--accentB));
+  border:none;
+  padding:14px;
+  border-radius:14px;
+  color:white;
+  cursor:pointer;
 
+  font-weight: 600;
+  margin-top:10px;
+  transition: 0.3s;
+}
+
+.btn-cta:hover {
+  transform: scale(1.05);
+}
+
+/* =========================
+   ACTION BUTTON ROW
+========================= */
+.action-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:16px;
+}
+
+.action-row button {
+  flex:1;
+  min-width:140px;
+}
+
+/* =========================
+   TABLE (FIX SPACING)
+========================= */
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+}
+
+th {
+  text-align:left;
+  padding:14px;
+  font-weight:600;
+  color:#ccc;
+}
+
+td {
+  padding:14px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+
+/* =========================
+   BADGE
+========================= */
+.badge {
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* =========================
+   SIDEBAR (FINAL FIX)
+========================= */
 .menu-btn {
   position: fixed;
   top: 15px;
@@ -138,7 +219,7 @@ th, td {
   border-radius: 8px;
 }
 
-/* Sidebar hidden using transform */
+/* Hidden with transform (NO BUG) */
 .sidebar {
   position: fixed;
   top: 0;
@@ -212,14 +293,11 @@ th, td {
   cursor:pointer;
 }
 
-/* TEXT */
-p {
-  color: var(--muted);
-}
-
-/* FOOTER */
+/* =========================
+   FOOTER
+========================= */
 .footer {
   text-align:center;
-  margin-top:20px;
+  margin-top:30px;
   color:var(--muted);
 }

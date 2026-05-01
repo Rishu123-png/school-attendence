@@ -1,24 +1,23 @@
-/* =========================
-   RESET
-========================= */
+/* RESET */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* =========================
-   ROOT VARIABLES
-========================= */
+/* ROOT VARIABLES */
 :root{
   --bg0: #0b0716;
   --card: rgba(255,255,255,0.06);
   --muted: rgba(255,255,255,0.7);
   --glass: rgba(255,255,255,0.05);
 
-  --accentA: #ff6bc4;
-  --accentB: #6b6cff;
-  --accentC: #37d6ff;
+  --accentA: #ff6bc4; /* pink */
+  --accentB: #6b6cff; /* violet */
+  --accentC: #37d6ff; /* cyan */
+
+  --success: #4ad07a;
+  --danger: #ff6b6b;
 
   --radius: 16px;
   --container-width: 980px;
@@ -26,9 +25,7 @@
   font-family: "Poppins", system-ui, sans-serif;
 }
 
-/* =========================
-   BODY + TYPOGRAPHY
-========================= */
+/* BODY */
 html, body {
   height: 100%;
 }
@@ -36,8 +33,11 @@ html, body {
 body {
   background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
   color:#fff;
-  line-height: 1.6;
   transition: 0.3s;
+}
+
+body {
+  line-height: 1.6;
 }
 
 h1, h2, h3 {
@@ -46,13 +46,10 @@ h1, h2, h3 {
 }
 
 p {
-  color: var(--muted);
   margin-bottom: 12px;
 }
 
-/* =========================
-   LIGHT MODE
-========================= */
+/* LIGHT MODE */
 body.light-mode {
   --bg0: #f5f7fa;
   --card: rgba(255,255,255,0.9);
@@ -61,25 +58,21 @@ body.light-mode {
   color: #111;
 }
 
-/* =========================
-   CONTAINER
-========================= */
+/* CONTAINER */
 .container {
   width:100%;
   max-width:var(--container-width);
   margin:auto;
   padding:32px;
-
   border-radius:24px;
+
   background: rgba(255,255,255,0.02);
   backdrop-filter: blur(10px);
 
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
 
-/* =========================
-   HEADER
-========================= */
+/* HEADER */
 .header {
   display:flex;
   justify-content:space-between;
@@ -87,9 +80,7 @@ body.light-mode {
   margin-bottom:28px;
 }
 
-/* =========================
-   GRID
-========================= */
+/* GRID */
 .grid {
   display:grid;
   grid-template-columns: repeat(2,1fr);
@@ -98,14 +89,10 @@ body.light-mode {
 }
 
 @media(max-width:768px){
-  .grid {
-    grid-template-columns:1fr;
-  }
+  .grid { grid-template-columns:1fr; }
 }
 
-/* =========================
-   CARD
-========================= */
+/* CARD */
 .card {
   background: var(--card);
   padding:22px;
@@ -113,76 +100,30 @@ body.light-mode {
   backdrop-filter: blur(12px);
 }
 
-.card h3 {
-  margin-bottom:12px;
-}
-
-/* spacing between cards */
-.card + .card {
-  margin-top:18px;
-}
-
-/* =========================
-   BUTTONS
-========================= */
+/* BUTTON */
 .btn-cta {
   background: linear-gradient(135deg,var(--accentA),var(--accentB));
   border:none;
-  padding:14px;
+  padding:12px;
   border-radius:12px;
   color:white;
   cursor:pointer;
-  font-weight:600;
 }
 
-.action-row {
-  display:flex;
-  gap:16px;
-  margin-top:18px;
-  flex-wrap: wrap;
-}
-
-.action-row button {
-  flex:1;
-  min-width:140px;
-  line-height:1.4;
-}
-
-/* =========================
-   TABLE
-========================= */
+/* TABLE */
 table {
   width:100%;
   border-collapse:collapse;
-  margin-top:16px;
 }
 
 th, td {
-  padding:16px 14px;
-  text-align:left;
+  padding:12px;
 }
 
 /* =========================
-   BADGE
+   SIDEBAR (FINAL FIXED)
 ========================= */
-.badge {
-  padding:6px 12px;
-  border-radius:20px;
-  background: rgba(255,255,255,0.05);
-}
 
-/* =========================
-   FOOTER
-========================= */
-.footer {
-  text-align:center;
-  margin-top:30px;
-  color:var(--muted);
-}
-
-/* =========================
-   SIDEBAR (FINAL FIX)
-========================= */
 .menu-btn {
   position: fixed;
   top: 15px;
@@ -197,7 +138,7 @@ th, td {
   border-radius: 8px;
 }
 
-/* sidebar hidden */
+/* Sidebar hidden using transform */
 .sidebar {
   position: fixed;
   top: 0;
@@ -218,12 +159,12 @@ th, td {
   flex-direction: column;
 }
 
-/* open */
+/* OPEN */
 .sidebar.active {
   transform: translateX(0);
 }
 
-/* overlay */
+/* Overlay */
 .sidebar-overlay {
   position: fixed;
   top: 0;
@@ -246,7 +187,7 @@ th, td {
   pointer-events: all;
 }
 
-/* sidebar content */
+/* Sidebar content */
 .sidebar-header {
   text-align: center;
   margin-bottom: 20px;
@@ -271,20 +212,14 @@ th, td {
   cursor:pointer;
 }
 
-/* =========================
-   ANIMATION (SMOOTH LOOK)
-========================= */
-body {
-  animation: fadeIn 0.4s ease;
+/* TEXT */
+p {
+  color: var(--muted);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity:0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity:1;
-    transform: translateY(0);
-  }
+/* FOOTER */
+.footer {
+  text-align:center;
+  margin-top:20px;
+  color:var(--muted);
 }

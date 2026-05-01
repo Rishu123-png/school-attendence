@@ -1,3 +1,9 @@
+import { initSidebar } from "./sidebar.js";
+import { initTheme } from "./theme.js";
+
+
+
+
 export function initSidebar() {
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("menuToggle");

@@ -301,18 +301,3 @@ td {
   margin-top:30px;
   color:var(--muted);
 }
-/* Fix logo size */
-.brand-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-/* Control parent logo box */
-.logo {
-  width: 60px;   /* 👈 control size here */
-  height: 60px;
-  overflow: hidden;
-  border-radius: 12px;
-}

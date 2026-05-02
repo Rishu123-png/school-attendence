@@ -33,14 +33,14 @@ export function initSidebar() {
   const buttons = sidebar.querySelectorAll(".sidebar-menu button[data-page]");
 
   buttons.forEach(btn => {
-    const page = btn.getAttribute("data-page");
+  const page = btn.getAttribute("data-page");
 
-    if (
-      (page === "dashboard" && currentPage.includes("dashboard")) ||
-      (page === "attendance" && currentPage.includes("mark-attendance")) ||
-      (page === "marks" && currentPage.includes("marks"))
-    ) {
-      btn.classList.add("active");
-    }
-  });
-}
+  if (
+    (page === "dashboard" && currentPage.includes("dashboard")) ||
+    (page === "add-student" && currentPage.includes("add-students")) ||
+    (page === "attendance" && currentPage.includes("mark-attendance")) ||
+    (page === "marks" && currentPage.includes("marks"))
+  ) {
+    btn.classList.add("active");
+  }
+});

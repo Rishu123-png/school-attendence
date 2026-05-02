@@ -130,5 +130,16 @@ document.getElementById("loginModal").addEventListener("click", function(e) {
 <script type="module" src="./script.js"></script>
 
 
+
+<script type="module">
+  import { initTheme } from "./theme.js";
+  import { initSidebar } from "./sidebar.js";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    initSidebar();
+  });
+</script>
+
 </body>
 </html>

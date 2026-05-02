@@ -405,3 +405,27 @@ td {
 }
 
 .brand { display: flex; align-items: center; gap: 12px; }
+
+
+/* =========================
+   LIGHT MODE (FINAL FIX)
+========================= */
+body.light-mode {
+  /* Force full white background */
+  background: #ffffff !important;
+}
+
+/* Container becomes white */
+body.light-mode .container {
+  background: #ffffff;
+}
+
+/* Cards become light */
+body.light-mode .card {
+  background: #f5f7fa;
+}
+
+/* Optional: table rows visibility */
+body.light-mode td {
+  border-top: 1px solid rgba(0,0,0,0.05);
+}

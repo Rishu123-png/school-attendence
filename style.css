@@ -391,13 +391,13 @@ td {
   cursor: pointer;
 }
 .logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.brand { display: flex; align-items: center; gap: 190px; }
+.brand { display: flex; align-items: center; gap: 12px; }

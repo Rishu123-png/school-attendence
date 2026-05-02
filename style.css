@@ -298,6 +298,14 @@ td {
   background:#151540;
   color:white;
   cursor:pointer;
+
+}
+
+.sidebar-menu button.active {
+  background: linear-gradient(135deg, var(--accentA), var(--accentB));
+  color: white;
+  box-shadow: 0 6px 18px rgba(107,108,255,0.3);
+  transform: scale(1.03);
 }
 
 /* =========================

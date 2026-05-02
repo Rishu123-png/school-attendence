@@ -6,73 +6,123 @@
   <title>School Attendance — Home</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
- <div class="page">
-    <main class="container">
+
+<div class="page">
+  <main class="container">
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-overlay">
+
+  <div class="login-modal">
+
+    <h2>Login</h2>
+
+    <input type="email" id="loginEmail" placeholder="Enter email" />
+    <input type="password" id="loginPassword" placeholder="Enter password" />
+
+    <button class="btn-cta" onclick="login()">Login</button>
+
+    <button class="btn-close" onclick="closeLogin()">Close</button>
+
+  </div>
 
 </div>
 
-<!-- ☰ Menu Button -->
-<button id="menuToggle" class="menu-btn">➡️</button>
+    <!-- HEADER -->
+    <header class="header">
 
-<!-- Overlay -->
-<div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-<!-- Sidebar -->
-<div id="sidebar" class="sidebar">
-
-
-  <div class="sidebar-header">
-    <!-- ✅ FIXED IMAGE -->
-    <img src="cartoon-school-building-orange-red-roof-green-grass_1204981-17995.jpg" class="sidebar-logo">
-
-
- <div>
-            <h1>School Attendance</h1>
-            <p>Smart attendance & marks for teachers</p>
-          </div>
+      <div class="brand">
+        <div class="logo">
+          <img src="cartoon-school-building-orange-red-roof-green-grass_1204981-17995.jpg" class="brand-logo">
         </div>
-      </header>
 
-      <section class="hero">
-        <div class="hero-left">
-          <h2>Effortless Classroom Management, Beautifully Simple.</h2>
-          <p><B>Say goodbye to manual tracking and endless paperwork. Our smart system streamlines your administrative burden, so you can focus on what you do best: teaching.</B></p>
-          <div style="display:flex; gap:12px; margin-top:14px;">
-            <button class="btn-cta" onclick="location.href='login.html'">Get Started and be focused </button>
-          </div>
-        </div>
-        <div class="hero-right">
-          <div style="background: linear-gradient(135deg,#7a71ff, #ff6bc4); border-radius:14px; padding:20px; box-shadow: 0 15px 40px rgba(123,84,255,0.12);">
-            <h3 style="margin-bottom:8px;">Quick actions</h3>
-            <p style="color:rgba(255,255,255,0.9); margin-bottom:10px;">Add student • Mark attendance • Predict marks</p>
-            
-              
-          </div>
-        </div>
-      </section>
-
-      <div class="grid">
-        <div class="card">
-          <h3>Instant Attendance:</h3>
-          <p style="color:var(--muted)">Mark attendance for entire classes in seconds with our intuitive interface.</p>
-        </div>
-        <div class="card">
-          <h3>Smarter Insights</h3>
-          <p style="color:var(--muted)">Go beyond simple checkmarks. Predict marks and identify crucial attendance trends effortlessly.</p>
-        </div>
-       <div class="card">
-          <h3>Seamless Reporting</h3>
-          <p style="color:var(--muted)">Generate and export detailed CSV reports instantly for admin needs.</p>
-        </div>
-       <div class="card">
-          <h3>Centralized Dashboard</h3>
-          <p style="color:btn-cta">Everything you need is available from one simple, elegant dashboard.</p>
+        <div>
+          <h1>School Attendance</h1>
+          <p>Smart attendance & marks for teachers</p>
         </div>
       </div>
 
-      <p class="footer">Developed by<strong> Rishu Jaswar</strong></p>
-    </main>
-  </div>
+      <button class="btn-cta" onclick="openLogin()">Login
+      </button>
+
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+
+      <div class="hero-left">
+        <h2>Effortless Classroom Management</h2>
+
+        <p>
+          Say goodbye to manual tracking and paperwork.
+          Manage attendance, marks, and insights in one powerful system designed for teachers.
+        </p>
+
+        <div class="hero-buttons">
+          <button class="btn-cta" onclick="location.href='login.html'">
+            Get Started
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <h3>⚡ Quick Actions</h3>
+          <p>Add students • Mark attendance • Predict marks</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FEATURES -->
+    <section class="grid">
+
+      <div class="card">
+        <h3>📅 Instant Attendance</h3>
+        <p>Mark attendance for entire classes in seconds.</p>
+      </div>
+
+      <div class="card">
+        <h3>📊 Smart Insights</h3>
+        <p>Predict marks and track attendance trends easily.</p>
+      </div>
+
+      <div class="card">
+        <h3>📁 Reports</h3>
+        <p>Generate CSV reports instantly for school records.</p>
+      </div>
+
+      <div class="card">
+        <h3>📌 Dashboard</h3>
+        <p>All tools in one simple and powerful interface.</p>
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <p class="footer">
+      Developed by <strong>Rishu Jaswar</strong>
+    </p>
+
+  </main>
+</div>
+<script>
+function openLogin() {
+  document.getElementById("loginModal").classList.add("active");
+}
+
+function closeLogin() {
+  document.getElementById("loginModal").classList.remove("active");
+}
+
+// close when clicking outside
+document.getElementById("loginModal").addEventListener("click", function(e) {
+  if (e.target === this) {
+    closeLogin();
+  }
+});
+</script>
 </body>
 </html>

@@ -291,7 +291,7 @@ td {
   width:100%;
   margin:8px 0;
   padding:12px;
-
+  transition: all 0.25s ease;
   border:none;
   border-radius:10px;
 

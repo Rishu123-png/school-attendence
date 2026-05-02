@@ -391,7 +391,7 @@ td {
   cursor: pointer;
 }
 
-.brand { display: flex; align-items: center; gap: 12px; }
+
 
 .logo {
   width: 44px;
@@ -403,3 +403,5 @@ td {
   height: 100%;
   object-fit: contain;
 }
+
+.brand { display: flex; align-items: center; gap: 12px; }

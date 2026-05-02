@@ -391,8 +391,8 @@ td {
   cursor: pointer;
 }
 .logo {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -400,8 +400,4 @@ td {
   justify-content: center;
 }
 
-.brand-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.brand { display: flex; align-items: center; gap: 12px; }

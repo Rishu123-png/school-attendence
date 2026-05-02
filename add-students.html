@@ -44,5 +44,18 @@
 
   <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
+
+
+<script type="module">
+  import { initTheme } from "./theme.js";
+  import { initSidebar } from "./sidebar.js";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    initSidebar();
+  });
+</script>
+
+
 </body>
 </html>

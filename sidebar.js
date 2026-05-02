@@ -5,13 +5,11 @@ export function initSidebar() {
 
   if (!sidebar || !toggleBtn) return;
 
-  // Toggle open
   toggleBtn.addEventListener("click", () => {
     sidebar.classList.add("active");
     if (overlay) overlay.classList.add("active");
   });
 
-  // Close
   if (overlay) {
     overlay.addEventListener("click", () => {
       sidebar.classList.remove("active");
@@ -19,7 +17,6 @@ export function initSidebar() {
     });
   }
 
-  // ESC close
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       sidebar.classList.remove("active");
@@ -27,20 +24,18 @@ export function initSidebar() {
     }
   });
 
-  // 🔥 ACTIVE PAGE LOGIC
   const currentPage = window.location.pathname;
-
   const buttons = sidebar.querySelectorAll(".sidebar-menu button[data-page]");
 
   buttons.forEach(btn => {
-  const page = btn.getAttribute("data-page");
-
-  if (
-    (page === "dashboard" && currentPage.includes("dashboard")) ||
-    (page === "add-student" && currentPage.includes("add-students")) ||
-    (page === "attendance" && currentPage.includes("mark-attendance")) ||
-    (page === "marks" && currentPage.includes("marks"))
-  ) {
-    btn.classList.add("active");
-  }
-});
+    const page = btn.getAttribute("data-page");
+    if (
+      (page === "dashboard" && currentPage.includes("dashboard")) ||
+      (page === "add-student" && currentPage.includes("add-students")) ||
+      (page === "attendance" && currentPage.includes("mark-attendance")) ||
+      (page === "marks" && currentPage.includes("marks"))
+    ) {
+      btn.classList.add("active");
+    }
+  });
+}

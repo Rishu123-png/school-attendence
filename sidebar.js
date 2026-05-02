@@ -1,23 +1,17 @@
-
-
-
 export function initSidebar() {
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("menuToggle");
   const overlay = document.getElementById("sidebarOverlay");
 
-  if (!sidebar || !toggleBtn) {
-    console.warn("Sidebar elements not found");
-    return;
-  }
+  if (!sidebar || !toggleBtn) return;
 
-  // 🔹 Open sidebar
+  // Toggle open
   toggleBtn.addEventListener("click", () => {
     sidebar.classList.add("active");
     if (overlay) overlay.classList.add("active");
   });
 
-  // 🔹 Close sidebar (overlay click)
+  // Close
   if (overlay) {
     overlay.addEventListener("click", () => {
       sidebar.classList.remove("active");
@@ -25,7 +19,7 @@ export function initSidebar() {
     });
   }
 
-  // 🔹 Close on ESC key
+  // ESC close
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       sidebar.classList.remove("active");
@@ -33,17 +27,20 @@ export function initSidebar() {
     }
   });
 
-  // 🔹 Swipe close (mobile premium feature)
-  let startX = 0;
-  sidebar.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-  });
+  // 🔥 ACTIVE PAGE LOGIC
+  const currentPage = window.location.pathname;
 
-  sidebar.addEventListener("touchmove", (e) => {
-    let currentX = e.touches[0].clientX;
-    if (currentX - startX < -50) {
-      sidebar.classList.remove("active");
-      if (overlay) overlay.classList.remove("active");
+  const buttons = sidebar.querySelectorAll(".sidebar-menu button[data-page]");
+
+  buttons.forEach(btn => {
+    const page = btn.getAttribute("data-page");
+
+    if (
+      (page === "dashboard" && currentPage.includes("dashboard")) ||
+      (page === "attendance" && currentPage.includes("mark-attendance")) ||
+      (page === "marks" && currentPage.includes("marks"))
+    ) {
+      btn.classList.add("active");
     }
   });
 }

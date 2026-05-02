@@ -301,3 +301,92 @@ td {
   margin-top:30px;
   color:var(--muted);
 }
+
+/* HERO */
+.hero {
+  display:flex;
+  gap:40px;
+  align-items:center;
+  margin-top:30px;
+}
+
+.hero-left {
+  flex:1;
+}
+
+.hero-right {
+  width:320px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg,#7a71ff, #ff6bc4);
+  padding:20px;
+  border-radius:16px;
+  color:white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .hero {
+    flex-direction:column;
+  }
+
+  .hero-right {
+    width:100%;
+  }
+}
+
+/* MODAL OVERLAY */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0,0,0,0.7);
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+/* SHOW */
+.modal-overlay.active {
+  display: flex;
+}
+
+/* LOGIN BOX */
+.login-modal {
+  background: rgba(20,20,40,0.95);
+  padding: 25px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 350px;
+
+  backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* INPUTS */
+.login-modal input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+
+/* CLOSE BUTTON */
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+}

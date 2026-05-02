@@ -27,6 +27,12 @@
   --container-width: 980px;
 
   font-family: "Poppins", system-ui, sans-serif;
+
+  /* TEXT SYSTEM */
+  --text-main: #ffffff;   /* main headings */
+  --text-secondary: #cccccc; /* table headings etc */
+  --text-muted: rgba(255,255,255,0.7);
+}
 }
 
 /* =========================
@@ -38,7 +44,7 @@ html, body {
 
 body {
   background: linear-gradient(180deg,#07060a 0%, #0b0716 40%, #0f0920 100%);
-  color:#fff;
+  color:var(--text-main);
   transition: 0.3s;
 
   line-height: 1.6;
@@ -65,18 +71,19 @@ h3 {
 
 p {
   margin-bottom: 14px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* =========================
    LIGHT MODE
 ========================= */
 body.light-mode {
-  --bg0: #f5f7fa;
-  --card: rgba(255,255,255,0.9);
-  
-  --glass: rgba(255,255,255,0.7);
-  
+  background: #ffffff !important;
+
+  /* TEXT SWITCH */
+  --text-main: #111111;
+  --text-secondary: #444444;
+  --text-muted: #666666;
 }
 
 /* =========================
@@ -184,7 +191,7 @@ th {
   text-align:left;
   padding:14px;
   font-weight:600;
-  color:#ccc;
+  color:var(--text-secondary);
 }
 
 td {

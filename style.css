@@ -390,14 +390,15 @@ td {
   color: #aaa;
   cursor: pointer;
 }
-.logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .brand { display: flex; align-items: center; gap: 12px; }
+
+.logo {
+width:44px; height:44px; border-radius:10px;
+background: linear-gradient(135deg,var(--accentA),var(--accentB));
+display:flex; align-items:center; justify-content:center;
+box-shadow: 0 6px 18px rgba(107,108,255,0.12);
+font-weight:700;
+}
+.brand h1 { font-size:18px; letter-spacing:0.2px; }
+.brand p { font-size:12px; color:var(--muted); margin-top:2px; }

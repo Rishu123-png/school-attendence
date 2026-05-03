@@ -129,6 +129,19 @@
 <script type="module" src="./script.js"></script>
 
 
+<div id="promotionModal" class="modal-overlay">
+  <div class="attendance-modal">
+    <h3>🎓 New Academic Year Detected</h3>
+    <p>Do you want to promote all students to next class?</p>
+
+    <div style="margin-top:15px; display:flex; gap:10px;">
+      <button class="btn-cta" onclick="confirmPromotion()">Yes, Promote</button>
+      <button class="btn-ghost" onclick="closePromotion()">Later</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Debugger -->
 <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>

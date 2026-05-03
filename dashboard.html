@@ -124,22 +124,66 @@
 </main>
 </div>
 
+
+<!-- YEARLY PROMOTION MODAL -->
+<div id="promotionModal" class="promo-overlay" style="display:none;">
+  <div class="promo-box">
+
+    <!-- Choice View -->
+    <div id="promoChoiceView">
+      <div class="promo-icon">🎓</div>
+      <h2>New Academic Year!</h2>
+      <p id="promoSubtitle" style="color:var(--muted); margin-bottom:0;">A new academic year has been detected.</p>
+      <div class="promo-options">
+        <button id="promoteAllBtn" class="promo-btn promo-btn-primary" onclick="startPromoteAll()">
+          ✅ Promote All Students
+          <span>Move every student to the next class automatically</span>
+        </button>
+        <button class="promo-btn promo-btn-secondary" onclick="startReviewPromotion()">
+          🔍 Review One by One
+          <span>Decide Pass or Fail for each student individually</span>
+        </button>
+        <button class="promo-btn promo-btn-ghost" onclick="remindLaterPromotion()">
+          ⏰ Remind Me Later
+          <span>Ask me again next time I log in</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Review View -->
+    <div id="promoReviewView" style="display:none;">
+      <div class="promo-progress">
+        Reviewing student <span id="promoCurrentNum">1</span> of <span id="promoTotalNum">?</span>
+      </div>
+      <div class="promo-student-card">
+        <div class="promo-student-name" id="promoStudentName">-</div>
+        <div class="promo-student-info">
+          <span>Class: <strong id="promoStudentClass">-</strong></span>
+          <span>Absences: <strong id="promoStudentAbsences">-</strong></span>
+        </div>
+        <div id="promoStudentMarks" class="promo-student-marks" style="display:none;"></div>
+      </div>
+      <div class="promo-review-btns">
+        <button class="promo-btn-fail" onclick="reviewDecision('fail')">❌ Fail — Keep in same class</button>
+        <button class="promo-btn-pass" id="promoPassBtn" onclick="reviewDecision('pass')">✅ Pass — Promote</button>
+      </div>
+      <button class="promo-btn-link" onclick="skipRemainingPromotion()">Save progress &amp; finish later</button>
+    </div>
+
+    <!-- Done View -->
+    <div id="promoDoneView" style="display:none; text-align:center;">
+      <div style="font-size:52px; margin-bottom:12px;">🎉</div>
+      <h2>All Done!</h2>
+      <p id="promoDoneSummary" style="color:var(--muted);"></p>
+      <button class="promo-btn promo-btn-primary" style="margin-top:8px;" onclick="closePromotionModal()">Close</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- Scripts -->
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-
-
-<div id="promotionModal" class="modal-overlay">
-  <div class="attendance-modal">
-    <h3>🎓 New Academic Year Detected</h3>
-    <p>Do you want to promote all students to next class?</p>
-
-    <div style="margin-top:15px; display:flex; gap:10px;">
-      <button class="btn-cta" onclick="confirmPromotion()">Yes, Promote</button>
-      <button class="btn-ghost" onclick="closePromotion()">Later</button>
-    </div>
-  </div>
-</div>
 
 
 <!-- Debugger -->

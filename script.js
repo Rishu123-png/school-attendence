@@ -946,61 +946,207 @@ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
    ====================================================== */
 
 
-function checkAcademicYearAndPromote() {
-  const currentYear = new Date().getFullYear();
-  const savedYear = localStorage.getItem("academicYear");
+/* ======================================================
+   YEARLY CLASS PROMOTION SYSTEM
+   - Academic year = April to March (India standard)
+   - Grade-based: 11A1->12A1, 11B->12B, 12C->graduated
+   - Section stays the same, only grade number increments
+   - Remind Later shown max 3 times per year
+   ====================================================== */
 
-  if (savedYear != currentYear) {
-    showPromotionPopup(currentYear);
-  }
+let promoStudents = [];
+let promoIndex = 0;
+let promoResults = {};
+let promoClassMap = {};
+
+function getAcademicYear() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  return month >= 4 ? now.getFullYear() : now.getFullYear() - 1;
 }
 
-// 🔹 Promotion logic
-function promoteClass(className) {
-  if (!className) return className;
+// "11A1" -> "12A1", "11B" -> "12B", "12C" -> null (graduated)
+function buildPromoClassMap(classList) {
+  const gradeNums = classList.map(cls => {
+    const m = cls.match(/^(\d+)/);
+    return m ? parseInt(m[1]) : null;
+  }).filter(g => g !== null);
 
-  let num = parseInt(className.match(/\d+/)?.[0]);
-  let section = className.replace(num, "");
+  const maxGrade = gradeNums.length > 0 ? Math.max(...gradeNums) : 0;
 
-  if (num < 12) {
-    return (num + 1) + section;
-  } else {
-    return "Graduated";
-  }
-}
-
-// 🔹 Apply promotion
-function promoteAllStudents(year) {
-  let students = JSON.parse(localStorage.getItem("students")) || [];
-
-  students = students.map(student => {
-    return {
-      ...student,
-      class: promoteClass(student.class),
-      year: year
-    };
+  const map = {};
+  classList.forEach(cls => {
+    const m = cls.match(/^(\d+)(.*)/);
+    if (!m) { map[cls] = null; return; }
+    const grade = parseInt(m[1]);
+    const section = m[2]; // e.g. "A1", "B", ""
+    map[cls] = (grade >= maxGrade) ? null : `${grade + 1}${section}`;
   });
-
-  localStorage.setItem("students", JSON.stringify(students));
-  localStorage.setItem("academicYear", year);
-
-  alert("🎓 Students promoted successfully!");
-  location.reload();
+  return map;
 }
 
-function showPromotionPopup(year) {
-  const modal = document.getElementById("promotionModal");
-  if (modal) {
-    modal.style.display = "flex";
+async function checkYearlyPromotion() {
+  if (!auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  try {
+    const snap = await get(ref(db, `teachers/${uid}`));
+    const teacher = snap.val() || {};
+
+    const currentYear = getAcademicYear();
+    if (currentYear <= (teacher.lastPromotionYear || 0)) return;
+
+    const remindKey = `promoRemind_${uid}_${currentYear}`;
+    if (parseInt(localStorage.getItem(remindKey) || '0') >= 3) return;
+
+    const studSnap = await get(ref(db, 'students'));
+    const allData = studSnap.val() || {};
+    const myStudents = [];
+    for (const id in allData) {
+      const s = allData[id];
+      if (!s || s.teacher !== uid) continue;
+      myStudents.push({ id, ...s });
+    }
+    if (myStudents.length === 0) return;
+
+    const classes = teacher.classes || {};
+    let classList = Array.isArray(classes) ? [...classes] : Object.values(classes);
+    classList = classList.filter(Boolean);
+    if (classList.length === 0) return;
+
+    promoClassMap = buildPromoClassMap(classList);
+    promoStudents = myStudents;
+    promoIndex = 0;
+    promoResults = {};
+
+    const modal = document.getElementById('promotionModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.getElementById('promoChoiceView').style.display = 'block';
+    document.getElementById('promoReviewView').style.display = 'none';
+    document.getElementById('promoDoneView').style.display = 'none';
+
+    const sub = document.getElementById('promoSubtitle');
+    if (sub) sub.innerText = `Academic year ${currentYear}–${currentYear + 1} detected. What would you like to do with your ${myStudents.length} student(s)?`;
+  } catch (err) {
+    console.error('checkYearlyPromotion error', err);
+  }
+}
+
+window.remindLaterPromotion = function () {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  const remindKey = `promoRemind_${uid}_${getAcademicYear()}`;
+  localStorage.setItem(remindKey, String(parseInt(localStorage.getItem(remindKey) || '0') + 1));
+  document.getElementById('promotionModal').style.display = 'none';
+};
+
+window.closePromotionModal = function () {
+  document.getElementById('promotionModal').style.display = 'none';
+};
+
+window.startPromoteAll = async function () {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  const btn = document.getElementById('promoteAllBtn');
+  if (btn) { btn.disabled = true; btn.innerText = 'Promoting…'; }
+
+  let promoted = 0, graduated = 0, unchanged = 0;
+  for (const s of promoStudents) {
+    const nextClass = promoClassMap[s.class];
+    if (nextClass === undefined) { unchanged++; }
+    else if (nextClass === null) { graduated++; }
+    else { await set(ref(db, `students/${s.id}/class`), nextClass); promoted++; }
   }
 
-  window._promotionYear = year;
+  await set(ref(db, `teachers/${uid}/lastPromotionYear`), getAcademicYear());
+  document.getElementById('promoChoiceView').style.display = 'none';
+  document.getElementById('promoDoneView').style.display = 'block';
+
+  let msg = `${promoted} student(s) promoted to the next class.`;
+  if (graduated) msg += ` ${graduated} in the final class (graduated).`;
+  if (unchanged) msg += ` ${unchanged} had an unrecognized class.`;
+  document.getElementById('promoDoneSummary').innerText = msg;
+  loadStudents(currentClassFilter);
+};
+
+window.startReviewPromotion = function () {
+  document.getElementById('promoChoiceView').style.display = 'none';
+  document.getElementById('promoReviewView').style.display = 'block';
+  document.getElementById('promoTotalNum').innerText = promoStudents.length;
+  showPromoStudent(0);
+};
+
+function showPromoStudent(idx) {
+  if (idx >= promoStudents.length) { finishReviewPromotion(); return; }
+  promoIndex = idx;
+  const s = promoStudents[idx];
+  const absences = Object.values(s.attendance || {}).filter(v => v === 'absent').length;
+  const nextClass = promoClassMap[s.class];
+
+  document.getElementById('promoCurrentNum').innerText = idx + 1;
+  document.getElementById('promoStudentName').innerText = s.name || '(No name)';
+  document.getElementById('promoStudentClass').innerText = s.class || '-';
+  document.getElementById('promoStudentAbsences').innerText = absences;
+
+  const marks = s.marks || {};
+  const marksEl = document.getElementById('promoStudentMarks');
+  if (marksEl) {
+    if (marks.ut1Score || marks.hyScore) {
+      marksEl.innerText = `UT-1: ${marks.ut1Score || '-'}/${marks.ut1Max || 25}  |  Half-Yearly: ${marks.hyScore || '-'}/${marks.hyMax || 100}`;
+      marksEl.style.display = 'block';
+    } else {
+      marksEl.style.display = 'none';
+    }
+  }
+
+  const passBtn = document.getElementById('promoPassBtn');
+  if (passBtn) {
+    if (nextClass === null) passBtn.innerText = '🎓 Graduate — Final class';
+    else if (nextClass) passBtn.innerText = `✅ Pass — Move to Class ${nextClass}`;
+    else passBtn.innerText = '✅ Pass';
+  }
 }
 
-function closePromotion() {
-  document.getElementById("promotionModal").style.display = "none";
+window.reviewDecision = function (decision) {
+  promoResults[promoStudents[promoIndex].id] = decision;
+  showPromoStudent(promoIndex + 1);
+};
+
+async function finishReviewPromotion() {
+  document.getElementById('promoReviewView').style.display = 'none';
+  document.getElementById('promoDoneView').style.display = 'block';
+  const uid = auth.currentUser?.uid;
+  let promoted = 0, failed = 0, skipped = 0;
+
+  for (const s of promoStudents) {
+    const decision = promoResults[s.id];
+    if (decision === 'pass') {
+      const nextClass = promoClassMap[s.class];
+      if (nextClass) await set(ref(db, `students/${s.id}/class`), nextClass);
+      promoted++;
+    } else if (decision === 'fail') { failed++; }
+    else { skipped++; }
+  }
+
+  if (uid) await set(ref(db, `teachers/${uid}/lastPromotionYear`), getAcademicYear());
+  let summary = `${promoted} student(s) promoted, ${failed} kept in the same class.`;
+  if (skipped) summary += ` ${skipped} not reviewed.`;
+  document.getElementById('promoDoneSummary').innerText = summary;
+  loadStudents(currentClassFilter);
 }
 
-function confirmPromotion() {
-  promoteAllStudents(window._promotionYear);
-}
+window.skipRemainingPromotion = async function () {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  let promoted = 0;
+  for (const s of promoStudents) {
+    if (promoResults[s.id] === 'pass') {
+      const nextClass = promoClassMap[s.class];
+      if (nextClass) { await set(ref(db, `students/${s.id}/class`), nextClass); promoted++; }
+    }
+  }
+  const remindKey = `promoRemind_${uid}_${getAcademicYear()}`;
+  localStorage.setItem(remindKey, '2');
+  document.getElementById('promotionModal').style.display = 'none';
+  if (promoted) loadStudents(currentClassFilter);
+};

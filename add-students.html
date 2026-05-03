@@ -7,86 +7,73 @@
 </head>
 <body onload="initAddStudentsPage()">
 
-  
-      <!-- ☰ Menu Button -->
-<button id="menuToggle" class="menu-btn">➡️</button>
+  <!-- ☰ Menu Button -->
+  <button id="menuToggle" class="menu-btn">➡️</button>
 
-<!-- Overlay -->
-<div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <!-- Overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-<!-- Sidebar -->
-<div id="sidebar" class="sidebar">
-
-<main class="container">
-
-
-  <div class="sidebar-header">
-    <!-- ✅ FIXED IMAGE -->
-    <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
-
-    <!-- ✅ UNIQUE IDs -->
-    <h3 id="teacherName">Teacher Name</h3>
-    <p id="teacherSubject">Subject</p>
-  </div>
-
-  <div class="sidebar-menu">
-  <button data-page="add-student" onclick="location.href='add-students.html'">
-    🧑‍💼 Add Student
-  </button>
-  <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-  <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-  <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
-  <button id="themeToggle">🌙 Toggle Theme</button>
-  <button onclick="logout()">🚪 Logout</button>
-</div>
-
-</div>
-
-          <div>
-            <h2>Add Student</h2>
-            <p style="color:var(--muted)">Subject: <strong id="teacherSubjectAdd"></strong></p>
-          </div>
-        </div>
-
-        <div class="top-controls">
-          <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
-          <button class="btn-cta" onclick="logout()">Logout</button>
-        </div>
-      </header>
-
-      <label class="label">Class</label>
-      <select id="classSelectAdd">
-        <option value="">-- Select class --</option>
-      </select>
-
-      <label class="label">Student Name</label>
-      <input id="studentName" placeholder="Student name" class="btn-cta">
-      <div style="display:flex; gap:12px; margin-top:12px;">
-        <button onclick="addStudent()" class="btn-cta">Save Student</button>
-        
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <main class="container">
+      <div class="sidebar-header">
+        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
+        <h3 id="teacherName">Teacher Name</h3>
+        <p id="teacherSubject">Subject</p>
       </div>
-
-      <p class="footer">Developed by Rishu Jaswar</p>
+      <div class="sidebar-menu">
+        <button data-page="add-student" onclick="location.href='add-students.html'">
+          🧑‍💼 Add Student
+        </button>
+        <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+        <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+        <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+        <button id="themeToggle">🌙 Toggle Theme</button>
+        <button onclick="logout()">🚪 Logout</button>
+      </div>
     </main>
   </div>
 
+  <main class="container">
+    <header class="header">
+      <div>
+        <h2>Add Student</h2>
+        <p style="color:var(--muted)">Subject: <strong id="teacherSubjectAdd"></strong></p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
+        <button class="btn-cta" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <label class="label">Class</label>
+    <select id="classSelectAdd">
+      <option value="">-- Select class --</option>
+    </select>
+
+    <label class="label">Student Name</label>
+    <input id="studentName" placeholder="Student name" class="btn-cta">
+    <div style="display:flex; gap:12px; margin-top:12px;">
+      <button onclick="addStudent()" class="btn-cta">Save Student</button>
+    </div>
+
+    <p class="footer">Developed by Rishu Jaswar</p>
+  </main>
+
   <script type="module" src="./firebase.js"></script>
-<script type="module" src="./script.js"></script>
+  <script type="module" src="./script.js"></script>
 
+  <script type="module">
+    import { initTheme } from "./theme.js";
+    import { initSidebar } from "./sidebar.js";
+    window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initSidebar();
+    });
+  </script>
 
-<script type="module">
-  import { initTheme } from "./theme.js";
-  import { initSidebar } from "./sidebar.js";
-
-  window.addEventListener("DOMContentLoaded", () => {
-    initTheme();
-    initSidebar();
-  });
-</script>
-
-<!-- Debugger -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script>
 
 </body>
 </html>

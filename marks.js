@@ -7,7 +7,7 @@ import {
   onValue,
   get,
   update
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* ----------------- TensorFlow AI मॉडल ------------------ */
 

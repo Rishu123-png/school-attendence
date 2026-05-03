@@ -94,6 +94,9 @@ export async function loadTeacherProfile() {
     if (subjectEl) subjectEl.innerText = data.subject || '';
     if (subjectAddEl) subjectAddEl.innerText = data.subject || '';
 
+const nameDisplayEl = document.getElementById('teacherNameDisplay');
+if (nameDisplayEl) nameDisplayEl.innerText = data.name || 'Teacher';
+
     const classes = data.classes || {};
     const ids = Array.isArray(classes) ? classes : (Object.keys(classes).length ? Object.values(classes) : []);
 

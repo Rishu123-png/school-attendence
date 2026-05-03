@@ -153,7 +153,9 @@ function initDashboardPage() {
     };
   }
 
-  loadStudents();
+    loadStudents();
+  // Check if a new academic year has started
+  setTimeout(checkYearlyPromotion, 800);
 };
 
 export async function loadStudents(selectedClass = '') {

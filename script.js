@@ -15,10 +15,10 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   ref, onValue, get, set, push
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* ======================================================
    GLOBAL STATE (used across many pages)

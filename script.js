@@ -130,6 +130,14 @@ window.initDashboardPage = function () {
     return;
   }
 
+function initDashboardPage() {
+  console.log("Dashboard Loaded");
+
+  checkAcademicYearAndPromote(); // 🔥 ADD THIS
+
+  // your existing code
+}
+
   // 🔥 Initialize UI systems FIRST
   initSidebar();
   initTheme();
@@ -934,3 +942,63 @@ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 /* ======================================================
    End of merged script
    ====================================================== */
+
+
+function checkAcademicYearAndPromote() {
+  const currentYear = new Date().getFullYear();
+  const savedYear = localStorage.getItem("academicYear");
+
+  if (savedYear != currentYear) {
+    showPromotionPopup(currentYear);
+  }
+}
+
+// 🔹 Promotion logic
+function promoteClass(className) {
+  if (!className) return className;
+
+  let num = parseInt(className.match(/\d+/)?.[0]);
+  let section = className.replace(num, "");
+
+  if (num < 12) {
+    return (num + 1) + section;
+  } else {
+    return "Graduated";
+  }
+}
+
+// 🔹 Apply promotion
+function promoteAllStudents(year) {
+  let students = JSON.parse(localStorage.getItem("students")) || [];
+
+  students = students.map(student => {
+    return {
+      ...student,
+      class: promoteClass(student.class),
+      year: year
+    };
+  });
+
+  localStorage.setItem("students", JSON.stringify(students));
+  localStorage.setItem("academicYear", year);
+
+  alert("🎓 Students promoted successfully!");
+  location.reload();
+}
+
+function showPromotionPopup(year) {
+  const modal = document.getElementById("promotionModal");
+  if (modal) {
+    modal.style.display = "flex";
+  }
+
+  window._promotionYear = year;
+}
+
+function closePromotion() {
+  document.getElementById("promotionModal").style.display = "none";
+}
+
+function confirmPromotion() {
+  promoteAllStudents(window._promotionYear);
+}

@@ -161,7 +161,7 @@ console.log("Logged UID:", teacherUid);
 console.log("Student teacher:", s.teacher);
 
       // 🔥 FIXED: safer teacher filter
-      if (!s.teacher || s.teacher === teacherUid) {
+      if (!s.teacher === teacherUid) {
         arr.push({ id, name: s.name || "(no name)" });
       }
     }
@@ -213,8 +213,7 @@ async function loadStudentMarks(studentId) {
     const stu = snap.val() || {};
     safeText(marksStudentName, stu.name || "(Student)");
 
-    const marks = (stu.marks) ? stu.marks : (stu.marks === undefined ? {} : stu.marks);
-    const d = marks || {};
+    const d = stu.marks || {};
 
     if (ut1Score) ut1Score.value = tryGet(() => d.ut1Score ?? "", "");
     if (ut1Max) ut1Max.value = tryGet(() => d.ut1Max ?? "25", "25");

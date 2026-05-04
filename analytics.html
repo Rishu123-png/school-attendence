@@ -6,12 +6,35 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initAnalyticsPage()">
-  <main class="container">
-    <header class="header">
-      <div class="brand">
-        <div class="logo">
-          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo">
-        </div>
+
+  <!-- ☰ Menu Button -->
+  <button id="menuToggle" class="menu-btn">➡️</button>
+
+  <!-- Overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <main class="container">
+      <div class="sidebar-header">
+        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
+        <h3 id="teacherName">Teacher Name</h3>
+        <p id="teacherSubject">Subject</p>
+      </div>
+      <div class="sidebar-menu">
+        <button data-page="add-student" onclick="location.href='add-students.html'">
+          🧑‍💼 Add Student
+        </button>
+        <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+        <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+        <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+        <button id="themeToggle">🌙 Toggle Theme</button>
+        <button onclick="logout()">🚪 Logout</button>
+      </div>
+    </main>
+  </div>
+
+ 
         <div>
           <h1>Attendance Analytics</h1>
           <p>Monthly &amp; subject-based</p>

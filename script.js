@@ -335,21 +335,14 @@ window.fixTeacherIds = async function () {
    ====================================================== */
 
 window.goToMarkAttendance = function () {
-  const classSel = document.getElementById('classSelect');
-  const cls = classSel ? classSel.value : currentClassFilter;
-  if (!cls) return alert('Please select a class first using the dropdown at the top right.');
-  localStorage.setItem('selectedClass', cls);
-  localStorage.removeItem('selectedStudentId');
-  window.location.href = 'mark-attendance.html';
+  const classSel = document.getElementById('classSelect');
+  const cls = classSel ? classSel.value : currentClassFilter;
+  if (!cls) return alert('Select a class first');
+  localStorage.setItem('selectedClass', cls);
+  localStorage.removeItem('selectedStudentId');
+  window.location.href = 'mark-attendance.html';
 };
-
-/* Sidebar Attendance button — clears any stale selectedStudentId
-   so it never falls into single-student mode accidentally. */
-window.sidebarGoAttendance = function () {
-  localStorage.removeItem('selectedStudentId');
-  window.goToMarkAttendance();
-};
-
+/*
 
  ======================================================
    ATTENDANCE MODAL & MONTH VIEW (dashboard modal)

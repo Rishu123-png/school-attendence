@@ -1,10 +1,9 @@
-// marks.js
-// Marks & Prediction page logic 
+// marks.js - Marks & Prediction page logic 
 
 import { auth, db } from "./firebase.js";
 import {
   ref,
-  onValue,
+ 
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -16,35 +15,42 @@ let tfModel = null;
 async function initAIModel() {
   if (tfModel) return;
 
-  tfModel = tf.sequential();
+  if (typeof tf ==="undefined") {
 
-  tfModel.add(tf.layers.dense({
-    units: 8,
-    inputShape: [4],
-    activation: 'relu'
-  }));
+conole.warn("marks.js:Tensorflow.js not loaded yet - AI prediction disabled.");
+   return;
+}
 
-  tfModel.add(tf.layers.dense({ units: 1 }));
+  try {
+     tfModel = tf.sequential();
+tfModel.add( tf.layers.dense({units: 8, inputShape: [4],
+activation: "relu"}));
 
-  tfModel.compile({
-    optimizer: 'adam',
-    loss: 'meanSquaredError'
-  });
+tfModel.add(tf.layers.dense({ units: 1}));
 
-  await trainAIModel();
+tfModel.compile({optimizer: "adam",
+loss: "meanSquaredError"});
+
+await
+trainAIModel();
+} catch (err) {
+
+console.error("initAIModel error:", error);
+tfModel = null;
+}
 }
 
 /* ----------------- Training Data ------------------ */
 async function trainAIModel() {
   const trainingData = [
     { input: [0.8, 0.85, 0.9, 0.5], output: [0.8] },
-    { input: [0.6, 0.7, 0.75, 0.4], output: [0.65] },
-    { input: [0.4, 0.5, 0.6, 0.3], output: [0.5] },
-    { input: [0.3, 0.4, 0.5, 0.2], output: [0.4] },
+    { input: [0.6, 0.70, 0.75, 0.4], output: [0.65] },
+    { input: [0.4, 0.50, 0.60, 0.3], output: [0.5] },
+    { input: [0.3, 0.40, 0.50, 0.2], output: [0.4] },
     { input: [0.9, 0.95, 0.95, 0.6], output: [0.9] }
   ];
 
-  const inputs = tf.tensor2d(trainingData.map(d => d.input));
+  const inputs  = tf.tensor2d(trainingData.map(d => d.input));
   const outputs = tf.tensor2d(trainingData.map(d => d.output));
 
   await tfModel.fit(inputs, outputs, {
@@ -52,75 +58,64 @@ async function trainAIModel() {
     shuffle: true
   });
 
-  console.log("✅ AI Model Trained");
+  console.log("✅ AI model trained.");
 }
 
 /* ----------------- Prediction ------------------ */
 function predictWithAI(ut1, hy, attendance, hours) {
-  if (!tfModel) return null;
-
-  const input = tf.tensor2d([[
+  if (!tfModel
+|| typeof tf === "undefined") return null;
+try {
+  const out = tf.Model.predict(tf.tensor2d([[
     ut1,
     hy,
     attendance,
     hours
-  ]]);
-
-  const output = tfModel.predict(input);
-  return output.dataSync()[0]; // 0–1 range
+  ]]));
+return out.dataSync()[0];
+} catch (e) { console.warn("predictWithAI error:",e);
+return null;
+}
 }
 
+  
 /* ----------------- Utilities ------------------ */
 function $(id) { return document.getElementById(id); }
 
 function safeText(el, text) {
-  if (!el) return;
-  el.innerText = text ?? "";
+  if (el) el.innerText = text ?? "";
 }
 
 function tryGet(fn, fallback = null) {
   try { return fn(); } catch (e) { return fallback; }
 }
 
+function getEl(id) {
+  const el = $(id);
+  if (!el) console.warn("marks.js: element not found:", id);
+  return el;
+}
 
-/* ----------------- DOM refs ------------------ */
-const studentSelect = $("marksStudentSelect");
-const marksForm = $("marksForm");
-const marksStudentName = $("marksStudentName");
-
-const ut1Score = $("ut1Score");
-const ut1Max = $("ut1Max");
-const hyScore = $("hyScore");
-const hyMax = $("hyMax");
-const ut2Score = $("ut2Score");
-const ut2Max = $("ut2Max");
-const annualScore = $("annualScore");
-const annualMax = $("annualMax");
-
-const saveMarksBtn = $("saveMarksBtn");
-const predictBtn = $("predictBtn");
-const clearMarksBtn = $("clearMarksBtn");
-const studyHoursInput = $("studyHours");
-const studyPredictBtn = null;
-
-const predictionSummary = $("predictionSummary");
-const studyHourPrediction = $("studyHourPrediction");
-const performanceCanvas = $("performanceChart");
-
-/* Chart instance */
-let chartInstance = null;
-
-/* ----------------- Auth helper ------------------ */
-function waitForUserReady(cb, tries = 30) {
-  if (auth && auth.currentUser) return cb();
-  if (tries <= 0) return console.warn("User not available yet.");
+/* =====================================================
+   AUTH HELPER
+   ===================================================== */
+function waitForUserReady(cb, tries = 40) {
+  if (auth && auth.currentUser) { cb(); return; }
+  if (tries <= 0) {
+    console.warn("marks.js: user not ready after timeout — redirecting to login.");
+window.location.href = "index.html";
+    return;
+  }
   setTimeout(() => waitForUserReady(cb, tries - 1), 200);
 }
 
+
+
 /* ----------------- Main init ------------------ */
 export function initMarksPage() {
+const studentSelect = $("marksStudentSelect"
   if (!studentSelect) {
-    console.warn("marks.js: marksStudentSelect not found — page likely not marks.html");
+    console.warn("marks.js: not on marks.html — skipping init.");
     return;
   }
 

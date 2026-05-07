@@ -1,43 +1,56 @@
-// marks.js - Marks & Prediction page logic 
+// marks.js - Marks & Prediction page logic
 
 import { auth, db } from "./firebase.js";
 import {
   ref,
- 
   get,
   update
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ----------------- TensorFlow AI मॉडल ------------------ */
+/* ----------------- Module-level DOM references ------------------ */
+let studentSelect    = null;
+let saveMarksBtn     = null;
+let predictBtn       = null;
+let clearMarksBtn    = null;
+let marksForm        = null;
+let marksStudentName = null;
+let ut1Score         = null;
+let ut1Max           = null;
+let hyScore          = null;
+let hyMax            = null;
+let ut2Score         = null;
+let ut2Max           = null;
+let annualScore      = null;
+let annualMax        = null;
+let predictionSummary   = null;
+let studyHourPrediction = null;
+let studyHoursInput     = null;
+let performanceCanvas   = null;
+let chartInstance       = null;
+
+/* ----------------- TensorFlow AI Model ------------------ */
 
 let tfModel = null;
 
 async function initAIModel() {
   if (tfModel) return;
 
-  if (typeof tf ==="undefined") {
-
-conole.warn("marks.js:Tensorflow.js not loaded yet - AI prediction disabled.");
-   return;
-}
+  if (typeof tf === "undefined") {
+    console.warn("marks.js: TensorFlow.js not loaded yet — AI prediction disabled.");
+    return;
+  }
 
   try {
-     tfModel = tf.sequential();
-tfModel.add( tf.layers.dense({units: 8, inputShape: [4],
-activation: "relu"}));
+    tfModel = tf.sequential();
+    tfModel.add(tf.layers.dense({ units: 8, inputShape: [4], activation: "relu" }));
+    tfModel.add(tf.layers.dense({ units: 1 }));
+    tfModel.compile({ optimizer: "adam", loss: "meanSquaredError" });
 
-tfModel.add(tf.layers.dense({ units: 1}));
-
-tfModel.compile({optimizer: "adam",
-loss: "meanSquaredError"});
-
-await
-trainAIModel();
-} catch (err) {
-
-console.error("initAIModel error:", error);
-tfModel = null;
-}
+    await trainAIModel();
+  } catch (err) {
+    console.error("initAIModel error:", err);
+    tfModel = null;
+  }
 }
 
 /* ----------------- Training Data ------------------ */
@@ -53,32 +66,23 @@ async function trainAIModel() {
   const inputs  = tf.tensor2d(trainingData.map(d => d.input));
   const outputs = tf.tensor2d(trainingData.map(d => d.output));
 
-  await tfModel.fit(inputs, outputs, {
-    epochs: 200,
-    shuffle: true
-  });
+  await tfModel.fit(inputs, outputs, { epochs: 200, shuffle: true });
 
-  console.log("✅ AI model trained.");
+  console.log("AI model trained.");
 }
 
 /* ----------------- Prediction ------------------ */
 function predictWithAI(ut1, hy, attendance, hours) {
-  if (!tfModel
-|| typeof tf === "undefined") return null;
-try {
-  const out = tf.Model.predict(tf.tensor2d([[
-    ut1,
-    hy,
-    attendance,
-    hours
-  ]]));
-return out.dataSync()[0];
-} catch (e) { console.warn("predictWithAI error:",e);
-return null;
-}
+  if (!tfModel || typeof tf === "undefined") return null;
+  try {
+    const out = tfModel.predict(tf.tensor2d([[ut1, hy, attendance, hours]]));
+    return out.dataSync()[0];
+  } catch (e) {
+    console.warn("predictWithAI error:", e);
+    return null;
+  }
 }
 
-  
 /* ----------------- Utilities ------------------ */
 function $(id) { return document.getElementById(id); }
 
@@ -90,12 +94,6 @@ function tryGet(fn, fallback = null) {
   try { return fn(); } catch (e) { return fallback; }
 }
 
-function getEl(id) {
-  const el = $(id);
-  if (!el) console.warn("marks.js: element not found:", id);
-  return el;
-}
-
 /* =====================================================
    AUTH HELPER
    ===================================================== */
@@ -103,21 +101,37 @@ function waitForUserReady(cb, tries = 40) {
   if (auth && auth.currentUser) { cb(); return; }
   if (tries <= 0) {
     console.warn("marks.js: user not ready after timeout — redirecting to login.");
-window.location.href = "index.html";
+    window.location.href = "index.html";
     return;
   }
   setTimeout(() => waitForUserReady(cb, tries - 1), 200);
 }
 
-
-
 /* ----------------- Main init ------------------ */
 export function initMarksPage() {
-const studentSelect = $("marksStudentSelect"
+  studentSelect = $("marksStudentSelect");
   if (!studentSelect) {
     console.warn("marks.js: not on marks.html — skipping init.");
     return;
   }
+
+  saveMarksBtn        = $("saveMarksBtn");
+  predictBtn          = $("predictBtn");
+  clearMarksBtn       = $("clearMarksBtn");
+  marksForm           = $("marksForm");
+  marksStudentName    = $("marksStudentName");
+  ut1Score            = $("ut1Score");
+  ut1Max              = $("ut1Max");
+  hyScore             = $("hyScore");
+  hyMax               = $("hyMax");
+  ut2Score            = $("ut2Score");
+  ut2Max              = $("ut2Max");
+  annualScore         = $("annualScore");
+  annualMax           = $("annualMax");
+  predictionSummary   = $("predictionSummary");
+  studyHourPrediction = $("studyHourPrediction");
+  studyHoursInput     = $("studyHours");
+  performanceCanvas   = $("performanceChart");
 
   waitForUserReady(async () => {
     const user = auth.currentUser;
@@ -129,8 +143,8 @@ const studentSelect = $("marksStudentSelect"
     studentSelect.innerHTML = `<option value="">-- Loading students --</option>`;
     studentSelect.onchange = handleStudentSelectChange;
 
-    if (saveMarksBtn) saveMarksBtn.onclick = handleSaveMarks;
-    if (predictBtn) predictBtn.onclick = recomputePrediction;
+    if (saveMarksBtn)  saveMarksBtn.onclick  = handleSaveMarks;
+    if (predictBtn)    predictBtn.onclick    = recomputePrediction;
     if (clearMarksBtn) clearMarksBtn.onclick = clearMarks;
 
     window.predictStudyHourMarks = predictStudyHourMarks;
@@ -152,11 +166,7 @@ async function loadTeacherStudents(teacherUid) {
       const s = data[id];
       if (!s) continue;
 
-console.log("Logged UID:", teacherUid);
-console.log("Student teacher:", s.teacher);
-
-      // 🔥 FIXED: safer teacher filter
-      if (!s.teacher === teacherUid) {
+      if (s.teacher === teacherUid) {
         arr.push({ id, name: s.name || "(no name)" });
       }
     }
@@ -186,7 +196,7 @@ console.log("Student teacher:", s.teacher);
 }
 
 /* ----------------- Student select ------------------ */
-function handleStudentSelectChange(e) {
+function handleStudentSelectChange() {
   const id = studentSelect.value;
   if (!id) {
     if (marksForm) marksForm.style.display = "none";
@@ -210,19 +220,19 @@ async function loadStudentMarks(studentId) {
 
     const d = stu.marks || {};
 
-    if (ut1Score) ut1Score.value = tryGet(() => d.ut1Score ?? "", "");
-    if (ut1Max) ut1Max.value = tryGet(() => d.ut1Max ?? "25", "25");
-    if (hyScore) hyScore.value = tryGet(() => d.hyScore ?? "", "");
-    if (hyMax) hyMax.value = tryGet(() => d.hyMax ?? "100", "100");
-    if (ut2Score) ut2Score.value = tryGet(() => d.ut2Score ?? "", "");
-    if (ut2Max) ut2Max.value = tryGet(() => (d.ut2Max ?? "25"), "25");
+    if (ut1Score)    ut1Score.value    = tryGet(() => d.ut1Score    ?? "", "");
+    if (ut1Max)      ut1Max.value      = tryGet(() => d.ut1Max      ?? "25", "25");
+    if (hyScore)     hyScore.value     = tryGet(() => d.hyScore     ?? "", "");
+    if (hyMax)       hyMax.value       = tryGet(() => d.hyMax       ?? "100", "100");
+    if (ut2Score)    ut2Score.value    = tryGet(() => d.ut2Score    ?? "", "");
+    if (ut2Max)      ut2Max.value      = tryGet(() => d.ut2Max      ?? "25", "25");
     if (annualScore) annualScore.value = tryGet(() => d.annualScore ?? "", "");
-    if (annualMax) annualMax.value = tryGet(() => (d.annualMax ?? "100"), "100");
+    if (annualMax)   annualMax.value   = tryGet(() => d.annualMax   ?? "100", "100");
 
     drawPerformanceChart({
-      ut1Score: Number(d.ut1Score || 0),
-      hyScore: Number(d.hyScore || 0),
-      ut2Score: Number(d.ut2Score || 0),
+      ut1Score:    Number(d.ut1Score    || 0),
+      hyScore:     Number(d.hyScore     || 0),
+      ut2Score:    Number(d.ut2Score    || 0),
       annualScore: Number(d.annualScore || 0)
     });
   } catch (err) {
@@ -237,14 +247,14 @@ async function handleSaveMarks() {
   if (!studentId) return alert("Select a student first.");
 
   const payload = {
-    ut1Score: (ut1Score?.value || "").toString(),
-    ut1Max: (ut1Max?.value || "25").toString(),
-    hyScore: (hyScore?.value || "").toString(),
-    hyMax: (hyMax?.value || "100").toString(),
-    ut2Score: (ut2Score?.value || "").toString(),
-    ut2Max: (ut2Max?.value || "25").toString(),
+    ut1Score:    (ut1Score?.value    || "").toString(),
+    ut1Max:      (ut1Max?.value      || "25").toString(),
+    hyScore:     (hyScore?.value     || "").toString(),
+    hyMax:       (hyMax?.value       || "100").toString(),
+    ut2Score:    (ut2Score?.value    || "").toString(),
+    ut2Max:      (ut2Max?.value      || "25").toString(),
     annualScore: (annualScore?.value || "").toString(),
-    annualMax: (annualMax?.value || "100").toString()
+    annualMax:   (annualMax?.value   || "100").toString()
   };
 
   try {
@@ -258,53 +268,48 @@ async function handleSaveMarks() {
 
 /* ----------------- Clear ------------------ */
 function clearMarks() {
-  if (ut1Score) ut1Score.value = "";
-  if (ut1Max) ut1Max.value = "25";
-  if (hyScore) hyScore.value = "";
-  if (hyMax) hyMax.value = "100";
-  if (ut2Score) ut2Score.value = "";
-  if (ut2Max) ut2Max.value = "25";
-  if (annualScore) annualScore.value = "";
-  if (annualMax) annualMax.value = "100";
-  if (predictionSummary) predictionSummary.innerText = "";
+  if (ut1Score)            ut1Score.value            = "";
+  if (ut1Max)              ut1Max.value              = "25";
+  if (hyScore)             hyScore.value             = "";
+  if (hyMax)               hyMax.value               = "100";
+  if (ut2Score)            ut2Score.value            = "";
+  if (ut2Max)              ut2Max.value              = "25";
+  if (annualScore)         annualScore.value         = "";
+  if (annualMax)           annualMax.value           = "100";
+  if (predictionSummary)   predictionSummary.innerText   = "";
   if (studyHourPrediction) studyHourPrediction.innerText = "";
-  drawPerformanceChart({ ut1Score:0, hyScore:0, ut2Score:0, annualScore:0 });
+  drawPerformanceChart({ ut1Score: 0, hyScore: 0, ut2Score: 0, annualScore: 0 });
 }
+
 /* ----------------- AI + ATTENDANCE CORRELATION ------------------ */
 async function recomputePrediction() {
-  const ut1 = Number(ut1Score?.value || 0);
-  const hy = Number(hyScore?.value || 0);
+  const ut1   = Number(ut1Score?.value       || 0);
+  const hy    = Number(hyScore?.value        || 0);
   const hours = Number(studyHoursInput?.value || 0);
 
-  const ut1MaxVal = Number(ut1Max?.value || 25);
-  const hyMaxVal = Number(hyMax?.value || 100);
-  const ut2MaxVal = Number(ut2Max?.value || 25);
+  const ut1MaxVal    = Number(ut1Max?.value    || 25);
+  const hyMaxVal     = Number(hyMax?.value     || 100);
+  const ut2MaxVal    = Number(ut2Max?.value    || 25);
   const annualMaxVal = Number(annualMax?.value || 100);
 
   if (ut1 <= 0 || hy <= 0) {
-    predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
+    if (predictionSummary) predictionSummary.innerText = "Enter UT-1 & Half-Yearly first.";
     return;
   }
 
-  // 🔹 STEP 1: Academic performance
   const ut1_ratio = ut1 / ut1MaxVal;
-  const hy_ratio = hy / hyMaxVal;
-  const base = (ut1_ratio * 0.4) + (hy_ratio * 0.6);
+  const hy_ratio  = hy  / hyMaxVal;
+  const base      = (ut1_ratio * 0.4) + (hy_ratio * 0.6);
 
-  // 🔹 STEP 2: Study hours
   const studyFactor = Math.min(hours / 10, 1);
+  const trend       = hy_ratio - ut1_ratio;
 
-  // 🔹 STEP 3: Trend
-  const trend = hy_ratio - ut1_ratio;
-
-  // 🔹 STEP 4: ATTENDANCE FETCH
   const studentId = studentSelect.value;
   const snap = await get(ref(db, `students/${studentId}/attendance`));
   const attendanceData = snap.val() || {};
 
   let totalDays = 0;
   let presentDays = 0;
-
   for (const date in attendanceData) {
     totalDays++;
     if (attendanceData[date] === "present") presentDays++;
@@ -312,94 +317,72 @@ async function recomputePrediction() {
 
   let attendancePercent = totalDays > 0 ? presentDays / totalDays : 1;
 
-const attendanceInfoEl = document.getElementById("attendanceInfo");
-if (attendanceInfoEl) {
-  attendanceInfoEl.innerText =
-    `Attendance Used: ${(attendancePercent * 100).toFixed(1)}%`;
-}
+  const attendanceInfoEl = document.getElementById("attendanceInfo");
+  if (attendanceInfoEl) {
+    attendanceInfoEl.innerText = `Attendance Used: ${(attendancePercent * 100).toFixed(1)}%`;
+  }
 
-  // 🔻 Attendance penalty
   let attendancePenalty = 0;
-  if (attendancePercent < 0.5) attendancePenalty = 0.4;
-  else if (attendancePercent < 0.7) attendancePenalty = 0.25;
+  if (attendancePercent < 0.5)       attendancePenalty = 0.4;
+  else if (attendancePercent < 0.7)  attendancePenalty = 0.25;
   else if (attendancePercent < 0.85) attendancePenalty = 0.1;
 
-  // 🔹 STEP 5: AI Prediction (TensorFlow)
+  const aiPrediction = predictWithAI(ut1_ratio, hy_ratio, attendancePercent, studyFactor);
 
-const aiPrediction = predictWithAI(
-  ut1_ratio,
-  hy_ratio,
-  attendancePercent,
-  studyFactor
-);
+  let finalPerformance;
+  if (aiPrediction !== null && !isNaN(aiPrediction)) {
+    finalPerformance = aiPrediction;
+  } else {
+    finalPerformance = base + (studyFactor * 0.2) + (trend * 0.2) - attendancePenalty;
+  }
 
-let finalPerformance;
+  finalPerformance = Math.max(0, Math.min(1, finalPerformance));
 
-if (aiPrediction !== null && !isNaN(aiPrediction)) {
-  finalPerformance = aiPrediction;
-} else {
-  // fallback (your old logic)
-  finalPerformance =
-      base
-    + (studyFactor * 0.2)
-    + (trend * 0.2)
-    - attendancePenalty;
-}
-
-// keep normalization (VERY IMPORTANT)
-finalPerformance = Math.max(0, Math.min(1, finalPerformance));
-
-  // 🔹 STEP 6: Predictions
-  const predictedUT2 = Math.round(finalPerformance * ut2MaxVal);
+  const predictedUT2    = Math.round(finalPerformance * ut2MaxVal);
   const predictedAnnual = Math.round(finalPerformance * annualMaxVal);
 
-  ut2Score.value = predictedUT2;
-  annualScore.value = predictedAnnual;
+  if (ut2Score)    ut2Score.value    = predictedUT2;
+  if (annualScore) annualScore.value = predictedAnnual;
 
-  // 🔹 EXTRA ANALYSIS
   const confidence = Math.round((1 - Math.abs(ut1_ratio - hy_ratio)) * 100);
 
   let risk = "LOW";
-  if (finalPerformance < 0.4) risk = "HIGH";
+  if (finalPerformance < 0.4)      risk = "HIGH";
   else if (finalPerformance < 0.7) risk = "MEDIUM";
 
   let remark = "";
-  if (attendancePercent < 0.5) {
-    remark = "Very low attendance is severely affecting performance.";
-  } else if (attendancePercent < 0.7) {
-    remark = "Attendance is low. Improvement needed.";
-  } else if (trend < 0) {
-    remark = "Performance is declining. Focus required.";
-  } else {
-    remark = "Good performance and attendance.";
+  if (attendancePercent < 0.5)      remark = "Very low attendance is severely affecting performance.";
+  else if (attendancePercent < 0.7) remark = "Attendance is low. Improvement needed.";
+  else if (trend < 0)               remark = "Performance is declining. Focus required.";
+  else                              remark = "Good performance and attendance.";
+
+  if (predictionSummary) {
+    predictionSummary.innerText =
+      `Predicted UT-2: ${predictedUT2}\n` +
+      `Predicted Annual: ${predictedAnnual}\n\n` +
+      `Performance: ${(finalPerformance * 100).toFixed(1)}%\n` +
+      `Attendance: ${(attendancePercent * 100).toFixed(1)}%\n` +
+      `Confidence: ${confidence}%\n` +
+      `Risk Level: ${risk}\n\n` +
+      `AI Remark:\n${remark}`;
   }
 
-  // 🧾 OUTPUT
-  predictionSummary.innerText =
-    `Predicted UT-2: ${predictedUT2}\n` +
-    `Predicted Annual: ${predictedAnnual}\n\n` +
-    `Performance: ${(finalPerformance*100).toFixed(1)}%\n` +
-    `Attendance: ${(attendancePercent*100).toFixed(1)}%\n` +
-    `Confidence: ${confidence}%\n` +
-    `Risk Level: ${risk}\n\n` +
-    `AI Remark:\n${remark}`;
-
-  // Chart update
   drawPerformanceChart({
-    ut1Score: ut1,
-    hyScore: hy,
-    ut2Score: predictedUT2,
+    ut1Score:    ut1,
+    hyScore:     hy,
+    ut2Score:    predictedUT2,
     annualScore: predictedAnnual
   });
 }
+
 /* ----------------- Chart ------------------ */
 function drawPerformanceChart(marks) {
   if (!performanceCanvas) return;
   const ctx = performanceCanvas.getContext("2d");
   const dataArr = [
-    Number(marks.ut1Score || 0),
-    Number(marks.hyScore || 0),
-    Number(marks.ut2Score || 0),
+    Number(marks.ut1Score    || 0),
+    Number(marks.hyScore     || 0),
+    Number(marks.ut2Score    || 0),
     Number(marks.annualScore || 0)
   ];
 
@@ -425,23 +408,18 @@ function drawPerformanceChart(marks) {
     },
     options: {
       scales: {
-        y: {
-          beginAtZero: true,
-          suggestedMax: 100
-        }
+        y: { beginAtZero: true, suggestedMax: 100 }
       }
     }
   });
 }
 
-
+/* ----------------- Study Hours Prediction ------------------ */
 function predictStudyHourMarks() {
   const hours = Number(studyHoursInput?.value || 0);
 
   if (!hours || hours <= 0) {
-    if (studyHourPrediction) {
-      studyHourPrediction.innerText = "Enter valid study hours.";
-    }
+    if (studyHourPrediction) studyHourPrediction.innerText = "Enter valid study hours.";
     return;
   }
 
@@ -449,13 +427,12 @@ function predictStudyHourMarks() {
   predicted = Math.min(100, predicted);
 
   let category = "";
-  if (predicted >= 80) category = "Topper";
+  if (predicted >= 80)      category = "Topper";
   else if (predicted >= 50) category = "Average";
-  else category = "Failer";
+  else                      category = "Failer";
 
   if (studyHourPrediction) {
-    studyHourPrediction.innerText =
-      `Estimated Score: ${predicted}/100\nStatus: ${category}`;
+    studyHourPrediction.innerText = `Estimated Score: ${predicted}/100\nStatus: ${category}`;
   }
 }
 

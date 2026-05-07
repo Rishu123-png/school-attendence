@@ -29,10 +29,9 @@
   font-family: "Poppins", system-ui, sans-serif;
 
   /* TEXT SYSTEM */
-  --text-main: #ffffff;   /* main headings */
-  --text-secondary: #cccccc; /* table headings etc */
+  --text-main: #ffffff;
+  --text-secondary: #cccccc;
   --text-muted: rgba(255,255,255,0.7);
-}
 }
 
 /* =========================
@@ -80,11 +79,27 @@ p {
 body.light-mode {
   background: #ffffff !important;
 
-  /* TEXT SWITCH */
   --text-main: #111111;
   --text-secondary: #444444;
   --text-muted: #666666;
 }
+
+body.light-mode .container {
+  background: #ffffff;
+}
+
+body.light-mode .card {
+  background: #f5f7fa;
+}
+
+body.light-mode td {
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+body.light-mode .promo-box { background: #ffffff; border-color: rgba(0,0,0,0.1); }
+body.light-mode .promo-student-card { background: #f0f2f5; }
+body.light-mode .promo-btn-secondary { background: rgba(0,0,0,0.07); color: #111; }
+body.light-mode .promo-student-marks { color: #555; background: rgba(0,0,0,0.05); }
 
 /* =========================
    CONTAINER
@@ -298,7 +313,6 @@ td {
   background:#151540;
   color:white;
   cursor:pointer;
-
 }
 
 .sidebar-menu button.active {
@@ -406,8 +420,6 @@ td {
   cursor: pointer;
 }
 
-
-
 .logo {
   width: 60px;
   height: 60px;
@@ -420,31 +432,6 @@ td {
 }
 
 .brand { display: flex; align-items: center; gap: 12px; }
-
-
-/* =========================
-   LIGHT MODE (FINAL FIX)
-========================= */
-body.light-mode {
-  /* Force full white background */
-  background: #ffffff !important;
-}
-
-/* Container becomes white */
-body.light-mode .container {
-  background: #ffffff;
-}
-
-/* Cards become light */
-body.light-mode .card {
-  background: #f5f7fa;
-}
-
-/* Optional: table rows visibility */
-body.light-mode td {
-  border-top: 1px solid rgba(0,0,0,0.05);
-}
-
 
 /* =========================
    YEARLY PROMOTION MODAL
@@ -504,7 +491,3 @@ body.light-mode td {
   margin-top: 10px; font-size: 13px; color: rgba(255,255,255,0.5);
   background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px;
 }
-body.light-mode .promo-box { background: #ffffff; border-color: rgba(0,0,0,0.1); }
-body.light-mode .promo-student-card { background: #f0f2f5; }
-body.light-mode .promo-btn-secondary { background: rgba(0,0,0,0.07); color: #111; }
-body.light-mode .promo-student-marks { color: #555; background: rgba(0,0,0,0.05); }

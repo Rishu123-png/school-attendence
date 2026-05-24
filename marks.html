@@ -1,164 +1,132 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Marks &amp; Prediction</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Chart.js loaded BEFORE module scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
-  <!-- ☰ Menu Button -->
-  <button id="menuToggle" class="menu-btn">⋮</button>
-
-  <!-- Overlay -->
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar">
-    <main class="container">
-      <div class="sidebar-header">
-        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
-        <h3 id="teacherName">Teacher Name</h3>
-        <p id="teacherSubject">Subject</p>
-      </div>
-      <div class="sidebar-menu">
-        <button data-page="add-student" onclick="location.href='add-students.html'">
-          🧑‍💼 Add Student
-        </button>
-        <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-        <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-        <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
-        <button id="themeToggle">🌙 Toggle Theme</button>
-        <button onclick="logout()">🚪 Logout</button>
-      </div>
-    </main>
+<!-- ☰ Menu Button -->
+<button id="menuToggle" class="menu-btn">⋮</button>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo" alt="Logo">
+    <h3 id="teacherName">Teacher Name</h3>
+    <p id="teacherSubject">Subject</p>
   </div>
+  <div class="sidebar-menu">
+    <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
+    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
+</div>
 
+<main class="container">
+  <header class="header">
+    <div>
+      <h2>📊 Marks &amp; Prediction</h2>
+      <p style="color:var(--muted)">AI-based student performance analysis</p>
+    </div>
+    <div class="top-controls">
+      <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+    </div>
+  </header>
 
-<div class="page">
-  <main class="container">
-    <header class="header">
-      <div>
-        <h2>Marks &amp; Prediction</h2>
-        <p style="color:var(--muted)">AI-based student performance analysis</p>
-      </div>
-      <div class="top-controls">
-        <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
-        
-      </div>
-    </header>
-
-    <label class="label">Select Student</label>
-    <select id="marksStudentSelect">
+  <div class="card">
+    <label class="label" style="display:block;margin-bottom:6px;">Select Student</label>
+    <select id="marksStudentSelect" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
       <option value="">-- Select student --</option>
     </select>
+  </div>
 
-    <div id="marksForm" style="display:none; margin-top:12px;">
-      <h3 id="marksStudentName"></h3>
-
-      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-        <div style="flex:1; min-width:210px;">
-          <label class="label">UT-1 (score / max)</label>
-          <div style="display:flex; gap:8px;">
-            <input id="ut1Score" type="number" placeholder="20">
-            <input id="ut1Max" type="number" placeholder="25">
+  <div id="marksForm" style="display:none; margin-top:16px;">
+    <div class="card">
+      <h3 id="marksStudentName" style="color:#ff6bc4;"></h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+        <div style="flex:1;min-width:200px;">
+          <label style="display:block;margin-bottom:4px;color:var(--muted);font-size:13px;">UT-1 (score / max)</label>
+          <div style="display:flex;gap:8px;">
+            <input id="ut1Score" type="number" placeholder="Score" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+            <input id="ut1Max"   type="number" placeholder="Max" value="25" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
           </div>
         </div>
-        <div style="flex:1; min-width:210px;">
-          <label class="label">Half-Yearly (score / max)</label>
-          <div style="display:flex; gap:8px;">
-            <input id="hyScore" type="number" placeholder="80">
-            <input id="hyMax" type="number" placeholder="100">
+        <div style="flex:1;min-width:200px;">
+          <label style="display:block;margin-bottom:4px;color:var(--muted);font-size:13px;">Half-Yearly (score / max)</label>
+          <div style="display:flex;gap:8px;">
+            <input id="hyScore" type="number" placeholder="Score" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+            <input id="hyMax"   type="number" placeholder="Max" value="100" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
           </div>
         </div>
-        <div style="flex:1; min-width:210px;">
-          <label class="label">UT-2 (score / max)</label>
-          <div style="display:flex; gap:8px;">
-            <input id="ut2Score" type="number" placeholder="(pred)">
-            <input id="ut2Max" type="number" value="25">
+        <div style="flex:1;min-width:200px;">
+          <label style="display:block;margin-bottom:4px;color:var(--muted);font-size:13px;">UT-2 (score / max)</label>
+          <div style="display:flex;gap:8px;">
+            <input id="ut2Score" type="number" placeholder="Predicted" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+            <input id="ut2Max"   type="number" value="25" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
           </div>
         </div>
-        <div style="flex:1; min-width:210px;">
-          <label class="label">Annual (score / max)</label>
-          <div style="display:flex; gap:8px;">
-            <input id="annualScore" type="number" placeholder="(pred)">
-            <input id="annualMax" type="number" value="100">
+        <div style="flex:1;min-width:200px;">
+          <label style="display:block;margin-bottom:4px;color:var(--muted);font-size:13px;">Annual (score / max)</label>
+          <div style="display:flex;gap:8px;">
+            <input id="annualScore" type="number" placeholder="Predicted" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+            <input id="annualMax"   type="number" value="100" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
           </div>
         </div>
       </div>
-
       <div class="action-row" style="margin-top:14px;">
-        <button id="saveMarksBtn" class="btn-cta">Save Marks</button>
-        <button id="predictBtn" class="btn-cta">Recompute Prediction</button>
-        <button id="clearMarksBtn" class="btn-cta">Clear</button>
-      </div>
-
-      <div style="margin-top:16px;">
-        <h4>AI Prediction Result</h4>
-        <div id="predictionSummary"
-          style="background:#111; padding:12px; border-radius:10px; color:#0f0; font-family:monospace;">
-        </div>
-      </div>
-
-      <div class="marks-section" style="margin-top:20px;">
-        <h3>Study Hours Input</h3>
-        <label class="label">Daily Study Hours (0–10)</label>
-        <input type="number" id="studyHours" placeholder="e.g. 5">
-        <button class="btn-cta" onclick="predictStudyHourMarks()">Predict Marks From Study Hours</button>
-        <p id="studyHourPrediction" style="margin-top:8px; color:var(--muted);"></p>
-      </div>
-
-      <div class="marks-section" style="margin-top:20px;">
-        <h3>Attendance Impact</h3>
-        <p id="attendanceInfo" style="color:#ccc;">Attendance will affect AI prediction.</p>
-      </div>
-
-      <div class="marks-section" style="margin-top:20px;">
-        <h3>Performance Chart</h3>
-        <canvas id="performanceChart" height="180"></canvas>
+        <button id="saveMarksBtn"  class="btn-cta">💾 Save Marks</button>
+        <button id="predictBtn"    class="btn-cta">🔮 Recompute</button>
+        <button id="clearMarksBtn" class="btn-cta">🗑️ Clear</button>
       </div>
     </div>
 
-    <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
-  </main>
-</div>
+    <!-- Prediction Result -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="margin-bottom:10px;">🤖 AI Prediction Result</h4>
+      <div id="predictionSummary" style="background:rgba(0,255,0,0.05);padding:14px;border-radius:10px;
+        color:#0f0;font-family:monospace;font-size:13px;white-space:pre-wrap;border:1px solid rgba(0,255,0,0.15);"></div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <!-- Study Hours -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="margin-bottom:10px;">📚 Study Hours Predictor</h4>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="number" id="studyHours" placeholder="Daily study hours (0–10)" min="0" max="10"
+          style="flex:1;min-width:180px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+        <button class="btn-cta" onclick="predictStudyHourMarks()">Predict</button>
+      </div>
+      <p id="studyHourPrediction" style="margin-top:10px;color:var(--muted);"></p>
+    </div>
+
+    <!-- Attendance Impact -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="margin-bottom:8px;">📅 Attendance Impact</h4>
+      <p id="attendanceInfo" style="color:var(--muted);">Loading attendance data…</p>
+    </div>
+
+    <!-- Performance Chart -->
+    <div class="card" style="margin-top:12px;">
+      <h4 style="margin-bottom:10px;">📈 Performance Chart</h4>
+      <canvas id="performanceChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-<script type="module" src="./auth-check.js"></script>
+<!-- FIX #12,13,14: Single module block, no logoutBtn reference, marks.js properly imported -->
 <script type="module">
-  import { initMarksPage } from "./marks.js";
-  window.addEventListener("DOMContentLoaded", () => {
-    initMarksPage();
-  });
+  import { initMarksPage }  from "./marks.js";
+  window.addEventListener("DOMContentLoaded", () => { initMarksPage(); });
 </script>
-
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      if (window.logout) window.logout();
-    });
-  });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
-
-<script type="module">
-  import { initTheme } from "./theme.js";
-  import { initSidebar } from "./sidebar.js";
-  window.addEventListener("DOMContentLoaded", () => {
-    initTheme();
-    initSidebar();
-  });
-</script>
-<div class="global-loader">
-  <div class="loader-spinner"></div>
-</div>
 </body>
 </html>

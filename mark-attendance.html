@@ -1,75 +1,100 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mark Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initMarkAttendancePage()">
 
-  
+  <!-- ☰ Menu Button -->
+  <button id="menuToggle" class="menu-btn">⋮</button>
+
+  <!-- Overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
     <main class="container">
-      <header class="header">
-        <div class="brand">
-     
-          <h1 id="pageTitle"><center>Check your students</center></h1>
-          <p><center>Keep accurate daily records</center></p>
-        </div>
-        <div class="row">
-          <button class="btn-cta" onclick="logout()">Logout</button>
-          
-        </div>
-      </header>
-
-      <!-- Class or Student UI will be rendered by script.js -->
-      <div id="classAttendanceUI" style="display:none; margin-top:6px;"></div>
-
-      <div id="singleStudentUI" style="display:none; margin-top:6px;">
-        <div class="card row space" style="align-items:center;">
-          <div>
-            <strong>Student:</strong> <span id="studentNameLabel"></span>
-          </div>
-          <div style="min-width:160px;">
-            <label for="monthPickerMark">Month</label>
-            <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()">
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table id="markAttendanceTable">
-            <thead><tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="row" style="margin-top:12px;">
-          <button class="btn-ghost" onclick="printReport()">Print Monthly Report</button>
-          <button class="btn-cta" onclick="exportAttendanceCSV()">Export CSV</button>
-          <button class="btn-cta" onclick="exportAttendanceExcel()">Export Excel</button>
-          <button class="btn-primary" onclick="openAnalyticsForStudent()">View Analytics</button>
-          <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
-        </div>
+      <div class="sidebar-header">
+        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
+        <h3 id="teacherName">Teacher Name</h3>
+        <p id="teacherSubject">Subject</p>
       </div>
-
-      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+      <div class="sidebar-menu">
+        <button data-page="add-student" onclick="location.href='add-students.html'">
+          🧑‍💼 Add Student
+        </button>
+        <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+        <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+        <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+        <button id="themeToggle">🌙 Toggle Theme</button>
+        <button onclick="logout()">🚪 Logout</button>
+      </div>
     </main>
   </div>
 
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <h1 id="pageTitle"><center>Check your students</center></h1>
+        <p><center>Keep accurate daily records</center></p>
+      </div>
+      <div class="row">
+        <button class="btn-cta" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Class or Student UI will be rendered by script.js -->
+    <div id="classAttendanceUI" style="display:none; margin-top:6px;"></div>
+
+    <div id="singleStudentUI" style="display:none; margin-top:6px;">
+      <div class="card row space" style="align-items:center;">
+        <div>
+          <strong>Student:</strong> <span id="studentNameLabel"></span>
+        </div>
+        <div style="min-width:160px;">
+          <label for="monthPickerMark">Month</label>
+          <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="markAttendanceTable">
+          <thead><tr><th>Date</th><th>Status</th><th>Present</th><th>Absent</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn-ghost" onclick="printReport()">Print Monthly Report</button>
+        <button class="btn-cta" onclick="exportAttendanceCSV()">Export CSV</button>
+        <button class="btn-cta" onclick="exportAttendanceExcel()">Export Excel</button>
+        <button class="btn-primary" onclick="openAnalyticsForStudent()">View Analytics</button>
+        <button class="btn-cta" onclick="location.href='dashboard.html'">Back</button>
+      </div>
+    </div>
+
+    <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+  </main>
+
   <script type="module" src="./firebase.js"></script>
-<script type="module" src="./script.js"></script>
-<script type="module" src="./auth-check.js"></script>
+  <script type="module" src="./script.js"></script>
+  <script type="module" src="./auth-check.js"></script>
 
-<script type="module">
-  import { initTheme } from "./theme.js";
-  import { initSidebar } from "./sidebar.js";
+  <script type="module">
+    import { initTheme } from "./theme.js";
+    import { initSidebar } from "./sidebar.js";
 
-  window.addEventListener("DOMContentLoaded", () => {
-    initTheme();
-    initSidebar();
-  });
-</script>
+    window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initSidebar();
+    });
+  </script>
+  
   <div class="global-loader">
-  <div class="loader-spinner"></div>
-</div>
+    <div class="loader-spinner"></div>
+  </div>
 </body>
 </html>

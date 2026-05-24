@@ -1,5 +1,5 @@
 /* =========================
-   DASHBOARD ANALYTICS CSS
+   ANALYTICS SECTION ONLY
 ========================= */
 
 .analytics-grid{
@@ -34,7 +34,6 @@
 
 .analytics-card:hover{
   transform:translateY(-4px);
-  box-shadow:0 12px 28px rgba(0,0,0,0.25);
 }
 
 .analytics-card h3{
@@ -52,7 +51,7 @@
 }
 
 /* =========================
-   CHART CONTAINER
+   CHART
 ========================= */
 
 .analytics-chart-container{
@@ -63,26 +62,22 @@
   backdrop-filter:blur(12px);
   border:1px solid rgba(255,255,255,0.08);
   box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  min-height:340px;
 }
 
 #attendanceChart{
   width:100% !important;
-  max-height:320px !important;
+  height:300px !important;
 }
 
 /* =========================
-   RESPONSIVE DESIGN
+   MOBILE
 ========================= */
 
 @media(max-width:768px){
 
   .analytics-grid{
     grid-template-columns:1fr 1fr;
-    gap:12px;
-  }
-
-  .analytics-card{
-    padding:16px;
   }
 
   .analytics-card p{
@@ -95,10 +90,6 @@
 
   .analytics-grid{
     grid-template-columns:1fr;
-  }
-
-  .analytics-card p{
-    font-size:22px;
   }
 
 }

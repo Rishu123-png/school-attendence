@@ -18,13 +18,20 @@ async function loadDashboard() {
   let absentToday = 0;
 
   if (studentsSnap.exists()) {
+
     const students = studentsSnap.val();
 
     Object.values(students).forEach(student => {
-      if (student.teacher === auth.currentUser.uid) {
+
+      if (
+        auth.currentUser &&
+        student.teacher === auth.currentUser.uid
+      ) {
         totalStudents++;
       }
+
     });
+
   }
 
   const today = new Date().toISOString().split("T")[0];
@@ -54,34 +61,81 @@ async function loadDashboard() {
       ? ((presentToday / totalStudents) * 100).toFixed(1)
       : 0;
 
-  document.getElementById("totalStudents").innerText = totalStudents;
+  document.getElementById("totalStudents").innerText =
+    totalStudents;
 
-  document.getElementById("presentToday").innerText = presentToday;
+  document.getElementById("presentToday").innerText =
+    presentToday;
 
-  document.getElementById("absentToday").innerText = absentToday;
+  document.getElementById("absentToday").innerText =
+    absentToday;
 
   document.getElementById("attendanceRate").innerText =
     attendanceRate + "%";
 
   loadChart(presentToday, absentToday);
+
 }
 
 function loadChart(present, absent) {
 
-  const ctx = document
-    .getElementById("attendanceChart")
-    .getContext("2d");
+  const canvas =
+    document.getElementById("attendanceChart");
+
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
 
   new Chart(ctx, {
+
     type: "doughnut",
 
     data: {
+
       labels: ["Present", "Absent"],
 
       datasets: [{
-        data: [present, absent]
+
+        data: [present, absent],
+
+        backgroundColor: [
+          "#22c55e",
+          "#ef4444"
+        ],
+
+        borderWidth: 0,
+        hoverOffset: 8
+
       }]
+
+    },
+
+    options: {
+
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      plugins: {
+
+        legend: {
+
+          position: "bottom",
+
+          labels: {
+            color: "white",
+            padding: 20,
+            font: {
+              size: 14
+            }
+          }
+
+        }
+
+      }
+
     }
+
   });
 
 }

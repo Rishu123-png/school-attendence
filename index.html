@@ -26,7 +26,6 @@
 
     <button class="btn-close" onclick="closeLogin()">Close</button>
 
-        
   </div>
 
 </div>
@@ -45,8 +44,7 @@
         </div>
       </div>
 
-      <button class="btn-cta" onclick="openLogin()">Login
-      </button>
+      <button class="btn-cta" onclick="openLogin()">Login</button>
 
     </header>
 
@@ -62,9 +60,7 @@
         </p>
 
         <div class="hero-buttons">
-        <button class="btn-cta" onclick="alert('Contact admin to create account:-jaswarrishu642@gmail.com')">Need account?
-
-          </button>
+        <button class="btn-cta" onclick="alert('Contact admin: jaswarrishu642@gmail.com')">Need account?</button>
         </div>
       </div>
 
@@ -109,6 +105,7 @@
 
   </main>
 </div>
+
 <script>
 function openLogin() {
   document.getElementById("loginModal").classList.add("active");
@@ -118,7 +115,6 @@ function closeLogin() {
   document.getElementById("loginModal").classList.remove("active");
 }
 
-// close when clicking outside
 document.getElementById("loginModal").addEventListener("click", function(e) {
   if (e.target === this) {
     closeLogin();
@@ -129,7 +125,6 @@ document.getElementById("loginModal").addEventListener("click", function(e) {
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
 <script type="module" src="./auth-check.js"></script>
-
 
 <script type="module">
   import { initTheme } from "./theme.js";

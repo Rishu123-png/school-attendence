@@ -1,197 +1,139 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard — School Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body onload="initDashboardPage()">
 
-
-
 <!-- ☰ Menu Button -->
-  <button id="menuToggle" class="menu-btn">⋮</button>
-
+<button id="menuToggle" class="menu-btn">⋮</button>
 <!-- Overlay -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
 <!-- Sidebar -->
 <div id="sidebar" class="sidebar">
-
-<main class="container">
-
-
   <div class="sidebar-header">
-    <!-- ✅ FIXED IMAGE -->
-    <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
-
-    <!-- ✅ UNIQUE IDs -->
+    <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo" alt="Logo">
     <h3 id="teacherName">Teacher Name</h3>
     <p id="teacherSubject">Subject</p>
   </div>
-
   <div class="sidebar-menu">
-  <button data-page="add-student" onclick="location.href='add-students.html'">
-    🧑‍💼 Add Student
-  </button>
-  <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-  <button data-page="attendance" onclick="sidebarGoAttendance()">📅 Attendance</button>
-  <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
-  <button id="themeToggle">🌙 Toggle Theme</button>
-  <button onclick="logout()">🚪 Logout</button>
+    <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
+    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance"  onclick="sidebarGoAttendance()">📅 Attendance</button>
+    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
 </div>
 
-</div>
+<!-- MAIN CONTENT — FIX #2: correctly outside sidebar div -->
+<main class="container">
 
-<!-- 🔹 HEADER -->
-<header class="header">
+  <header class="header">
+    <div>
+      <h1>Welcome, <span id="teacherNameDisplay">Teacher</span> 👋</h1>
+    </div>
+    <div class="top-controls">
+      <select id="classSelect" style="min-width:160px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+        <option value="">-- Select class --</option>
+      </select>
+    </div>
+  </header>
 
-  <div>
-    <!-- ✅ FIXED TEXT -->
-    <h1>Welcome, <span id="teacherNameDisplay">Teacher</span></h1>
+  <!-- NEW: Monthly Summary Card -->
+  <div class="card" id="monthlySummaryCard" style="margin-bottom:18px;">
+    <p style="color:var(--muted);">Loading monthly summary…</p>
   </div>
 
-  <div class="top-controls">
-    <select id="classSelect" style="min-width:160px;">
-      <option value="">-- Select class --</option>
-    </select>
-  </div>
+  <!-- Quick Actions -->
+  <div class="grid">
+    <div class="card">
+      <h3>⚡ Quick Actions</h3>
+      <p>Add students, mark attendance and manage marks.</p>
+      <div class="action-row">
+        <button class="btn-cta" onclick="location.href='add-students.html'">🧑‍💼<br>Add Student</button>
+        <button class="btn-cta" onclick="goToMarkAttendance()">✅<br>Mark Attendance</button>
+        <button class="btn-cta" onclick="location.href='marks.html'">📊<br>Marks</button>
+        <button class="btn-cta" onclick="location.href='top-bunkers.html'">🕵️<br>Low Attendance</button>
+      </div>
+    </div>
 
-</header>
-
-<!-- 🔹 CONTENT -->
-<div class="grid">
-
-  <div class="card">
-    <h3>Quick Actions</h3>
-    <p>Add students, mark attendance and manage marks.</p>
-
-    <div class="action-row">
-      <button class="btn-cta" onclick="location.href='add-students.html'">
-        🧑‍💼<br>Add Student
-      </button>
-
-      <button class="btn-cta" onclick="goToMarkAttendance()">
-        ✅<br>Mark Attendance
-      </button>
-
-      <button class="btn-cta" onclick="location.href='marks.html'">
-        🧑‍🎓<br>Marks & Prediction
-      </button>
-
-      <button class="btn-cta" onclick="location.href='top-bunkers.html'">
-        🕵️<br>Low Attendance
-      </button>
+    <div class="card">
+      <h3>📋 Class Summary</h3>
+      <p style="color:var(--muted)">Select a class to view students.</p>
+      <div style="margin-top:14px;">
+        <span class="badge">Students: <span id="studentsCount">—</span></span>
+      </div>
     </div>
   </div>
 
-  <div class="card" id="classSummaryCard">
-    <h3>Class Summary</h3>
-    <p style="color:var(--muted)">Select a class to view data.</p>
-
-    <div style="margin-top:14px;">
-      <span class="badge">
-        Students: <span id="studentsCount">—</span>
-      </span>
+  <!-- Students Table -->
+  <div class="card" style="margin-top:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+      <h3 style="margin:0;">👥 Students</h3>
+      <!-- NEW: Search box -->
+      <input id="studentSearch" placeholder="🔍 Search students…"
+        style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);
+        background:rgba(255,255,255,0.07);color:#fff;min-width:200px;font-size:14px;outline:none;">
+    </div>
+    <div class="table-wrap">
+      <table id="studentsTable">
+        <thead><tr><th>Name</th><th>Class</th><th>Attendance</th><th>Absences</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
-</div>
-
-<!-- 🔹 TABLE -->
-<div class="card" style="margin-top:18px;">
-  <h3>Students</h3>
-
-  <div class="table-wrap">
-    <table id="studentsTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Class</th>
-          <th>Absences</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-<p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
-
+  <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
 </main>
-</div>
-
 
 <!-- YEARLY PROMOTION MODAL -->
 <div id="promotionModal" class="promo-overlay" style="display:none;">
   <div class="promo-box">
-
-    <!-- Choice View -->
     <div id="promoChoiceView">
       <div class="promo-icon">🎓</div>
       <h2>New Academic Year!</h2>
-      <p id="promoSubtitle" style="color:var(--muted); margin-bottom:0;">A new academic year has been detected.</p>
+      <p id="promoSubtitle" style="color:var(--muted);margin-bottom:0;"></p>
       <div class="promo-options">
         <button id="promoteAllBtn" class="promo-btn promo-btn-primary" onclick="startPromoteAll()">
-          ✅ Promote All Students
-          <span>Move every student to the next class automatically</span>
+          ✅ Promote All Students<span>Move every student to the next class automatically</span>
         </button>
         <button class="promo-btn promo-btn-secondary" onclick="startReviewPromotion()">
-          🔍 Review One by One
-          <span>Decide Pass or Fail for each student individually</span>
+          🔍 Review One by One<span>Decide Pass or Fail for each student individually</span>
         </button>
         <button class="promo-btn promo-btn-ghost" onclick="remindLaterPromotion()">
-          ⏰ Remind Me Later
-          <span>Ask me again next time I log in</span>
+          ⏰ Remind Me Later<span>Ask again next time I log in</span>
         </button>
       </div>
     </div>
-
-    <!-- Review View -->
     <div id="promoReviewView" style="display:none;">
-      <div class="promo-progress">
-        Reviewing student <span id="promoCurrentNum">1</span> of <span id="promoTotalNum">?</span>
-      </div>
+      <div class="promo-progress">Reviewing student <span id="promoCurrentNum">1</span> of <span id="promoTotalNum">?</span></div>
       <div class="promo-student-card">
         <div class="promo-student-name" id="promoStudentName">-</div>
         <div class="promo-student-info">
           <span>Class: <strong id="promoStudentClass">-</strong></span>
           <span>Absences: <strong id="promoStudentAbsences">-</strong></span>
         </div>
-        <div id="promoStudentMarks" class="promo-student-marks" style="display:none;"></div>
       </div>
       <div class="promo-review-btns">
         <button class="promo-btn-fail" onclick="reviewDecision('fail')">❌ Fail — Keep in same class</button>
         <button class="promo-btn-pass" id="promoPassBtn" onclick="reviewDecision('pass')">✅ Pass — Promote</button>
       </div>
-      <button class="promo-btn-link" onclick="skipRemainingPromotion()">Save progress &amp; finish later</button>
+      <button class="promo-btn-link" onclick="skipRemainingPromotion()">Save &amp; finish later</button>
     </div>
-
-    <!-- Done View -->
-    <div id="promoDoneView" style="display:none; text-align:center;">
-      <div style="font-size:52px; margin-bottom:12px;">🎉</div>
+    <div id="promoDoneView" style="display:none;text-align:center;">
+      <div style="font-size:52px;margin-bottom:12px;">🎉</div>
       <h2>All Done!</h2>
       <p id="promoDoneSummary" style="color:var(--muted);"></p>
       <button class="promo-btn promo-btn-primary" style="margin-top:8px;" onclick="closePromotionModal()">Close</button>
     </div>
-
   </div>
 </div>
 
-<!-- Scripts -->
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-  <script type="module" src="./auth-check.js"></script>
-<div class="global-loader">
-  <div class="loader-spinner"></div>
-</div>
-
-<!-- Debugger -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
-
 </body>
 </html>

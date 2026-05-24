@@ -1,76 +1,63 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Analytics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Attendance Analytics</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body onload="initAnalyticsPage()">
 
-  <!-- ☰ Menu Button -->
-  <button id="menuToggle" class="menu-btn">⋮</button>
+<button id="menuToggle" class="menu-btn">⋮</button>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo" alt="Logo">
+    <h3 id="teacherName">Teacher Name</h3>
+    <p id="teacherSubject">Subject</p>
+  </div>
+  <div class="sidebar-menu">
+    <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
+    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button onclick="logout()">🚪 Logout</button>
+  </div>
+</div>
 
-  <!-- Overlay -->
-  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+<main class="container">
+  <!-- FIX #1: Removed extra </div> from header -->
+  <header class="header">
+    <div>
+      <h1>📊 Attendance Analytics</h1>
+      <p>Monthly &amp; class-based insights</p>
+    </div>
+    <div class="top-controls">
+      <button class="btn-cta" onclick="location.href='mark-attendance.html'">⬅ Back</button>
+    </div>
+  </header>
 
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar">
-    <main class="container">
-      <div class="sidebar-header">
-        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo">
-        <h3 id="teacherName">Teacher Name</h3>
-        <p id="teacherSubject">Subject</p>
+  <div class="card">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:180px;">
+        <label style="display:block;margin-bottom:6px;color:var(--muted);">Class</label>
+        <select id="analyticsClassSelect" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;"></select>
       </div>
-      <div class="sidebar-menu">
-        <button data-page="add-student" onclick="location.href='add-students.html'">
-          🧑‍💼 Add Student
-        </button>
-        <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-        <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-        <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
-        <button id="themeToggle">🌙 Toggle Theme</button>
-        <button onclick="logout()">🚪 Logout</button>
+      <div style="flex:1;min-width:180px;">
+        <label style="display:block;margin-bottom:6px;color:var(--muted);">Month</label>
+        <input id="analyticsMonth" type="month" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
       </div>
-    </main>
+      <button class="btn-cta" onclick="renderAnalytics()" style="min-width:140px;">📊 Show Charts</button>
+    </div>
   </div>
 
-   <main class="container">
-    <header class="header">
-        <div>
-          <h1>Attendance Analytics</h1>
-          <p>Monthly &amp; subject-based</p>
-        </div>
-    </header>
+  <div id="chartsArea" style="margin-top:16px;"></div>
 
-    <div class="card">
-      <label for="analyticsClassSelect">Class</label>
-      <select id="analyticsClassSelect"></select>
-      <label for="analyticsMonth">Month</label>
-      <input id="analyticsMonth" type="month">
-      <div style="margin-top:10px;" class="row">
-        <button class="btn-cta" onclick="renderAnalytics()">Show Charts</button>
-        <button class="btn-cta" onclick="location.href='mark-attendance.html'">Back</button>
-      </div>
-    </div>
+  <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
 
-    <div id="chartsArea" style="margin-top:12px;"></div>
-
-    <p class="footer">Developed by<strong> Rishu Jaswar</strong></p>
-  </main>
-
-  <script type="module" src="./firebase.js"></script>
-  <script type="module" src="./script.js"></script>
-<script type="module" src="./auth-check.js"></script>
-  <script type="module">
-    import { initTheme } from "./theme.js";
-    import { initSidebar } from "./sidebar.js";
-    window.addEventListener("DOMContentLoaded", () => {
-      initTheme();
-      initSidebar();
-    });
-  </script>
-<div class="global-loader">
-  <div class="loader-spinner"></div>
-</div>
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./script.js"></script>
 </body>
 </html>

@@ -32,35 +32,56 @@
         </div>
         <div>
           <h1>School Attendance</h1>
-          <p>Smart attendance &amp; marks for teachers</p>
+          <p>Smart attendance, analytics, and school workspace setup</p>
         </div>
       </div>
-      <button class="btn-cta" onclick="openLogin()">Login</button>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
+        <button class="btn-cta" onclick="openLogin(false)">Login</button>
+      </div>
     </header>
 
     <!-- HERO -->
     <section class="hero">
       <div class="hero-left">
-        <h2>Effortless Classroom Management</h2>
-        <p>Say goodbye to manual tracking and paperwork. Manage attendance, marks, and insights in one powerful system designed for teachers.</p>
-        <div class="hero-buttons">
-          <button class="btn-cta" onclick="alert('Contact admin: jaswarrishu642@gmail.com')">Need an account?</button>
+        <h2>Effortless Classroom Management for Teachers & Schools</h2>
+        <p>
+          Manage attendance, marks, insights, and school administration in one secure website.
+          Schools can create their workspace and later use the same Firebase-powered system in a mobile app too.
+        </p>
+        <div class="hero-buttons" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn-cta" onclick="openLogin(true)">🏫 Create School Workspace</button>
+          <button class="btn-ghost" onclick="openLogin(false)">🔐 Login to Dashboard</button>
+          <button class="btn-ghost" onclick="alert('Contact admin: jaswarrishu642@gmail.com')">📩 Need Help?</button>
+        </div>
+        <div class="card" style="margin-top:18px;padding:18px;">
+          <h3 style="margin-bottom:8px;">How it works</h3>
+          <p style="margin-bottom:6px;">1. Login with your Firebase-auth account</p>
+          <p style="margin-bottom:6px;">2. Create your school workspace</p>
+          <p style="margin-bottom:0;">3. Manage teachers, classes, subjects, attendance, and marks</p>
         </div>
       </div>
+
       <div class="hero-right">
         <div class="hero-card">
-          <h3>⚡ Quick Actions</h3>
-          <p>Add students • Mark attendance • Predict marks</p>
+          <h3>⚡ Quick Access</h3>
+          <p>Attendance • Marks • Analytics • School Admin</p>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <h3>🏫 For Schools</h3>
+          <p>Create a school workspace and start building your admin structure.</p>
+          <button class="btn-cta" style="width:100%;" onclick="openLogin(true)">Start School Setup</button>
         </div>
       </div>
     </section>
 
     <!-- FEATURES -->
     <section class="grid">
-      <div class="card"><h3>📅 Instant Attendance</h3><p>Mark attendance for entire classes in seconds.</p></div>
-      <div class="card"><h3>📊 Smart Insights</h3><p>Predict marks and track attendance trends easily.</p></div>
-      <div class="card"><h3>📁 Reports</h3><p>Generate CSV reports instantly for school records.</p></div>
-      <div class="card"><h3>📌 Dashboard</h3><p>All tools in one simple and powerful interface.</p></div>
+      <div class="card"><h3>📅 Instant Attendance</h3><p>Mark attendance for classes and students in seconds.</p></div>
+      <div class="card"><h3>📊 Smart Insights</h3><p>Track attendance trends and marks in one system.</p></div>
+      <div class="card"><h3>🏫 School Setup</h3><p>Create school workspaces and manage school-level modules.</p></div>
+      <div class="card"><h3>📱 App Ready</h3><p>Same Firebase backend can power both website and future mobile app.</p></div>
     </section>
 
     <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
@@ -68,16 +89,28 @@
 </div>
 
 <script>
-  function openLogin()  { document.getElementById("loginModal").classList.add("active"); }
-  function closeLogin() { document.getElementById("loginModal").classList.remove("active"); }
+  function openLogin(forSchoolSetup = false) {
+    if (forSchoolSetup) {
+      localStorage.setItem("postLoginRedirect", "school-setup.html");
+    } else {
+      localStorage.removeItem("postLoginRedirect");
+    }
+    document.getElementById("loginModal").classList.add("active");
+  }
+
+  function closeLogin() {
+    document.getElementById("loginModal").classList.remove("active");
+  }
+
   document.getElementById("loginModal").addEventListener("click", function(e) {
     if (e.target === this) closeLogin();
   });
-  // Allow Enter key to submit login
+
   document.addEventListener("keydown", e => {
     if (e.key === "Enter" && document.getElementById("loginModal").classList.contains("active")) {
       window.login && window.login();
     }
+    if (e.key === "Escape") closeLogin();
   });
 </script>
 

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Manage Classes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>🏫 Manage Classes</h1>
+        <p id="classesManageSchoolId">Loading school…</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" id="classesBackToAdminBtn">🛡️ School Admin</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Add Class / Section</h3>
+      <form id="classForm">
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+          <div>
+            <label class="label">Class Name</label>
+            <input id="classNameInput" required placeholder="8">
+          </div>
+          <div>
+            <label class="label">Section</label>
+            <input id="classSectionInput" required placeholder="A">
+          </div>
+          <div>
+            <label class="label">Room No</label>
+            <input id="classRoomInput" placeholder="204">
+          </div>
+          <div>
+            <label class="label">Class Teacher</label>
+            <select id="classTeacherSelect">
+              <option value="">-- Optional --</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button type="submit" class="btn-cta">➕ Save Class</button>
+          <button type="button" class="btn-ghost" id="classesRefreshBtn">🔄 Refresh</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Class Records</h3>
+      <div class="table-wrap">
+        <table id="classesTable">
+          <thead>
+            <tr>
+              <th>Display</th>
+              <th>Room</th>
+              <th>Class Teacher</th>
+              <th>Status</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./classes-manage.js"></script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

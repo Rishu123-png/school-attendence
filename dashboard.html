@@ -27,17 +27,16 @@
     <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
     <button data-page="attendance"  onclick="sidebarGoAttendance()">📅 Attendance</button>
     <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button id="themeToggle">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
-<!-- MAIN CONTENT — FIX #2: correctly outside sidebar div -->
 <main class="container">
-
   <header class="header">
     <div>
       <h1>Welcome, <span id="teacherNameDisplay">Teacher</span> 👋</h1>
+      <p id="dashboardRoleLine" style="color:var(--muted);margin-top:-6px;">Track classes, attendance, and performance.</p>
     </div>
     <div class="top-controls">
       <select id="classSelect" style="min-width:160px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
@@ -45,22 +44,21 @@
       </select>
     </div>
   </header>
-  <!-- NEW: Monthly Summary Card -->
+
   <div class="card" id="monthlySummaryCard" style="margin-bottom:18px;">
     <p style="color:var(--muted);">Loading monthly summary…</p>
   </div>
 
-  <!-- Quick Actions -->
   <div class="grid">
     <div class="card">
       <h3>⚡ Quick Actions</h3>
-      <p>Add students, mark attendance and manage marks.</p>
+      <p>Add students, mark attendance, manage marks, and access school administration if available.</p>
       <div class="action-row">
         <button class="btn-cta" onclick="location.href='add-students.html'">🧑‍💼<br>Add Student</button>
         <button class="btn-cta" onclick="goToMarkAttendance()">✅<br>Mark Attendance</button>
         <button class="btn-cta" onclick="location.href='marks.html'">📊<br>Marks</button>
         <button class="btn-cta" onclick="location.href='top-bunkers.html'">🕵️<br>Low Attendance</button>
-        <button class="btn-cta" onclick="location.href='school-setup.html'">🏫<br>School Setup</button>
+        <button class="btn-cta" id="schoolAdminShortcut" style="display:none;" onclick="goToSchoolAdmin()">🏫<br>School Admin</button>
       </div>
     </div>
 
@@ -73,11 +71,9 @@
     </div>
   </div>
 
-  <!-- Students Table -->
   <div class="card" style="margin-top:18px;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
       <h3 style="margin:0;">👥 Students</h3>
-      <!-- NEW: Search box -->
       <input id="studentSearch" placeholder="🔍 Search students…"
         style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);
         background:rgba(255,255,255,0.07);color:#fff;min-width:200px;font-size:14px;outline:none;">

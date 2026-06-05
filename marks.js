@@ -3,8 +3,9 @@ import { auth, db } from "./firebase.js";
 import { showToast, showLoading, hideLoading } from "./toast.js";
 import { initTheme } from "./theme.js";
 import { initSidebar } from "./sidebar.js";
+import { logAudit } from "./audit.js";
 import {
-  ref, get, set, onValue
+  ref, get, set
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import {
   onAuthStateChanged
@@ -96,6 +97,7 @@ async function saveMarksForStudent() {
   showLoading('Saving marks…');
   try {
     await set(ref(db, `students/${sid}/marks`), marks);
+    await logAudit('marks.save', { studentId: sid, examsUpdated: ['ut1', 'hy', 'ut2', 'annual'] });
     showToast('Marks saved successfully!');
     renderPerformanceChart(marks);
     computeAndShowPrediction();
@@ -173,8 +175,20 @@ function renderAttendanceImpact(student) {
   const pct     = total ? Math.round((present / total) * 100) : null;
   if (pct == null) { el.innerText = 'No attendance data recorded yet.'; return; }
   const color = pct >= 75 ? '#4ad07a' : pct >= 50 ? '#f39c12' : '#ff6b6b';
-  el.innerHTML = `Attendance: <strong style="color:${color}">${pct}%</strong> (${present}/${total} days present).<br>
-    ${pct < 75 ? '⚠️ Low attendance may negatively impact exam performance.' : '✅ Good attendance — keep it up!'}`;
+  el.innerHTML = '';
+
+  const strong = document.createElement('strong');
+  strong.style.color = color;
+  strong.textContent = `${pct}%`;
+
+  const note = document.createElement('span');
+  note.textContent = pct < 75
+    ? '⚠️ Low attendance may negatively impact exam performance.'
+    : '✅ Good attendance — keep it up!';
+
+  el.append('Attendance: ', strong, ` (${present}/${total} days present).`);
+  el.appendChild(document.createElement('br'));
+  el.appendChild(note);
 }
 
 function renderPerformanceChart(marks) {

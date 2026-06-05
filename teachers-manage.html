@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Manage Teachers</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>👨‍🏫 Manage Teachers</h1>
+        <p id="teachersManageSchoolId">Loading school…</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" id="teachersBackToAdminBtn">🛡️ School Admin</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Add Teacher Record</h3>
+      <p>This creates the school teacher record now. Real teacher auth linking can be added in the next migration step.</p>
+      <form id="teacherForm">
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+          <div>
+            <label class="label">Teacher Name</label>
+            <input id="teacherNameInput" required placeholder="Amit Sir">
+          </div>
+          <div>
+            <label class="label">Teacher Email</label>
+            <input id="teacherEmailInput" type="email" required placeholder="amit@school.com">
+          </div>
+          <div>
+            <label class="label">Primary Subject</label>
+            <input id="teacherSubjectInput" placeholder="Mathematics">
+          </div>
+          <div>
+            <label class="label">Future Auth UID (optional)</label>
+            <input id="teacherAuthUidInput" placeholder="firebase-auth-uid-later">
+          </div>
+          <div style="grid-column:1/-1;">
+            <label class="label">Classes handled (text)</label>
+            <input id="teacherClassesInput" placeholder="8A, 8B, 9A">
+          </div>
+        </div>
+        <div class="action-row">
+          <button type="submit" class="btn-cta">➕ Save Teacher</button>
+          <button type="button" class="btn-ghost" id="teachersRefreshBtn">🔄 Refresh</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Teacher Records</h3>
+      <div class="table-wrap">
+        <table id="teachersTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>Classes</th>
+              <th>Status</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./teachers-manage.js"></script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

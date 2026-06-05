@@ -1,13 +1,30 @@
 // theme.js
 export function initTheme() {
+  const body = document.body;
   const themeBtn = document.getElementById("themeToggle");
-  if (localStorage.getItem("theme") === "light") {
-    document.body.classList.add("light-mode");
+
+  const applyTheme = () => {
+    const storedTheme = localStorage.getItem("theme");
+    const isLight = storedTheme === "light";
+    body.classList.toggle("light-mode", isLight);
+
+    if (themeBtn) {
+      themeBtn.textContent = isLight ? "🌙 Dark Mode" : "☀️ Light Mode";
+    }
+  };
+
+  if (!localStorage.getItem("theme")) {
+    localStorage.setItem("theme", "dark");
   }
-  if (themeBtn) {
+
+  if (themeBtn && !themeBtn.dataset.bound) {
+    themeBtn.dataset.bound = "true";
     themeBtn.addEventListener("click", () => {
-      document.body.classList.toggle("light-mode");
-      localStorage.setItem("theme", document.body.classList.contains("light-mode") ? "light" : "dark");
+      const nextTheme = body.classList.contains("light-mode") ? "dark" : "light";
+      localStorage.setItem("theme", nextTheme);
+      applyTheme();
     });
   }
+
+  applyTheme();
 }

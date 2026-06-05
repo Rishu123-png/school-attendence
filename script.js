@@ -4,6 +4,16 @@ import { initTheme }   from "./theme.js";
 import { auth, db }    from "./firebase.js";
 import { showToast, showConfirm, showPrompt, showLoading, hideLoading } from "./toast.js";
 import {
+  buildBadgeHtml,
+  escapeHtml,
+  isValidClassName,
+  isValidStudentName,
+  normalizeClassName,
+  normalizeStudentName,
+  safeWindowTitle
+} from "./security.js";
+import { logAudit } from "./audit.js";
+import {
   signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -218,8 +228,7 @@ function renderStudentsTable(selectedClass = '') {
 
     // Attendance badge cell
     const attCell = row.insertCell(2);
-    attCell.innerHTML = `<span style="background:${badgeColor}22;color:${badgeColor};padding:4px 10px;
-      border-radius:999px;font-size:12px;font-weight:600;border:1px solid ${badgeColor}55;">${badgeText}</span>`;
+    attCell.innerHTML = buildBadgeHtml(badgeText, badgeColor);
 
     row.insertCell(3).innerText = absences;
 
@@ -237,9 +246,15 @@ function renderStudentsTable(selectedClass = '') {
     const editBtn = makeBtn('✏️ Edit', '#37d6ff', () => {
       showPrompt('Edit student name', s.name || '', async (newName) => {
         if (!newName) return;
+        const cleanedName = normalizeStudentName(newName);
+        if (!isValidStudentName(cleanedName)) {
+          showToast('Use 2-60 valid characters for the student name.', 'warning');
+          return;
+        }
         showLoading('Saving…');
         try {
-          await set(ref(db, `students/${id}/name`), newName);
+          await set(ref(db, `students/${id}/name`), cleanedName);
+          await logAudit('student.update', { studentId: id, field: 'name' });
           showToast('Student updated!');
           loadStudents(currentClassFilter);
         } catch (err) { showToast('Failed to update', 'error'); }
@@ -249,10 +264,11 @@ function renderStudentsTable(selectedClass = '') {
     ac.appendChild(editBtn);
 
     const delBtn = makeBtn('🗑️ Delete', '#ff6b6b', () => {
-      showConfirm(`Delete "${s.name}"? This cannot be undone.`, async () => {
+      showConfirm(`Delete \"${s.name}\"? This cannot be undone.`, async () => {
         showLoading('Deleting…');
         try {
           await set(ref(db, `students/${id}`), null);
+          await logAudit('student.delete', { studentId: id, studentName: s.name || '' });
           showToast('Student deleted', 'warning');
           loadStudents(currentClassFilter);
         } catch (err) { showToast('Delete failed', 'error'); }
@@ -273,7 +289,7 @@ function renderStudentsTable(selectedClass = '') {
 
 function makeBtn(label, color, onclick) {
   const b = document.createElement('button');
-  b.innerHTML = label;
+  b.textContent = label;
   b.style.cssText = `padding:6px 12px;border-radius:8px;border:none;background:${color}22;
     color:${color};cursor:pointer;font-size:12px;font-weight:600;border:1px solid ${color}44;transition:0.2s;`;
   b.onmouseover = () => b.style.background = `${color}44`;
@@ -293,14 +309,17 @@ window.initAddStudentsPage = function () {
 
 window.addStudent = async function () {
   if (!auth.currentUser) { window.location.href = 'index.html'; return; }
-  const name = (document.getElementById('studentName')?.value || '').trim();
-  const cls  = (document.getElementById('classSelectAdd')?.value || '').trim();
+  const name = normalizeStudentName(document.getElementById('studentName')?.value || '');
+  const cls  = normalizeClassName(document.getElementById('classSelectAdd')?.value || '');
   if (!name || !cls) { showToast('Enter student name and class', 'warning'); return; }
+  if (!isValidStudentName(name)) { showToast('Enter a valid student name', 'warning'); return; }
+  if (!isValidClassName(cls)) { showToast('Enter a valid class name', 'warning'); return; }
   showLoading('Adding student…');
   try {
     const subj   = teacherProfile?.subject || '';
     const newRef = push(ref(db, 'students'));
     await set(newRef, { name, class: cls, subject: subj, teacher: auth.currentUser.uid, attendance: {} });
+    await logAudit('student.add', { studentId: newRef.key, className: cls });
     showToast('Student added successfully!');
     setTimeout(() => window.location.href = 'dashboard.html', 800);
   } catch (err) {
@@ -315,6 +334,7 @@ window.claimStudent = async function (studentId) {
     showLoading();
     try {
       await set(ref(db, `students/${studentId}/teacher`), auth.currentUser.uid);
+      await logAudit('student.claim', { studentId });
       showToast('Student claimed!');
       loadStudents(currentClassFilter);
     } catch (err) { showToast('Failed to claim student', 'error'); }
@@ -399,6 +419,7 @@ function buildAttRow(table, date, status) {
 
   const markAtt = async (val) => {
     await set(ref(db, `students/${selectedStudentId}/attendance/${date}`), val);
+    await logAudit('attendance.single.mark', { studentId: selectedStudentId, date, status: val });
     window.loadMarkAttendanceMonth();
   };
 
@@ -415,11 +436,12 @@ async function loadClassAttendanceUI(className) {
 
   // NEW: Auto-set today's date
   const today = todayDateString();
+  const safeClassName = escapeHtml(className);
 
   document.getElementById('classAttendanceUI').innerHTML = `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <h2 style="margin:0;">📋 Class: <span style="color:#ff6bc4">${className}</span></h2>
+        <h2 style="margin:0;">📋 Class: <span style="color:#ff6bc4">${safeClassName}</span></h2>
         <button class="btn-cta" id="viewClassAnalyticsBtn">📊 Analytics</button>
       </div>
       <div style="margin-top:12px;">
@@ -435,8 +457,7 @@ async function loadClassAttendanceUI(className) {
         <button class="btn-cta" id="exportClassCSVBtn">📥 Export CSV</button>
       </div>
     </div>`;
-
-  document.getElementById('viewClassAnalyticsBtn').onclick = () => {
+document.getElementById('viewClassAnalyticsBtn').onclick = () => {
     localStorage.setItem('analyticsClass', className);
     window.location.href = 'analytics.html';
   };
@@ -481,14 +502,14 @@ async function loadClassAttendanceUI(className) {
           const sel = document.querySelector(`input[name="att_${st.id}"]:checked`);
           await set(ref(db, `students/${st.id}/attendance/${dateVal}`), sel ? sel.value : 'present');
         }
+        await logAudit('attendance.class.mark', { className, date: dateVal, totalStudents: rows.length });
         showToast(`Attendance saved for ${dateVal}!`);
         localStorage.removeItem('selectedClass');
         setTimeout(() => window.location.href = 'dashboard.html', 800);
       } catch (err) { showToast('Failed to save attendance', 'error'); }
       finally { hideLoading(); }
     };
-
-    document.getElementById('exportClassCSVBtn').onclick = () => {
+document.getElementById('exportClassCSVBtn').onclick = () => {
       const dateVal = document.getElementById('attendanceDate').value || today;
       const csvRows = rows.map(st => {
         const sel = document.querySelector(`input[name="att_${st.id}"]:checked`);
@@ -564,9 +585,9 @@ window.exportBunkersCSV = async function () {
 window.printReport = function () {
   const table = document.getElementById('markAttendanceTable') || document.getElementById('attendanceMonthTable');
   if (!table) { showToast('Nothing to print', 'warning'); return; }
-  const title = document.getElementById('studentNameLabel')?.innerText || 'Attendance Report';
+  const title = safeWindowTitle(document.getElementById('studentNameLabel')?.innerText || 'Attendance Report');
   const w = window.open('', '', 'width=900,height=700');
-  w.document.write(`<h3>Monthly Attendance Report — ${title}</h3>${table.outerHTML}`);
+  w.document.write(`<h3>Monthly Attendance Report — ${escapeHtml(title)}</h3>${table.outerHTML}`);
   w.document.close(); w.print();
 };
 
@@ -626,6 +647,9 @@ window.renderAnalytics = async function () {
   if (!className) { showToast('Select a class', 'warning'); return; }
   if (!month)     { showToast('Select a month', 'warning'); return; }
 
+  const safeClassName = escapeHtml(className);
+  const safeMonth = escapeHtml(month);
+
   showLoading('Generating analytics…');
   try {
     const snap     = await get(ref(db, 'students'));
@@ -660,7 +684,7 @@ window.renderAnalytics = async function () {
     const summary = document.createElement('div'); summary.className = 'card';
     summary.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div><strong>${className} — ${month}</strong><div style="color:var(--muted)">${students.length} students · ${mdays} days</div></div>
+        <div><strong>${safeClassName} — ${safeMonth}</strong><div style="color:var(--muted)">${students.length} students · ${mdays} days</div></div>
         <div style="display:flex;gap:16px;">
           <div style="text-align:center;"><div style="font-size:22px;color:#4ad07a">${totals.present}</div><div style="color:var(--muted);font-size:12px">Present</div></div>
           <div style="text-align:center;"><div style="font-size:22px;color:#ff6b6b">${totals.absent}</div><div style="color:var(--muted);font-size:12px">Absent</div></div>
@@ -668,8 +692,7 @@ window.renderAnalytics = async function () {
         </div>
       </div>`;
     area.appendChild(summary);
-
-    // Bar chart
+// Bar chart
     const dayCard = document.createElement('div'); dayCard.className = 'card';
     dayCard.innerHTML = `<strong>Daily Present Count</strong>
       <div id="dayBar" style="margin-top:10px;display:flex;gap:4px;align-items:flex-end;height:120px;"></div>`;
@@ -721,7 +744,7 @@ window.renderAnalytics = async function () {
     const prtBtn = document.createElement('button'); prtBtn.className = 'btn-cta'; prtBtn.innerText = '🖨️ Print';
     prtBtn.onclick = () => {
       const w = window.open('', '', 'width=900,height=700');
-      w.document.write(`<h3>Attendance — ${className} — ${month}</h3>${summary.outerHTML}${tw.outerHTML}`);
+      w.document.write(`<h3>Attendance — ${safeClassName} — ${safeMonth}</h3>${summary.outerHTML}${tw.outerHTML}`);
       w.document.close(); w.print();
     };
     ctrl.appendChild(prtBtn);
@@ -746,11 +769,11 @@ function getAcademicYear() {
 }
 
 function buildPromoClassMap(classList) {
-  const grades  = classList.map(c => { const m = c.match(/^(\d+)/); return m ? parseInt(m[1]) : null; }).filter(g=>g!==null);
+  const grades  = classList.map(c => { const m = c.match(/^(\\d+)/); return m ? parseInt(m[1]) : null; }).filter(g=>g!==null);
   const maxGrade = grades.length ? Math.max(...grades) : 0;
   const map = {};
   classList.forEach(cls => {
-    const m = cls.match(/^(\d+)(.*)/);
+    const m = cls.match(/^(\\d+)(.*)/);
     if (!m) { map[cls] = null; return; }
     map[cls] = parseInt(m[1]) >= maxGrade ? null : `${parseInt(m[1])+1}${m[2]}`;
   });
@@ -793,7 +816,6 @@ async function checkYearlyPromotion() {
     if (sub) sub.innerText = `Academic year ${curYear}–${curYear+1} detected. ${myStudents.length} student(s) to review.`;
   } catch (err) { console.error('checkYearlyPromotion', err); }
 }
-
 window.remindLaterPromotion = function () {
   const uid = auth.currentUser?.uid; if (!uid) return;
   const key = `promoRemind_${uid}_${getAcademicYear()}`;
@@ -815,6 +837,7 @@ window.startPromoteAll = async function () {
     else { await set(ref(db, `students/${s.id}/class`), next); promoted++; }
   }
   await set(ref(db, `teachers/${uid}/lastPromotionYear`), getAcademicYear());
+  await logAudit('promotion.bulk', { promoted, graduated, unchanged, academicYear: getAcademicYear() });
   hideLoading();
   document.getElementById('promoChoiceView').style.display = 'none';
   document.getElementById('promoDoneView').style.display   = 'block';
@@ -863,6 +886,7 @@ async function finishReviewPromotion() {
     else skipped++;
   }
   if (uid) await set(ref(db,`teachers/${uid}/lastPromotionYear`), getAcademicYear());
+  await logAudit('promotion.review.complete', { promoted, failed, skipped, academicYear: getAcademicYear() });
   document.getElementById('promoDoneSummary').innerText = `${promoted} promoted, ${failed} kept, ${skipped} skipped.`;
   loadStudents(currentClassFilter);
 }
@@ -873,6 +897,7 @@ window.skipRemainingPromotion = async function () {
     if (promoResults[s.id]==='pass') { const next=promoClassMap[s.class]; if(next) await set(ref(db,`students/${s.id}/class`),next); }
   }
   localStorage.setItem(`promoRemind_${uid}_${getAcademicYear()}`, '2');
+  await logAudit('promotion.review.partial-save', { academicYear: getAcademicYear() });
   document.getElementById('promotionModal').style.display = 'none';
   loadStudents(currentClassFilter);
 };
@@ -884,10 +909,15 @@ window.fixTeacherIds = async function () {
     try {
       const snap = await get(ref(db,'students'));
       const data = snap.val()||{};
+      let reassigned = 0;
       for (const id in data) {
         const s = data[id];
-        if (s && !s.teacher) await set(ref(db,`students/${id}/teacher`), auth.currentUser.uid);
+        if (s && !s.teacher) {
+          await set(ref(db,`students/${id}/teacher`), auth.currentUser.uid);
+          reassigned++;
+        }
       }
+      await logAudit('student.reassign.bulk', { reassigned });
       showToast('Done! Students reassigned.');
       loadStudents(currentClassFilter);
     } catch (err) { showToast('Failed', 'error'); }

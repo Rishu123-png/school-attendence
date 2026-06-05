@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Manage Subjects</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>📚 Manage Subjects</h1>
+        <p id="subjectsManageSchoolId">Loading school…</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" id="subjectsBackToAdminBtn">🛡️ School Admin</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Add Subject</h3>
+      <form id="subjectForm">
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+          <div>
+            <label class="label">Subject Name</label>
+            <input id="subjectNameInput" required placeholder="Mathematics">
+          </div>
+          <div>
+            <label class="label">Subject Code</label>
+            <input id="subjectCodeInput" required placeholder="MATH-01">
+          </div>
+          <div>
+            <label class="label">Type</label>
+            <select id="subjectTypeInput">
+              <option value="core">Core</option>
+              <option value="elective">Elective</option>
+              <option value="lab">Lab</option>
+              <option value="activity">Activity</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button type="submit" class="btn-cta">➕ Save Subject</button>
+          <button type="button" class="btn-ghost" id="subjectsRefreshBtn">🔄 Refresh</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Subject Records</h3>
+      <div class="table-wrap">
+        <table id="subjectsTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./subjects-manage.js"></script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

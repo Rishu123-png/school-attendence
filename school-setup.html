@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>School Setup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>🏫 Create Your School Workspace</h1>
+        <p>Phase 2 onboarding for the secure multi-school version.</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+      </div>
+    </header>
+
+    <div id="existingProfileNotice" class="card" style="display:none;margin-bottom:16px;color:#f39c12;"></div>
+
+    <form id="schoolSetupForm" class="card">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+        <div>
+          <label class="label">School Name</label>
+          <input id="schoolName" required placeholder="Demo Public School">
+        </div>
+        <div>
+          <label class="label">School Code</label>
+          <input id="schoolCode" required placeholder="DPS001">
+        </div>
+        <div>
+          <label class="label">Admin Name</label>
+          <input id="adminName" required placeholder="Rishu Jaswar">
+        </div>
+        <div>
+          <label class="label">Admin Email</label>
+          <input id="adminEmail" type="email" required placeholder="admin@school.com">
+        </div>
+        <div>
+          <label class="label">Phone</label>
+          <input id="schoolPhone" placeholder="+91 9876543210">
+        </div>
+        <div>
+          <label class="label">City</label>
+          <input id="schoolCity" placeholder="Dehradun">
+        </div>
+        <div>
+          <label class="label">State</label>
+          <input id="schoolState" placeholder="Uttarakhand">
+        </div>
+        <div>
+          <label class="label">Website</label>
+          <input id="schoolWebsite" placeholder="https://school.com">
+        </div>
+      </div>
+
+      <div class="action-row" style="margin-top:18px;">
+        <button class="btn-cta" type="submit">✅ Create School Workspace</button>
+      </div>
+    </form>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>What this page creates</h3>
+      <ul style="margin:12px 0 0 18px;color:var(--muted);line-height:1.7;">
+        <li>`userProfiles/{uid}` for the logged-in admin</li>
+        <li>`schools/{schoolId}/profile`</li>
+        <li>`schools/{schoolId}/admins/{uid}`</li>
+        <li>`schools/{schoolId}/teachers/{uid}` as starter admin-teacher account</li>
+      </ul>
+    </div>
+
+    <p class="footer">Phase 2 foundation for the website-first build</p>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./school-setup.js"></script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

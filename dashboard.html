@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Dashboard — School Attendance</title>
   <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="./css/dashboard.css">
 </head>
 <body onload="initDashboardPage()">
 
@@ -58,6 +60,7 @@
         <button class="btn-cta" onclick="goToMarkAttendance()">✅<br>Mark Attendance</button>
         <button class="btn-cta" onclick="location.href='marks.html'">📊<br>Marks</button>
         <button class="btn-cta" onclick="location.href='top-bunkers.html'">🕵️<br>Low Attendance</button>
+        <button class="btn-cta" onclick="location.href='school-setup.html'">🏫<br>School Setup</button>
       </div>
     </div>
 
@@ -135,8 +138,6 @@
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-<!-- Load Eruda (debugger) -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
+<script src="./pwa-register.js"></script>
 </body>
 </html>

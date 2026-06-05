@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>School Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>🛡️ School Admin Dashboard</h1>
+        <p id="schoolAdminSchoolCode">Loading school code…</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" onclick="location.href='school-setup.html'">🏫 Setup</button>
+        <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Current App</button>
+      </div>
+    </header>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h2 id="schoolAdminSchoolName">Loading school…</h2>
+      <p id="schoolAdminCityState" style="color:var(--muted)">Loading location…</p>
+      <p style="margin-top:10px;color:var(--muted);">School ID: <strong id="schoolCurrentId">—</strong></p>
+    </div>
+
+    <div class="grid">
+      <div class="card"><h3>Admins</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountAdmins">0</p></div>
+      <div class="card"><h3>Teachers</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountTeachers">0</p></div>
+      <div class="card"><h3>Students</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountStudents">0</p></div>
+      <div class="card"><h3>Classes</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountClasses">0</p></div>
+      <div class="card"><h3>Subjects</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountSubjects">0</p></div>
+      <div class="card"><h3>Notices</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountNotices">0</p></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Management Shortcuts</h3>
+      <div class="action-row">
+        <button class="btn-cta" id="manageTeachersBtn">👨‍🏫 Teachers</button>
+        <button class="btn-cta" id="manageClassesBtn">🏫 Classes</button>
+        <button class="btn-cta" id="manageSubjectsBtn">📚 Subjects</button>
+        <button class="btn-cta" id="manageAssignmentsBtn">🧩 Assignments</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Next build targets</h3>
+      <ul style="margin:12px 0 0 18px;color:var(--muted);line-height:1.7;">
+        <li>student management page</li>
+        <li>timetable management page</li>
+        <li>period-wise attendance page</li>
+        <li>XP leaderboard engine</li>
+        <li>multi-school analytics dashboard</li>
+      </ul>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./school-admin.js"></script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

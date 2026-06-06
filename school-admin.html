@@ -68,9 +68,58 @@
       <p>Open the core school administration modules from here.</p>
       <div class="action-row">
         <button class="btn-cta" id="manageTeachersBtn">👨‍🏫 Teachers</button>
+        <button class="btn-cta" id="manageStudentsBtn">🎓 Students</button>
         <button class="btn-cta" id="manageClassesBtn">🏫 Classes</button>
         <button class="btn-cta" id="manageSubjectsBtn">📚 Subjects</button>
         <button class="btn-cta" id="manageAssignmentsBtn">🧩 Assignments</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3>👨‍🏫 Teachers in this school</h3>
+          <p style="margin-bottom:0;">All teachers linked to the active school workspace.</p>
+        </div>
+        <button class="btn-ghost" id="openTeachersPageBtn">Open full teacher management</button>
+      </div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table id="schoolTeachersPreviewTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3>🎓 Students in this school</h3>
+          <p style="margin-bottom:0;">This view shows school-structured students and legacy teacher-linked students detected for this school.</p>
+        </div>
+        <button class="btn-ghost" id="openStudentsPageBtn">Open full student management</button>
+      </div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table id="schoolStudentsPreviewTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Section</th>
+              <th>Roll No</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
@@ -86,6 +135,7 @@
     </div>
 
       <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+</main>
   </main>
 </div>
 

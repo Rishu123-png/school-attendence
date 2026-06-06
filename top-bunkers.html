@@ -21,40 +21,58 @@
   </div>
   <div class="sidebar-menu">
     <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
-    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle" type="button">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
 <main class="container">
-  <header class="header">
-    <div class="brand">
-      <div class="logo">
-        <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
-      </div>
-      <div>
-        <h2>🕵️ Low Attendance</h2>
-        <p style="color:var(--muted)">Students with highest absences</p>
+  <section class="hero-shell">
+    <div class="hero-copy">
+      <div class="eyebrow">Bunk Intelligence</div>
+      <h1>Low attendance alert board</h1>
+      <p>Find students with the highest number of absences, monitor risk early, and export the low-attendance report when needed.</p>
+      <div class="chip-row">
+        <span class="chip">Absence count</span>
+        <span class="chip">Teacher view</span>
+        <span class="chip">CSV export</span>
+        <span class="chip">Critical tracking</span>
       </div>
     </div>
-    <div class="top-controls">
-      <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
-      <button class="btn-cta" onclick="logout()">🚪 Logout</button>
+    <div class="hero-visual">
+      <div class="orb-scene">
+        <div>
+          <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-pulse"></div>
+            <div class="orb-core"></div>
+          </div>
+          <div class="orb-caption">Risk Detection Core</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
 
   <div class="card">
-    <div class="table-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3>🕵️ Low Attendance</h3>
+        <p style="margin-bottom:0;">Students with highest absences</p>
+      </div>
+      <div class="top-controls">
+        <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+        <button class="btn-ghost" onclick="exportBunkersCSV()">📥 Export CSV</button>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top:14px;">
       <table id="bunkersTable">
-        <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th><th>Status</th></tr></thead>
+        <thead><tr><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th></tr></thead>
         <tbody></tbody>
       </table>
-    </div>
-    <div style="margin-top:14px;">
-      <button class="btn-cta" onclick="exportBunkersCSV()">📥 Export CSV</button>
     </div>
   </div>
 
@@ -63,6 +81,14 @@
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
+<script type="module">
+  import { initSidebar } from "./sidebar.js";
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => {
+    initSidebar();
+    initTheme();
+  });
+</script>
 <script src="./pwa-register.js"></script>
 </body>
 </html>

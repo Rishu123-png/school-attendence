@@ -167,14 +167,68 @@ export async function createTeacherRecord(schoolId, data) {
     email: normalizeWhitespace(data.email || ''),
     subject: normalizeWhitespace(data.subject || ''),
     classesText: normalizeWhitespace(data.classesText || ''),
-    role: 'teacher',
-    status: 'active',
+    role: normalizeWhitespace(data.role || 'teacher') || 'teacher',
+    status: normalizeWhitespace(data.status || 'active') || 'active',
     createdAt,
     updatedAt: createdAt
   };
 
   await set(teacherRef, record);
   return record;
+}
+
+export async function updateTeacherRecord(schoolId, teacherId, data) {
+  const teacherPath = `schools/${schoolId}/teachers/${teacherId}`;
+  const snap = await get(ref(db, teacherPath));
+  if (!snap.exists()) throw new Error('Teacher record not found');
+
+  const existing = snap.val() || {};
+  const updatedAt = serverTimestamp();
+
+  const record = {
+    ...existing,
+    teacherId,
+    authUid: normalizeWhitespace(data.authUid ?? existing.authUid ?? ''),
+    name: normalizeWhitespace(data.name ?? existing.name ?? ''),
+    email: normalizeWhitespace(data.email ?? existing.email ?? ''),
+    subject: normalizeWhitespace(data.subject ?? existing.subject ?? ''),
+    classesText: normalizeWhitespace(data.classesText ?? existing.classesText ?? ''),
+    role: normalizeWhitespace(data.role ?? existing.role ?? 'teacher') || 'teacher',
+    status: normalizeWhitespace(data.status ?? existing.status ?? 'active') || 'active',
+    updatedAt
+  };
+
+  await set(ref(db, teacherPath), record);
+  return record;
+}
+
+export async function deleteTeacherRecord(schoolId, teacherId) {
+  const updates = {};
+  updates[`schools/${schoolId}/teachers/${teacherId}`] = null;
+  updates[`schools/${schoolId}/teacherClassSubjects/${teacherId}`] = null;
+
+  const [assignmentsSnap, classesSnap] = await Promise.all([
+    get(ref(db, `schools/${schoolId}/teacherAssignments`)),
+    get(ref(db, `schools/${schoolId}/classes`))
+  ]);
+
+  if (assignmentsSnap.exists()) {
+    for (const [assignmentId, value] of Object.entries(assignmentsSnap.val() || {})) {
+      if (String(value?.teacherId || '') === String(teacherId)) {
+        updates[`schools/${schoolId}/teacherAssignments/${assignmentId}`] = null;
+      }
+    }
+  }
+
+  if (classesSnap.exists()) {
+    for (const [classId, value] of Object.entries(classesSnap.val() || {})) {
+      if (String(value?.classTeacherId || '') === String(teacherId)) {
+        updates[`schools/${schoolId}/classes/${classId}/classTeacherId`] = '';
+      }
+    }
+  }
+
+  await update(ref(db), updates);
 }
 
 export async function createClassRecord(schoolId, data) {

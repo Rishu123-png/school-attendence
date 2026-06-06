@@ -13,14 +13,15 @@ function markActiveButtons(sidebar) {
   sidebar.querySelectorAll(".sidebar-menu button[data-page]").forEach(btn => {
     const page = btn.getAttribute("data-page");
     const isActive =
-      (page === "dashboard"      && currentPage.includes("dashboard")) ||
-      (page === "add-student"    && currentPage.includes("add-students")) ||
-      (page === "attendance"     && currentPage.includes("mark-attendance")) ||
-      (page === "marks"          && currentPage.includes("marks")) ||
-      (page === "school-admin"   && currentPage.includes("school-admin")) ||
-      (page === "school-setup"   && currentPage.includes("school-setup")) ||
+      (page === "dashboard" && currentPage.includes("dashboard")) ||
+      (page === "add-student" && currentPage.includes("add-students")) ||
+      (page === "attendance" && currentPage.includes("mark-attendance")) ||
+      (page === "marks" && currentPage.includes("marks")) ||
+      (page === "school-admin" && currentPage.includes("school-admin")) ||
+      (page === "school-setup" && currentPage.includes("school-setup")) ||
       (page === "teachers-manage" && currentPage.includes("teachers-manage")) ||
       (page === "classes-manage" && currentPage.includes("classes-manage")) ||
+      (page === "students-manage" && currentPage.includes("students-manage")) ||
       (page === "subjects-manage" && currentPage.includes("subjects-manage")) ||
       (page === "assignments-manage" && currentPage.includes("teacher-assignments"));
 
@@ -64,6 +65,7 @@ async function injectAdminLinks(sidebar) {
       { label: "🏫 School Admin", page: "school-admin", href: withSchoolId("school-admin.html") },
       { label: "🧩 School Setup", page: "school-setup", href: "school-setup.html" },
       { label: "👨‍🏫 Teachers", page: "teachers-manage", href: withSchoolId("teachers-manage.html") },
+      { label: "🎓 Students", page: "students-manage", href: withSchoolId("students-manage.html") },
       { label: "🏫 Classes", page: "classes-manage", href: withSchoolId("classes-manage.html") },
       { label: "📚 Subjects", page: "subjects-manage", href: withSchoolId("subjects-manage.html") },
       { label: "🧩 Assignments", page: "assignments-manage", href: withSchoolId("teacher-assignments.html") }

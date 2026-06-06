@@ -11,11 +11,8 @@
 </head>
 <body onload="initAddStudentsPage()">
 
-<!-- ☰ Menu Button -->
 <button id="menuToggle" class="menu-btn">⋮</button>
-<!-- Overlay -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
-<!-- Sidebar -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo" alt="Logo">
@@ -24,38 +21,81 @@
   </div>
   <div class="sidebar-menu">
     <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
-    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle" type="button">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
 <main class="container">
-  <header class="header">
-    <div>
-      <h2>🧑‍💼 Add Student</h2>
-      <p style="color:var(--muted)">Subject: <strong id="teacherSubjectAdd"></strong></p>
+  <section class="hero-shell">
+    <div class="hero-copy">
+      <div class="eyebrow">Student Intake</div>
+      <h1>Add a student to your class register</h1>
+      <p>
+        Use this panel to add students under the selected class. The record will attach to the currently logged-in teacher account
+        and become available for attendance, marks, analytics, and later leaderboard features.
+      </p>
+      <div class="chip-row">
+        <span class="chip">Class-linked</span>
+        <span class="chip">Teacher-owned</span>
+        <span class="chip">Attendance ready</span>
+        <span class="chip">Marks ready</span>
+      </div>
     </div>
-    <div class="top-controls">
-      <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+
+    <div class="hero-visual">
+      <div class="orb-scene">
+        <div>
+          <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-pulse"></div>
+            <div class="orb-core"></div>
+          </div>
+          <div class="orb-caption">Student Registry Core</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
 
   <div class="card">
-    <label class="label" style="display:block;margin-bottom:6px;">Class</label>
-    <select id="classSelectAdd" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;margin-bottom:14px;">
-      <option value="">-- Select class --</option>
-    </select>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3>🧑‍💼 Add Student</h3>
+        <p style="margin-bottom:0;">Subject: <strong id="teacherSubjectAdd" style="color:var(--text-main);"></strong></p>
+      </div>
+      <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+    </div>
 
-    <label class="label" style="display:block;margin-bottom:6px;">Student Name</label>
-    <input id="studentName" placeholder="Enter student name"
-      style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;font-size:14px;outline:none;"
-      onkeydown="if(event.key==='Enter') addStudent()">
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px;">
+      <div>
+        <label class="label">Class</label>
+        <select id="classSelectAdd">
+          <option value="">-- Select class --</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Student Name</label>
+        <input id="studentName" placeholder="Enter student name" onkeydown="if(event.key==='Enter') addStudent()">
+      </div>
+    </div>
 
-    <div style="margin-top:16px;">
+    <div class="action-row" style="margin-top:18px;">
       <button onclick="addStudent()" class="btn-cta">💾 Save Student</button>
+      <button type="button" class="btn-ghost" onclick="document.getElementById('studentName').value=''">🧹 Clear</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>How it helps</h3>
+      <p>Students added here appear in your dashboard table, attendance page, and marks prediction page.</p>
+    </div>
+    <div class="card">
+      <h3>Next step</h3>
+      <p>After saving a student, go to the dashboard and start attendance or marks entry from the quick actions panel.</p>
     </div>
   </div>
 

@@ -9,10 +9,8 @@
   <title>Mark Attendance</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<!-- FIX #8: Added initMarkAttendancePage via module script -->
 <body onload="initMarkAttendancePage()">
 
-<!-- FIX #10: Added sidebar HTML (was completely missing) -->
 <button id="menuToggle" class="menu-btn">⋮</button>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 <div id="sidebar" class="sidebar">
@@ -23,39 +21,61 @@
   </div>
   <div class="sidebar-menu">
     <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
-    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle" type="button">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
 <main class="container">
-  <header class="header">
-    <div>
-      <!-- FIX #11: Removed deprecated <center> tags -->
-      <h1>📅 Mark Attendance</h1>
-      <p>Keep accurate daily records</p>
+  <section class="hero-shell">
+    <div class="hero-copy">
+      <div class="eyebrow">Attendance Engine</div>
+      <h1>Mark daily attendance with confidence</h1>
+      <p>Use student-wise or class-wise mode, export reports, and connect analytics directly from the same interface.</p>
+      <div class="chip-row">
+        <span class="chip">Student Mode</span>
+        <span class="chip">Class Mode</span>
+        <span class="chip">CSV / Excel Export</span>
+        <span class="chip">Analytics Link</span>
+      </div>
     </div>
-    <div class="top-controls">
+    <div class="hero-visual">
+      <div class="orb-scene">
+        <div>
+          <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-pulse"></div>
+            <div class="orb-core"></div>
+          </div>
+          <div class="orb-caption">Attendance Recording Core</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3>📅 Mark Attendance</h3>
+        <p style="margin-bottom:0;">Keep accurate daily records</p>
+      </div>
       <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
     </div>
-  </header>
+  </div>
 
-  <!-- Class UI (rendered by script.js) -->
-  <div id="classAttendanceUI" style="display:none; margin-top:6px;"></div>
+  <div id="classAttendanceUI" style="display:none; margin-top:16px;"></div>
 
-  <!-- Single Student UI -->
-  <div id="singleStudentUI" style="display:none; margin-top:6px;">
+  <div id="singleStudentUI" style="display:none; margin-top:16px;">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
       <div>
-        <strong>Student:</strong> <span id="studentNameLabel" style="color:#ff6bc4;font-size:16px;"></span>
+        <strong>Student:</strong> <span id="studentNameLabel" style="color:var(--accentA);font-size:16px;"></span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <label>Month:</label>
-        <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()"
-          style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+        <input id="monthPickerMark" type="month" onchange="loadMarkAttendanceMonth()">
       </div>
     </div>
 
@@ -68,18 +88,17 @@
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+    <div class="action-row" style="margin-top:14px;">
       <button class="btn-cta" onclick="printReport()">🖨️ Print Report</button>
       <button class="btn-cta" onclick="exportAttendanceCSV()">📥 Export CSV</button>
       <button class="btn-cta" onclick="exportAttendanceExcel()">📊 Export Excel</button>
       <button class="btn-cta" onclick="openAnalyticsForStudent()">📈 Analytics</button>
-      <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+      <button class="btn-ghost" onclick="location.href='dashboard.html'">⬅ Back</button>
     </div>
   </div>
 
   <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
 </main>
-<!-- FIX #9: Removed stray </div> that was here -->
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>

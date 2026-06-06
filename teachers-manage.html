@@ -13,14 +13,46 @@
 <div class="page">
   <main class="container">
     <header class="header">
-      <div>
-        <h1>👨‍🏫 Manage Teachers</h1>
-        <p id="teachersManageSchoolId">Loading school…</p>
+      <div class="brand">
+        <div class="logo">
+          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
+        </div>
+        <div>
+          <h2 style="margin-bottom:4px;">Manage Teachers</h2>
+          <p id="teachersManageSchoolId" style="margin-bottom:0;">Loading school…</p>
+        </div>
       </div>
       <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
         <button class="btn-cta" id="teachersBackToAdminBtn">🛡️ School Admin</button>
       </div>
     </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Teacher Directory</div>
+        <h1>Build your teacher network</h1>
+        <p>Add teacher records now and later connect them with auth accounts, timetable assignments, and attendance responsibilities.</p>
+        <div class="chip-row">
+          <span class="chip">Teacher Name</span>
+          <span class="chip">Email</span>
+          <span class="chip">Subject</span>
+          <span class="chip">Classes</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">Teacher Assignment Core</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="card">
       <h3>Add Teacher Record</h3>
@@ -81,6 +113,10 @@
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./teachers-manage.js"></script>
+<script type="module">
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
+</script>
 <script src="./pwa-register.js"></script>
 </body>
 </html>

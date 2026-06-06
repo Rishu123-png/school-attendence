@@ -13,33 +13,59 @@
 <div class="page">
   <main class="container">
     <header class="header">
-      <div>
-        <h1>🛡️ School Admin Dashboard</h1>
-        <p id="schoolAdminSchoolCode">Loading school code…</p>
+      <div class="brand">
+        <div class="logo">
+          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
+        </div>
+        <div>
+          <h2 style="margin-bottom:4px;">School Admin Dashboard</h2>
+          <p id="schoolAdminSchoolCode" style="margin-bottom:0;">Loading school code…</p>
+        </div>
       </div>
       <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
         <button class="btn-cta" onclick="location.href='school-setup.html'">🏫 Setup</button>
         <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Current App</button>
       </div>
     </header>
 
-    <div class="card" style="margin-bottom:16px;">
-      <h2 id="schoolAdminSchoolName">Loading school…</h2>
-      <p id="schoolAdminCityState" style="color:var(--muted)">Loading location…</p>
-      <p style="margin-top:10px;color:var(--muted);">School ID: <strong id="schoolCurrentId">—</strong></p>
-    </div>
+    <section class="hero-shell dashboard-hero-panel">
+      <div class="hero-copy">
+        <div class="eyebrow">Admin Command Center</div>
+        <h1 id="schoolAdminSchoolName">Loading school…</h1>
+        <p id="schoolAdminCityState">Loading location…</p>
+        <div class="chip-row">
+          <span class="chip">School ID: <span id="schoolCurrentId">—</span></span>
+          <span class="chip">Multi-school ready</span>
+          <span class="chip">Firebase powered</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">School Operations Core</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="grid">
-      <div class="card"><h3>Admins</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountAdmins">0</p></div>
-      <div class="card"><h3>Teachers</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountTeachers">0</p></div>
-      <div class="card"><h3>Students</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountStudents">0</p></div>
-      <div class="card"><h3>Classes</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountClasses">0</p></div>
-      <div class="card"><h3>Subjects</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountSubjects">0</p></div>
-      <div class="card"><h3>Notices</h3><p style="font-size:28px;margin-top:8px;" id="schoolCountNotices">0</p></div>
+      <div class="card"><h3>Admins</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountAdmins">0</p></div>
+      <div class="card"><h3>Teachers</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountTeachers">0</p></div>
+      <div class="card"><h3>Students</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountStudents">0</p></div>
+      <div class="card"><h3>Classes</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountClasses">0</p></div>
+      <div class="card"><h3>Subjects</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountSubjects">0</p></div>
+      <div class="card"><h3>Notices</h3><p style="font-size:28px;margin-top:8px;color:var(--text-main);" id="schoolCountNotices">0</p></div>
     </div>
 
     <div class="card" style="margin-top:16px;">
       <h3>Management Shortcuts</h3>
+      <p>Open the core school administration modules from here.</p>
       <div class="action-row">
         <button class="btn-cta" id="manageTeachersBtn">👨‍🏫 Teachers</button>
         <button class="btn-cta" id="manageClassesBtn">🏫 Classes</button>
@@ -48,15 +74,15 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top:16px;">
-      <h3>Next build targets</h3>
-      <ul style="margin:12px 0 0 18px;color:var(--muted);line-height:1.7;">
-        <li>student management page</li>
-        <li>timetable management page</li>
-        <li>period-wise attendance page</li>
-        <li>XP leaderboard engine</li>
-        <li>multi-school analytics dashboard</li>
-      </ul>
+    <div class="grid">
+      <div class="card">
+        <h3>Current focus</h3>
+        <p>Build your school structure first, then connect timetable, attendance, and leaderboard systems on top of it.</p>
+      </div>
+      <div class="card">
+        <h3>Next build targets</h3>
+        <p>Student management, timetable management, period-wise attendance, XP leaderboard, and multi-school analytics.</p>
+      </div>
     </div>
 
       <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
@@ -66,6 +92,10 @@
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./school-admin.js"></script>
+<script type="module">
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
+</script>
 <script src="./pwa-register.js"></script>
 </body>
 </html>

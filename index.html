@@ -31,56 +31,85 @@
           <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
         </div>
         <div>
-          <h1>School Attendance</h1>
-          <p>Smart attendance, analytics, and school workspace setup</p>
+          <h2 style="margin-bottom:4px;">School Attendance</h2>
+          <p style="margin-bottom:0;">Smart attendance, admin control, and app-ready school management</p>
         </div>
       </div>
       <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
         <button class="btn-cta" onclick="openLogin(false)">Login</button>
       </div>
     </header>
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-left">
-        <h2>Effortless Classroom Management for Teachers & Schools</h2>
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">AI Powered School OS</div>
+        <h1>Run your school like a cinematic command center</h1>
         <p>
-          Manage attendance, marks, insights, and school administration in one secure website.
-          Schools can create their workspace and later use the same Firebase-powered system in a mobile app too.
+          Manage teachers, students, attendance, marks, analytics, and school setup from one futuristic dashboard.
+          This website is designed first for the web and later can be packaged into a Play Store app using the same Firebase backend.
         </p>
+
+        <div class="chip-row">
+          <span class="chip">📅 Attendance</span>
+          <span class="chip">📊 Marks & Analytics</span>
+          <span class="chip">🏫 School Setup</span>
+          <span class="chip">📱 App Ready</span>
+        </div>
+
         <div class="hero-buttons" style="display:flex;gap:12px;flex-wrap:wrap;">
           <button class="btn-cta" onclick="openLogin(true)">🏫 Create School Workspace</button>
           <button class="btn-ghost" onclick="openLogin(false)">🔐 Login to Dashboard</button>
           <button class="btn-ghost" onclick="alert('Contact admin: jaswarrishu642@gmail.com')">📩 Need Help?</button>
         </div>
-        <div class="card" style="margin-top:18px;padding:18px;">
-          <h3 style="margin-bottom:8px;">How it works</h3>
-          <p style="margin-bottom:6px;">1. Login with your Firebase-auth account</p>
-          <p style="margin-bottom:6px;">2. Create your school workspace</p>
-          <p style="margin-bottom:0;">3. Manage teachers, classes, subjects, attendance, and marks</p>
+
+        <div class="metrics-row">
+          <div class="stat-mini">
+            <strong>Web First</strong>
+            <span>Secure school platform before app packaging</span>
+          </div>
+          <div class="stat-mini">
+            <strong>Firebase</strong>
+            <span>RTDB + Authentication for website and app</span>
+          </div>
+          <div class="stat-mini">
+            <strong>Admin + Teacher</strong>
+            <span>School admin tools and teacher workflow in one system</span>
+          </div>
         </div>
       </div>
 
-      <div class="hero-right">
-        <div class="hero-card">
-          <h3>⚡ Quick Access</h3>
-          <p>Attendance • Marks • Analytics • School Admin</p>
-        </div>
-
-        <div class="card" style="margin-top:14px;">
-          <h3>🏫 For Schools</h3>
-          <p>Create a school workspace and start building your admin structure.</p>
-          <button class="btn-cta" style="width:100%;" onclick="openLogin(true)">Start School Setup</button>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">JARVIS-style School Intelligence Core</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- FEATURES -->
     <section class="grid">
-      <div class="card"><h3>📅 Instant Attendance</h3><p>Mark attendance for classes and students in seconds.</p></div>
-      <div class="card"><h3>📊 Smart Insights</h3><p>Track attendance trends and marks in one system.</p></div>
-      <div class="card"><h3>🏫 School Setup</h3><p>Create school workspaces and manage school-level modules.</p></div>
-      <div class="card"><h3>📱 App Ready</h3><p>Same Firebase backend can power both website and future mobile app.</p></div>
+      <div class="card">
+        <h3>📅 Instant Attendance</h3>
+        <p>Mark attendance for individual students or full classes in seconds.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Smart Insights</h3>
+        <p>Track attendance trends, marks, and performance in one system.</p>
+      </div>
+      <div class="card">
+        <h3>🏫 School Workspace Setup</h3>
+        <p>Schools can create their workspace and manage teachers, classes, and subjects.</p>
+      </div>
+      <div class="card">
+        <h3>📱 Website + App Path</h3>
+        <p>The same Firebase backend can later power a Play Store Android app too.</p>
+      </div>
     </section>
 
     <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>

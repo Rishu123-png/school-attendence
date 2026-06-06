@@ -21,37 +21,62 @@
   </div>
   <div class="sidebar-menu">
     <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
-    <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
-    <button data-page="attendance"  onclick="location.href='mark-attendance.html'">📅 Attendance</button>
-    <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">🌙 Toggle Theme</button>
+    <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
+    <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
+    <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
+    <button id="themeToggle" type="button">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
 <main class="container">
-  <!-- FIX #1: Removed extra </div> from header -->
-  <header class="header">
-    <div>
-      <h1>📊 Attendance Analytics</h1>
-      <p>Monthly &amp; class-based insights</p>
+  <section class="hero-shell">
+    <div class="hero-copy">
+      <div class="eyebrow">Attendance Intelligence</div>
+      <h1>Monthly class analytics</h1>
+      <p>View class-based attendance performance with visual breakdowns, rankings, exports, and printable reports.</p>
+      <div class="chip-row">
+        <span class="chip">Daily trend</span>
+        <span class="chip">Class overview</span>
+        <span class="chip">Ranking</span>
+        <span class="chip">Export ready</span>
+      </div>
     </div>
-    <div class="top-controls">
-      <button class="btn-cta" onclick="location.href='mark-attendance.html'">⬅ Back</button>
+    <div class="hero-visual">
+      <div class="orb-scene">
+        <div>
+          <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-pulse"></div>
+            <div class="orb-core"></div>
+          </div>
+          <div class="orb-caption">Analytics Visualization Core</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
 
   <div class="card">
-    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
-      <div style="flex:1;min-width:180px;">
-        <label style="display:block;margin-bottom:6px;color:var(--muted);">Class</label>
-        <select id="analyticsClassSelect" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;"></select>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3>📊 Attendance Analytics</h3>
+        <p style="margin-bottom:0;">Monthly &amp; class-based insights</p>
       </div>
-      <div style="flex:1;min-width:180px;">
-        <label style="display:block;margin-bottom:6px;color:var(--muted);">Month</label>
-        <input id="analyticsMonth" type="month" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
+      <button class="btn-cta" onclick="location.href='mark-attendance.html'">⬅ Back</button>
+    </div>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px;">
+      <div>
+        <label class="label">Class</label>
+        <select id="analyticsClassSelect"></select>
       </div>
-      <button class="btn-cta" onclick="renderAnalytics()" style="min-width:140px;">📊 Show Charts</button>
+      <div>
+        <label class="label">Month</label>
+        <input id="analyticsMonth" type="month">
+      </div>
+      <div style="display:flex;align-items:end;">
+        <button class="btn-cta" onclick="renderAnalytics()" style="width:100%;">📊 Show Charts</button>
+      </div>
     </div>
   </div>
 

@@ -31,13 +31,14 @@
     <section class="hero-shell">
       <div class="hero-copy">
         <div class="eyebrow">Teacher Directory</div>
-        <h1>Build your teacher network</h1>
-        <p>Add teacher records now and later connect them with auth accounts, timetable assignments, and attendance responsibilities.</p>
+        <h1>Build and maintain your teacher network</h1>
+        <p>Add, edit, or delete teacher records and keep auth UID, classes text, subject, role, and status up to date for your school workspace.</p>
         <div class="chip-row">
           <span class="chip">Teacher Name</span>
           <span class="chip">Email</span>
           <span class="chip">Subject</span>
           <span class="chip">Classes</span>
+          <span class="chip">Edit / Delete</span>
         </div>
       </div>
       <div class="hero-visual">
@@ -55,8 +56,14 @@
     </section>
 
     <div class="card">
-      <h3>Add Teacher Record</h3>
-      <p>This creates the school teacher record now. Real teacher auth linking can be added in the next migration step.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 id="teacherFormTitle">Add Teacher Record</h3>
+          <p id="teacherFormHint">Create a teacher record now. You can later link it with real Firebase Auth users too.</p>
+        </div>
+        <span class="badge" id="teacherEditBadge" style="display:none;">Editing Teacher</span>
+      </div>
+
       <form id="teacherForm">
         <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
           <div>
@@ -72,16 +79,31 @@
             <input id="teacherSubjectInput" placeholder="Mathematics">
           </div>
           <div>
-            <label class="label">Future Auth UID (optional)</label>
+            <label class="label">Auth UID</label>
             <input id="teacherAuthUidInput" placeholder="firebase-auth-uid-later">
+          </div>
+          <div>
+            <label class="label">Role</label>
+            <select id="teacherRoleInput">
+              <option value="teacher">Teacher</option>
+              <option value="schoolAdmin">School Admin</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Status</label>
+            <select id="teacherStatusInput">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
           <div style="grid-column:1/-1;">
             <label class="label">Classes handled (text)</label>
-            <input id="teacherClassesInput" placeholder="8A, 8B, 9A">
+            <input id="teacherClassesInput" placeholder="2A, 3B, 5C">
           </div>
         </div>
         <div class="action-row">
-          <button type="submit" class="btn-cta">➕ Save Teacher</button>
+          <button type="submit" class="btn-cta" id="teacherSubmitBtn">➕ Save Teacher</button>
+          <button type="button" class="btn-ghost" id="teachersCancelEditBtn" style="display:none;">✖ Cancel Edit</button>
           <button type="button" class="btn-ghost" id="teachersRefreshBtn">🔄 Refresh</button>
         </div>
       </form>
@@ -97,8 +119,10 @@
               <th>Email</th>
               <th>Subject</th>
               <th>Classes</th>
+              <th>Auth UID</th>
+              <th>Role</th>
               <th>Status</th>
-              <th>ID</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -106,8 +130,7 @@
       </div>
     </div>
 
-      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
-</main>
+    <p class="footer">Phase 2 teacher management starter</p>
   </main>
 </div>
 

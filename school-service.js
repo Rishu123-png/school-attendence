@@ -130,7 +130,8 @@ export async function getSchoolDashboardData(schoolId) {
       students: countChildren(school.students),
       classes: countChildren(school.classes),
       subjects: countChildren(school.subjects),
-      notices: countChildren(school.notices)
+      notices: countChildren(school.notices),
+      timetableClasses: countChildren(school.timetables)
     }
   };
 }
@@ -224,6 +225,20 @@ export async function deleteTeacherRecord(schoolId, teacherId) {
     for (const [classId, value] of Object.entries(classesSnap.val() || {})) {
       if (String(value?.classTeacherId || '') === String(teacherId)) {
         updates[`schools/${schoolId}/classes/${classId}/classTeacherId`] = '';
+      }
+    }
+  }
+
+  const timetableSnap = await get(ref(db, `schools/${schoolId}/timetables`));
+  if (timetableSnap.exists()) {
+    for (const [classId, days] of Object.entries(timetableSnap.val() || {})) {
+      for (const [dayKey, periods] of Object.entries(days || {})) {
+        for (const [periodId, period] of Object.entries(periods || {})) {
+          if (String(period?.teacherId || '') === String(teacherId)) {
+            updates[`schools/${schoolId}/timetables/${classId}/${dayKey}/${periodId}/teacherId`] = '';
+            updates[`schools/${schoolId}/timetables/${classId}/${dayKey}/${periodId}/teacherName`] = '';
+          }
+        }
       }
     }
   }
@@ -375,4 +390,89 @@ export async function listVisibleSchoolStudents(schoolId) {
   }
 
   return result.sort((a, b) => String(a.fullName || '').localeCompare(String(b.fullName || '')));
+}
+
+export async function upsertTimetableEntry(schoolId, data) {
+  const classId = normalizeWhitespace(data.classId || '');
+  const dayKey = normalizeWhitespace(data.dayKey || '').toLowerCase();
+  const periodId = normalizeWhitespace(data.periodId || '');
+
+  if (!classId || !dayKey || !periodId) {
+    throw new Error('classId, dayKey and periodId are required');
+  }
+
+  const createdAt = serverTimestamp();
+  const path = `schools/${schoolId}/timetables/${classId}/${dayKey}/${periodId}`;
+  const existingSnap = await get(ref(db, path));
+  const existing = existingSnap.exists() ? existingSnap.val() : {};
+
+  const record = {
+    ...existing,
+    classId,
+    dayKey,
+    periodId,
+    periodNo: normalizeWhitespace(data.periodNo || existing.periodNo || ''),
+    label: normalizeWhitespace(data.label || existing.label || ''),
+    startTime: normalizeWhitespace(data.startTime || existing.startTime || ''),
+    endTime: normalizeWhitespace(data.endTime || existing.endTime || ''),
+    subjectId: normalizeWhitespace(data.subjectId || existing.subjectId || ''),
+    subjectName: normalizeWhitespace(data.subjectName || existing.subjectName || ''),
+    teacherId: normalizeWhitespace(data.teacherId || existing.teacherId || ''),
+    teacherName: normalizeWhitespace(data.teacherName || existing.teacherName || ''),
+    roomNo: normalizeWhitespace(data.roomNo || existing.roomNo || ''),
+    status: 'active',
+    createdAt: existing.createdAt || createdAt,
+    updatedAt: createdAt
+  };
+
+  await set(ref(db, path), record);
+  return record;
+}
+
+export async function deleteTimetableEntry(schoolId, classId, dayKey, periodId) {
+  await set(ref(db, `schools/${schoolId}/timetables/${classId}/${dayKey}/${periodId}`), null);
+}
+
+export async function listTimetableForClass(schoolId, classId = '') {
+  const basePath = classId
+    ? `schools/${schoolId}/timetables/${classId}`
+    : `schools/${schoolId}/timetables`;
+
+  const snap = await get(ref(db, basePath));
+  if (!snap.exists()) return [];
+
+  const order = {
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+    sunday: 7
+  };
+
+  const entries = [];
+  const rootVal = snap.val() || {};
+
+  const classBlocks = classId ? { [classId]: rootVal } : rootVal;
+  for (const [resolvedClassId, days] of Object.entries(classBlocks || {})) {
+    for (const [dayKey, periods] of Object.entries(days || {})) {
+      for (const [periodId, value] of Object.entries(periods || {})) {
+        entries.push({
+          classId: resolvedClassId,
+          dayKey,
+          periodId,
+          ...(value || {})
+        });
+      }
+    }
+  }
+
+  return entries.sort((a, b) => {
+    const dayDiff = (order[a.dayKey] || 99) - (order[b.dayKey] || 99);
+    if (dayDiff !== 0) return dayDiff;
+    const aNum = parseInt(String(a.periodNo || a.periodId || '').replace(/\D/g, '')) || 999;
+    const bNum = parseInt(String(b.periodNo || b.periodId || '').replace(/\D/g, '')) || 999;
+    return aNum - bNum;
+  });
 }

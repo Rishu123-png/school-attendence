@@ -2,14 +2,20 @@
 export function initTheme() {
   const body = document.body;
   const themeBtn = document.getElementById("themeToggle");
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
 
   const applyTheme = () => {
     const storedTheme = localStorage.getItem("theme");
     const isLight = storedTheme === "light";
+
     body.classList.toggle("light-mode", isLight);
 
     if (themeBtn) {
       themeBtn.textContent = isLight ? "🌙 Dark Mode" : "☀️ Light Mode";
+    }
+
+    if (themeMeta) {
+      themeMeta.setAttribute("content", isLight ? "#eef2ff" : "#120d22");
     }
   };
 

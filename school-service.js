@@ -84,10 +84,13 @@ export async function createSchoolAndAdmin({
   };
 
   updates[`schools/${schoolId}/teachers/${auth.currentUser.uid}`] = {
+    teacherId: auth.currentUser.uid,
     uid: auth.currentUser.uid,
+    authUid: auth.currentUser.uid,
     name: normalizeWhitespace(adminName || auth.currentUser.displayName || 'School Admin'),
     email: normalizeWhitespace(adminEmail || auth.currentUser.email || ''),
     subject: 'Administration',
+    classesText: '',
     role: 'schoolAdmin',
     status: 'active',
     createdAt,
@@ -236,4 +239,86 @@ export async function createTeacherAssignmentRecord(schoolId, data) {
 
   await update(ref(db), updates);
   return { assignmentId, teacherId, classId, subjectId };
+}
+
+export async function createStudentRecord(schoolId, data) {
+  const studentRef = push(ref(db, `schools/${schoolId}/students`));
+  const studentId = studentRef.key;
+  const createdAt = serverTimestamp();
+
+  const fullName = normalizeWhitespace(data.fullName || '');
+  const classId = normalizeWhitespace(data.classId || '');
+  const section = normalizeWhitespace(data.section || '');
+  const rollNo = normalizeWhitespace(data.rollNo || '');
+  const admissionNo = normalizeWhitespace(data.admissionNo || '');
+
+  const record = {
+    studentId,
+    fullName,
+    classId,
+    section,
+    rollNo,
+    admissionNo,
+    status: 'active',
+    createdAt,
+    updatedAt: createdAt
+  };
+
+  await set(studentRef, record);
+  return record;
+}
+
+export async function listVisibleSchoolStudents(schoolId) {
+  const [schoolStudentsSnap, schoolTeachersSnap, legacyStudentsSnap] = await Promise.all([
+    get(ref(db, `schools/${schoolId}/students`)),
+    get(ref(db, `schools/${schoolId}/teachers`)),
+    get(ref(db, 'students'))
+  ]);
+
+  const result = [];
+  const seen = new Set();
+
+  if (schoolStudentsSnap.exists()) {
+    for (const [studentId, value] of Object.entries(schoolStudentsSnap.val() || {})) {
+      seen.add(studentId);
+      result.push({
+        studentId,
+        fullName: value?.fullName || value?.name || 'Unknown',
+        classId: value?.classId || '',
+        section: value?.section || '',
+        rollNo: value?.rollNo || '',
+        admissionNo: value?.admissionNo || '',
+        status: value?.status || 'active',
+        source: 'school'
+      });
+    }
+  }
+
+  const teacherIds = new Set();
+  if (schoolTeachersSnap.exists()) {
+    for (const [teacherId, value] of Object.entries(schoolTeachersSnap.val() || {})) {
+      teacherIds.add(teacherId);
+      if (value?.uid) teacherIds.add(String(value.uid));
+      if (value?.authUid) teacherIds.add(String(value.authUid));
+    }
+  }
+
+  if (legacyStudentsSnap.exists()) {
+    for (const [studentId, value] of Object.entries(legacyStudentsSnap.val() || {})) {
+      if (seen.has(studentId)) continue;
+      if (!teacherIds.has(String(value?.teacher || ''))) continue;
+      result.push({
+        studentId,
+        fullName: value?.fullName || value?.name || 'Unknown',
+        classId: value?.classId || value?.class || '',
+        section: value?.section || '',
+        rollNo: value?.rollNo || '',
+        admissionNo: value?.admissionNo || '',
+        status: value?.status || 'legacy',
+        source: 'legacy'
+      });
+    }
+  }
+
+  return result.sort((a, b) => String(a.fullName || '').localeCompare(String(b.fullName || '')));
 }

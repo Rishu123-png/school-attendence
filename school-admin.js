@@ -110,7 +110,7 @@ async function init() {
       setText('schoolCountStudents', students.length || data.counts.students);
       setText('schoolCountClasses', data.counts.classes);
       setText('schoolCountSubjects', data.counts.subjects);
-      setText('schoolCountNotices', data.counts.notices);
+      setText('schoolCountTimetableClasses', data.counts.timetableClasses || 0);
       setText('schoolCurrentId', schoolId);
 
       renderTeacherPreview(teachers);
@@ -120,6 +120,7 @@ async function init() {
       makeNavHandler('manageStudentsBtn', 'students-manage.html', schoolId);
       makeNavHandler('manageClassesBtn', 'classes-manage.html', schoolId);
       makeNavHandler('manageSubjectsBtn', 'subjects-manage.html', schoolId);
+      makeNavHandler('manageTimetableBtn', 'timetable-manage.html', schoolId);
       makeNavHandler('manageAssignmentsBtn', 'teacher-assignments.html', schoolId);
       makeNavHandler('openTeachersPageBtn', 'teachers-manage.html', schoolId);
       makeNavHandler('openStudentsPageBtn', 'students-manage.html', schoolId);

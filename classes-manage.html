@@ -13,14 +13,46 @@
 <div class="page">
   <main class="container">
     <header class="header">
-      <div>
-        <h1>🏫 Manage Classes</h1>
-        <p id="classesManageSchoolId">Loading school…</p>
+      <div class="brand">
+        <div class="logo">
+          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
+        </div>
+        <div>
+          <h2 style="margin-bottom:4px;">Manage Classes</h2>
+          <p id="classesManageSchoolId" style="margin-bottom:0;">Loading school…</p>
+        </div>
       </div>
       <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
         <button class="btn-cta" id="classesBackToAdminBtn">🛡️ School Admin</button>
       </div>
     </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Class Architecture</div>
+        <h1>Create classes and sections</h1>
+        <p>Set up school structure with class names, sections, room numbers, and class teachers so later timetable and attendance can use this foundation.</p>
+        <div class="chip-row">
+          <span class="chip">Class Name</span>
+          <span class="chip">Section</span>
+          <span class="chip">Room</span>
+          <span class="chip">Class Teacher</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">Class Structure Core</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="card">
       <h3>Add Class / Section</h3>
@@ -70,13 +102,16 @@
       </div>
     </div>
 
-      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
-</main>
+    <p class="footer">Phase 2 class management starter</p>
   </main>
 </div>
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./classes-manage.js"></script>
+<script type="module">
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
+</script>
 <script src="./pwa-register.js"></script>
 </body>
 </html>

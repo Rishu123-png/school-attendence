@@ -11,11 +11,8 @@
 </head>
 <body onload="initDashboardPage()">
 
-<!-- ☰ Menu Button -->
 <button id="menuToggle" class="menu-btn">⋮</button>
-<!-- Overlay -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
-<!-- Sidebar -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <img src="file_000000000b80720891a13f8f2b0b0935.png" class="sidebar-logo" alt="Logo">
@@ -27,23 +24,49 @@
     <button data-page="dashboard"   onclick="location.href='dashboard.html'">🏠 Dashboard</button>
     <button data-page="attendance"  onclick="sidebarGoAttendance()">📅 Attendance</button>
     <button data-page="marks"       onclick="location.href='marks.html'">📊 Marks</button>
-    <button id="themeToggle">☀️ Light Mode</button>
+    <button id="themeToggle" type="button">☀️ Light Mode</button>
     <button onclick="logout()">🚪 Logout</button>
   </div>
 </div>
 
 <main class="container">
-  <header class="header">
-    <div>
+  <section class="hero-shell dashboard-hero-panel">
+    <div class="hero-copy">
+      <div class="eyebrow">School Command Center</div>
       <h1>Welcome, <span id="teacherNameDisplay">Teacher</span> 👋</h1>
-      <p id="dashboardRoleLine" style="color:var(--muted);margin-top:-6px;">Track classes, attendance, and performance.</p>
+      <p id="dashboardRoleLine" style="margin-bottom:0;">Track classes, attendance, and performance.</p>
+
+      <div class="dashboard-panel-controls">
+        <select id="classSelect" style="min-width:220px;max-width:320px;">
+          <option value="">-- Select class --</option>
+        </select>
+      </div>
+
+      <div class="metrics-row">
+        <div class="stat-mini">
+          <strong>Teacher Tools</strong>
+          <span>Attendance, marks, analytics and low-attendance tracking</span>
+        </div>
+        <div class="stat-mini">
+          <strong>School Admin</strong>
+          <span>Admin controls appear when the logged-in role is schoolAdmin</span>
+        </div>
+      </div>
     </div>
-    <div class="top-controls">
-      <select id="classSelect" style="min-width:160px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:#fff;">
-        <option value="">-- Select class --</option>
-      </select>
+
+    <div class="hero-visual">
+      <div class="orb-scene">
+        <div>
+          <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-pulse"></div>
+            <div class="orb-core"></div>
+          </div>
+          <div class="orb-caption">Attendance Intelligence Core</div>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
 
   <div class="card" id="monthlySummaryCard" style="margin-bottom:18px;">
     <p style="color:var(--muted);">Loading monthly summary…</p>
@@ -75,8 +98,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
       <h3 style="margin:0;">👥 Students</h3>
       <input id="studentSearch" placeholder="🔍 Search students…"
-        style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);
-        background:rgba(255,255,255,0.07);color:#fff;min-width:200px;font-size:14px;outline:none;">
+        style="min-width:220px;max-width:320px;">
     </div>
     <div class="table-wrap">
       <table id="studentsTable">
@@ -89,7 +111,6 @@
   <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
 </main>
 
-<!-- YEARLY PROMOTION MODAL -->
 <div id="promotionModal" class="promo-overlay" style="display:none;">
   <div class="promo-box">
     <div id="promoChoiceView">

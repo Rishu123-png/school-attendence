@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Period Attendance</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">
+          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
+        </div>
+        <div>
+          <h2 style="margin-bottom:4px;">Period Attendance</h2>
+          <p id="periodAttendanceSchoolId" style="margin-bottom:0;">Loading school…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
+        <button class="btn-cta" id="periodAttendanceBackBtn">🛡️ School Admin</button>
+      </div>
+    </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Period Attendance Engine</div>
+        <h1>Mark attendance class period by class period</h1>
+        <p>Choose a class, date, and one timetable slot. Then mark each student as present, absent, late, leave, medical, or half day.</p>
+        <div class="chip-row">
+          <span class="chip">Timetable linked</span>
+          <span class="chip">Class-specific</span>
+          <span class="chip">Period-specific</span>
+          <span class="chip">Leaderboard ready</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">Attendance Execution Core</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="card">
+      <h3>Select class, date and period</h3>
+      <form id="periodAttendanceForm">
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+          <div>
+            <label class="label">Class</label>
+            <select id="periodAttendanceClassSelect" required>
+              <option value="">-- Select class --</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Date</label>
+            <input id="periodAttendanceDateInput" type="date" required>
+          </div>
+          <div>
+            <label class="label">Day</label>
+            <input id="periodAttendanceDayLabel" type="text" readonly>
+          </div>
+          <div>
+            <label class="label">Period Slot</label>
+            <select id="periodAttendancePeriodSelect" required>
+              <option value="">-- Select period --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="action-row" style="margin-top:16px;">
+          <button type="button" class="btn-ghost" id="periodAttendanceLoadBtn">🔄 Load Students</button>
+          <button type="submit" class="btn-cta">💾 Save Period Attendance</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" id="periodSlotSummaryCard" style="margin-top:16px;display:none;">
+      <h3>Selected Period Summary</h3>
+      <div class="chip-row">
+        <span class="chip" id="periodSlotSummaryClass">Class: —</span>
+        <span class="chip" id="periodSlotSummaryTime">Time: —</span>
+        <span class="chip" id="periodSlotSummarySubject">Subject: —</span>
+        <span class="chip" id="periodSlotSummaryTeacher">Teacher: —</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3>Student Attendance Sheet</h3>
+          <p style="margin-bottom:0;">Each selected status will be stored for the chosen date and period.</p>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table id="periodAttendanceTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Roll No</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./period-attendance.js"></script>
+<script type="module">
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
+</script>
+<script src="./pwa-register.js"></script>
+</body>
+</html>

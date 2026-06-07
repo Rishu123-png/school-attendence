@@ -24,6 +24,7 @@ function markActiveButtons(sidebar) {
       (page === "students-manage" && currentPage.includes("students-manage")) ||
       (page === "subjects-manage" && currentPage.includes("subjects-manage")) ||
       (page === "timetable-manage" && currentPage.includes("timetable-manage")) ||
+      (page === "period-attendance" && currentPage.includes("period-attendance")) ||
       (page === "assignments-manage" && currentPage.includes("teacher-assignments"));
 
     btn.classList.toggle("active", isActive);
@@ -70,6 +71,7 @@ async function injectAdminLinks(sidebar) {
       { label: "🏫 Classes", page: "classes-manage", href: withSchoolId("classes-manage.html") },
       { label: "📚 Subjects", page: "subjects-manage", href: withSchoolId("subjects-manage.html") },
       { label: "🗓️ Timetable", page: "timetable-manage", href: withSchoolId("timetable-manage.html") },
+      { label: "📌 Period Attendance", page: "period-attendance", href: withSchoolId("period-attendance.html") },
       { label: "🧩 Assignments", page: "assignments-manage", href: withSchoolId("teacher-assignments.html") }
     ];
 

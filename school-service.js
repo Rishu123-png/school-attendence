@@ -156,6 +156,49 @@ export async function listSchoolCollection(schoolId, collectionName, idField = '
   return snap.exists() ? mapObjectToArray(snap.val(), idField) : [];
 }
 
+function parseClassesText(classesText = '') {
+  return normalizeWhitespace(classesText)
+    .split(',')
+    .map(item => normalizeWhitespace(item))
+    .filter(Boolean);
+}
+
+async function syncTeacherAuthLinks(schoolId, record, previousAuthUid = '') {
+  const authUid = normalizeWhitespace(record.authUid || '');
+  const previousUid = normalizeWhitespace(previousAuthUid || '');
+  const updates = {};
+
+  if (previousUid && previousUid !== authUid) {
+    updates[`teachers/${previousUid}`] = null;
+  }
+
+  if (authUid) {
+    updates[`userProfiles/${authUid}`] = {
+      displayName: record.name || 'Teacher',
+      email: record.email || '',
+      role: record.role || 'teacher',
+      schoolId,
+      status: record.status || 'active',
+      teacherId: record.teacherId,
+      updatedAt: serverTimestamp()
+    };
+
+    updates[`teachers/${authUid}`] = {
+      name: record.name || 'Teacher',
+      email: record.email || '',
+      subject: record.subject || '',
+      classes: parseClassesText(record.classesText || ''),
+      schoolId,
+      linkedTeacherId: record.teacherId,
+      status: record.status || 'active'
+    };
+  }
+
+  if (Object.keys(updates).length) {
+    await update(ref(db), updates);
+  }
+}
+
 export async function createTeacherRecord(schoolId, data) {
   const teacherRef = push(ref(db, `schools/${schoolId}/teachers`));
   const teacherId = teacherRef.key;
@@ -175,6 +218,7 @@ export async function createTeacherRecord(schoolId, data) {
   };
 
   await set(teacherRef, record);
+  await syncTeacherAuthLinks(schoolId, record);
   return record;
 }
 
@@ -200,13 +244,20 @@ export async function updateTeacherRecord(schoolId, teacherId, data) {
   };
 
   await set(ref(db, teacherPath), record);
+  await syncTeacherAuthLinks(schoolId, record, existing.authUid || '');
   return record;
 }
 
 export async function deleteTeacherRecord(schoolId, teacherId) {
+  const teacherSnap = await get(ref(db, `schools/${schoolId}/teachers/${teacherId}`));
+  const teacherRecord = teacherSnap.exists() ? (teacherSnap.val() || {}) : {};
+
   const updates = {};
   updates[`schools/${schoolId}/teachers/${teacherId}`] = null;
   updates[`schools/${schoolId}/teacherClassSubjects/${teacherId}`] = null;
+  if (teacherRecord.authUid) {
+    updates[`teachers/${teacherRecord.authUid}`] = null;
+  }
 
   const [assignmentsSnap, classesSnap] = await Promise.all([
     get(ref(db, `schools/${schoolId}/teacherAssignments`)),

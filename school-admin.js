@@ -121,6 +121,7 @@ async function init() {
       makeNavHandler('manageClassesBtn', 'classes-manage.html', schoolId);
       makeNavHandler('manageSubjectsBtn', 'subjects-manage.html', schoolId);
       makeNavHandler('manageTimetableBtn', 'timetable-manage.html', schoolId);
+      makeNavHandler('managePeriodAttendanceBtn', 'period-attendance.html', schoolId);
       makeNavHandler('manageAssignmentsBtn', 'teacher-assignments.html', schoolId);
       makeNavHandler('openTeachersPageBtn', 'teachers-manage.html', schoolId);
       makeNavHandler('openStudentsPageBtn', 'students-manage.html', schoolId);

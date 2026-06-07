@@ -476,3 +476,50 @@ export async function listTimetableForClass(schoolId, classId = '') {
     return aNum - bNum;
   });
 }
+
+export async function listTimetableForDay(schoolId, classId, dayKey) {
+  const rows = await listTimetableForClass(schoolId, classId);
+  return rows.filter(row => String(row.dayKey || '') === String(dayKey || '').toLowerCase());
+}
+
+export async function getPeriodAttendanceRecords(schoolId, classId, date, periodId) {
+  const snap = await get(ref(db, `schools/${schoolId}/attendance/${classId}/${date}/${periodId}`));
+  return snap.exists() ? (snap.val() || {}) : {};
+}
+
+export async function savePeriodAttendanceBatch(schoolId, data) {
+  const classId = normalizeWhitespace(data.classId || '');
+  const date = normalizeWhitespace(data.date || '');
+  const periodId = normalizeWhitespace(data.periodId || '');
+
+  if (!classId || !date || !periodId) {
+    throw new Error('classId, date and periodId are required');
+  }
+
+  const updates = {};
+  const updatedAt = serverTimestamp();
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+
+  rows.forEach(row => {
+    const studentId = normalizeWhitespace(row.studentId || '');
+    if (!studentId) return;
+    updates[`schools/${schoolId}/attendance/${classId}/${date}/${periodId}/${studentId}`] = {
+      studentId,
+      studentName: normalizeWhitespace(row.studentName || ''),
+      status: normalizeWhitespace(row.status || 'present') || 'present',
+      teacherId: normalizeWhitespace(data.teacherId || ''),
+      teacherName: normalizeWhitespace(data.teacherName || ''),
+      subjectId: normalizeWhitespace(data.subjectId || ''),
+      subjectName: normalizeWhitespace(data.subjectName || ''),
+      date,
+      classId,
+      periodId,
+      recordedAt: updatedAt,
+      updatedAt,
+      source: 'teacher-web'
+    };
+  });
+
+  await update(ref(db), updates);
+  return { saved: rows.length };
+}

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6b6cff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Teacher Schedule</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">
+          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
+        </div>
+        <div>
+          <h2 style="margin-bottom:4px;">Teacher Schedule</h2>
+          <p id="teacherScheduleSchoolId" style="margin-bottom:0;">Loading school…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
+        <button class="btn-cta" id="teacherScheduleBackBtn">🛡️ School Admin</button>
+      </div>
+    </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Teacher Execution View</div>
+        <h1>See what each teacher should teach today</h1>
+        <p>Use this page to view daily schedules by teacher, verify assigned periods, and open period attendance directly for the selected class and slot.</p>
+        <div class="chip-row">
+          <span class="chip">Teacher-wise</span>
+          <span class="chip">Date-wise</span>
+          <span class="chip">Timetable linked</span>
+          <span class="chip">Attendance shortcut</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-scene">
+          <div>
+            <div class="ai-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-pulse"></div>
+              <div class="orb-core"></div>
+            </div>
+            <div class="orb-caption">Teacher Flow Core</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="card">
+      <h3>Select teacher and date</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+        <div>
+          <label class="label">Teacher</label>
+          <select id="teacherScheduleTeacherSelect">
+            <option value="">-- Select teacher --</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Date</label>
+          <input id="teacherScheduleDateInput" type="date">
+        </div>
+        <div>
+          <label class="label">Day</label>
+          <input id="teacherScheduleDayLabel" type="text" readonly>
+        </div>
+        <div style="display:flex;align-items:end;">
+          <button class="btn-cta" id="teacherScheduleRefreshBtn" style="width:100%;">🔄 Load Schedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Daily Schedule</h3>
+      <div class="table-wrap">
+        <table id="teacherScheduleTable">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Day</th>
+              <th>Period</th>
+              <th>Time</th>
+              <th>Subject</th>
+              <th>Room</th>
+              <th>Attendance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+
+<script type="module" src="./firebase.js"></script>
+<script type="module" src="./teacher-schedule.js"></script>
+<script type="module">
+  import { initTheme } from "./theme.js";
+  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
+</script>
+<script src="./pwa-register.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a07e1203fab6a77b',t:'MTc4MDgxODY3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

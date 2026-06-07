@@ -523,3 +523,30 @@ export async function savePeriodAttendanceBatch(schoolId, data) {
   await update(ref(db), updates);
   return { saved: rows.length };
 }
+
+export async function resolveTeacherRecordForCurrentUser(schoolId) {
+  if (!auth.currentUser) return null;
+  const teachers = await listSchoolCollection(schoolId, 'teachers', 'teacherId');
+  const uid = String(auth.currentUser.uid);
+  return teachers.find(teacher =>
+    String(teacher.teacherId || '') === uid ||
+    String(teacher.uid || '') === uid ||
+    String(teacher.authUid || '') === uid
+  ) || null;
+}
+
+export async function listTeacherScheduleForDate(schoolId, teacherId, dateStr) {
+  const dayInfo = (() => {
+    if (!dateStr) return { key: '' };
+    const d = new Date(`${dateStr}T00:00:00`);
+    const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return { key: keys[d.getDay()] || '' };
+  })();
+
+  if (!teacherId || !dayInfo.key) return [];
+  const allRows = await listTimetableForClass(schoolId, '');
+  return allRows.filter(row =>
+    String(row.dayKey || '') === String(dayInfo.key) &&
+    String(row.teacherId || '') === String(teacherId)
+  );
+}

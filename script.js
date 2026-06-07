@@ -30,14 +30,13 @@ let currentClassFilter = "";
 
 onAuthStateChanged(auth, (user) => { currentTeacherUser = user; });
 
-/* ── HELPERS ──────────────────────────────────────────────── */
 async function fetchUserProfile(uid = auth.currentUser?.uid) {
   if (!uid) return null;
   try {
     const snap = await get(ref(db, `userProfiles/${uid}`));
     return snap.exists() ? snap.val() : null;
   } catch (error) {
-    console.warn("user-profile-load-failed", error);
+    console.warn('user-profile-load-failed', error);
     return null;
   }
 }
@@ -48,51 +47,41 @@ async function hydrateCurrentUserProfile(uid = auth.currentUser?.uid) {
 }
 
 function buildSchoolAdminUrl(profile = currentUserProfile) {
-  const urlSchoolId =
-    profile?.schoolId ||
-    new URLSearchParams(window.location.search).get("schoolId") ||
-    "";
-
-  return urlSchoolId
-    ? `school-admin.html?schoolId=${encodeURIComponent(urlSchoolId)}`
-    : "school-setup.html";
-}
-
-function consumePostLoginRedirect(profile) {
-  const target = localStorage.getItem("postLoginRedirect");
-  if (!target) return "";
-
-  localStorage.removeItem("postLoginRedirect");
-
-  if (target === "school-admin.html") {
-    return buildSchoolAdminUrl(profile);
-  }
-
-  return target;
+  const schoolId = profile?.schoolId || new URLSearchParams(window.location.search).get('schoolId') || '';
+  return schoolId ? `school-admin.html?schoolId=${encodeURIComponent(schoolId)}` : 'school-setup.html';
 }
 
 function updateDashboardRoleUi() {
-  const shortcutBtn = document.getElementById("schoolAdminShortcut");
-  const roleLine = document.getElementById("dashboardRoleLine");
+  const schoolAdminBtn = document.getElementById('schoolAdminShortcut');
+  const teacherScheduleBtn = document.getElementById('teacherScheduleShortcut');
+  const roleLine = document.getElementById('dashboardRoleLine');
 
-  if (shortcutBtn) {
-    shortcutBtn.style.display = currentUserProfile?.role === "schoolAdmin" ? "" : "none";
-  }
+  if (schoolAdminBtn) schoolAdminBtn.style.display = currentUserProfile?.role === 'schoolAdmin' ? '' : 'none';
+  if (teacherScheduleBtn) teacherScheduleBtn.style.display = currentUserProfile?.schoolId ? '' : 'none';
 
   if (roleLine) {
-    if (currentUserProfile?.role === "schoolAdmin") {
-      roleLine.innerText = "You are logged in as School Admin. Use School Admin tools and teacher tools from here.";
+    if (currentUserProfile?.role === 'schoolAdmin') {
+      roleLine.innerText = 'You are logged in as School Admin. Use School Admin tools and teacher tools from here.';
+    } else if (currentUserProfile?.schoolId) {
+      roleLine.innerText = 'Your school workspace is active. Open your schedule to view assigned periods and mark attendance.';
     } else {
-      roleLine.innerText = "Track classes, attendance, and performance.";
+      roleLine.innerText = 'Track classes, attendance, and performance.';
     }
   }
 }
 
 window.goToSchoolAdmin = async function () {
-  if (!currentUserProfile) {
-    await hydrateCurrentUserProfile();
-  }
+  if (!currentUserProfile) await hydrateCurrentUserProfile();
   window.location.href = buildSchoolAdminUrl(currentUserProfile);
+};
+
+window.goToTeacherSchedule = async function () {
+  if (!currentUserProfile) await hydrateCurrentUserProfile();
+  if (!currentUserProfile?.schoolId) {
+    showToast('No school is linked to this account yet.', 'warning');
+    return;
+  }
+  window.location.href = `teacher-schedule.html?schoolId=${encodeURIComponent(currentUserProfile.schoolId)}`;
 };
 
 /* ── AUTH GUARD ───────────────────────────────────────────── */
@@ -109,23 +98,24 @@ window.login = async function () {
   const email    = (document.getElementById('email')?.value || '').trim();
   const password = document.getElementById('password')?.value || '';
   if (!email || !password) { showToast('Enter email and password', 'warning'); return; }
-
   showLoading('Signing in…');
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const profile = await fetchUserProfile(userCredential.user.uid);
-    const pendingRedirect = consumePostLoginRedirect(profile);
-
+    const pendingRedirect = localStorage.getItem('postLoginRedirect') || '';
     if (pendingRedirect) {
+      localStorage.removeItem('postLoginRedirect');
       window.location.href = pendingRedirect;
       return;
     }
-
-    if (profile?.role === "schoolAdmin") {
+    if (profile?.role === 'schoolAdmin') {
       window.location.href = buildSchoolAdminUrl(profile);
       return;
     }
-
+    if (profile?.schoolId) {
+      window.location.href = `teacher-schedule.html?schoolId=${encodeURIComponent(profile.schoolId)}`;
+      return;
+    }
     window.location.href = 'dashboard.html';
   } catch (err) {
     hideLoading();
@@ -144,15 +134,9 @@ function loadTeacherProfile() {
   onValue(ref(db, `teachers/${uid}`), snap => {
     const data = snap.val() || {};
     teacherProfile = data;
-
-    const setText = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.innerText = val;
-    };
-
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     const fallbackName = currentUserProfile?.displayName || 'Teacher';
-    const fallbackSubject = currentUserProfile?.role === "schoolAdmin" ? "School Admin" : '';
-
+    const fallbackSubject = currentUserProfile?.role === 'schoolAdmin' ? 'School Admin' : '';
     setText('teacherName', data.name || fallbackName);
     setText('teacherSubject', data.subject || fallbackSubject);
     setText('teacherSubjectAdd', data.subject || fallbackSubject);
@@ -168,12 +152,7 @@ function loadTeacherProfile() {
       if (!sel) return;
       const cur = sel.value;
       sel.innerHTML = '<option value="">-- Select class --</option>';
-      ids.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c;
-        o.innerText = c;
-        sel.appendChild(o);
-      });
+      ids.forEach(c => { const o = document.createElement('option'); o.value = c; o.innerText = c; sel.appendChild(o); });
       if (cur) sel.value = cur;
     });
   });
@@ -188,6 +167,7 @@ window.initDashboardPage = function () {
     loadTeacherProfile();
     updateDashboardRoleUi();
 
+    // Attendance summary card for current month
     renderMonthlySummary();
 
     const classSel = document.getElementById('classSelect');
@@ -198,6 +178,7 @@ window.initDashboardPage = function () {
       };
     }
 
+    // Search box
     const searchBox = document.getElementById('studentSearch');
     if (searchBox) {
       searchBox.oninput = () => renderStudentsTable(currentClassFilter);
@@ -208,6 +189,7 @@ window.initDashboardPage = function () {
   });
 };
 
+// FIX #17: sidebarGoAttendance was referenced in dashboard.html but never defined
 window.sidebarGoAttendance = function () {
   const classSel = document.getElementById('classSelect');
   const cls = classSel ? classSel.value : currentClassFilter;
@@ -226,18 +208,16 @@ window.goToMarkAttendance = function () {
   window.location.href = 'mark-attendance.html';
 };
 
+// NEW: Monthly summary card
 async function renderMonthlySummary() {
   const card = document.getElementById('monthlySummaryCard');
   if (!card || !auth.currentUser) return;
-
   const now   = new Date();
   const y     = now.getFullYear();
   const m     = String(now.getMonth() + 1).padStart(2, '0');
   const month = `${y}-${m}`;
-
   const snap  = await get(ref(db, 'students'));
   const data  = snap.val() || {};
-
   let totalPresent = 0, totalAbsent = 0, studentCount = 0;
   for (const id in data) {
     const s = data[id];
@@ -250,10 +230,8 @@ async function renderMonthlySummary() {
       }
     }
   }
-
   const total = totalPresent + totalAbsent;
   const pct   = total ? Math.round((totalPresent / total) * 100) : 0;
-
   card.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
       <div><strong style="font-size:16px;">📅 This Month — ${month}</strong>
@@ -273,7 +251,7 @@ export async function loadStudents(selectedClass = '') {
     const snap  = await get(ref(db, 'students'));
     allStudents = snap.val() || {};
     renderStudentsTable(currentClassFilter);
-
+    // Update count badge
     const countEl = document.getElementById('studentsCount');
     if (countEl) {
       const visible = Object.values(allStudents).filter(s =>
@@ -289,6 +267,7 @@ export async function loadStudents(selectedClass = '') {
   }
 }
 
+// FIX #18: renderStudentsTable now properly uses selectedClass + search filter
 function renderStudentsTable(selectedClass = '') {
   const table     = document.getElementById('studentsTable');
   if (!table) return;
@@ -307,6 +286,7 @@ function renderStudentsTable(selectedClass = '') {
     if (s.teacher && auth.currentUser && s.teacher !== auth.currentUser.uid) continue;
     if (searchVal && !(s.name||'').toLowerCase().includes(searchVal)) continue;
 
+    // NEW: attendance % badge
     const att = s.attendance || {};
     const monthEntries = Object.keys(att).filter(d => d.startsWith(month));
     const present = monthEntries.filter(d => att[d] === 'present').length;
@@ -320,6 +300,7 @@ function renderStudentsTable(selectedClass = '') {
     row.insertCell(0).innerText = s.name || '';
     row.insertCell(1).innerText = s.class || '';
 
+    // Attendance badge cell
     const attCell = row.insertCell(2);
     attCell.innerHTML = buildBadgeHtml(badgeText, badgeColor);
 
@@ -335,6 +316,7 @@ function renderStudentsTable(selectedClass = '') {
       ac.appendChild(claimBtn);
     }
 
+    // FIX #5: Edit uses showPrompt (no nested function bug)
     const editBtn = makeBtn('✏️ Edit', '#37d6ff', () => {
       showPrompt('Edit student name', s.name || '', async (newName) => {
         if (!newName) return;
@@ -356,7 +338,7 @@ function renderStudentsTable(selectedClass = '') {
     ac.appendChild(editBtn);
 
     const delBtn = makeBtn('🗑️ Delete', '#ff6b6b', () => {
-      showConfirm(`Delete \"${s.name}\"? This cannot be undone.`, async () => {
+      showConfirm(`Delete "${s.name}"? This cannot be undone.`, async () => {
         showLoading('Deleting…');
         try {
           await set(ref(db, `students/${id}`), null);
@@ -392,8 +374,7 @@ function makeBtn(label, color, onclick) {
 
 /* ── ADD STUDENT ──────────────────────────────────────────── */
 window.initAddStudentsPage = function () {
-  requireAuth(async () => {
-    await hydrateCurrentUserProfile();
+  requireAuth(() => {
     initSidebar();
     initTheme();
     loadTeacherProfile();
@@ -407,7 +388,6 @@ window.addStudent = async function () {
   if (!name || !cls) { showToast('Enter student name and class', 'warning'); return; }
   if (!isValidStudentName(name)) { showToast('Enter a valid student name', 'warning'); return; }
   if (!isValidClassName(cls)) { showToast('Enter a valid class name', 'warning'); return; }
-
   showLoading('Adding student…');
   try {
     const subj   = teacherProfile?.subject || '';
@@ -439,7 +419,6 @@ window.claimStudent = async function (studentId) {
 /* ── MARK ATTENDANCE PAGE ─────────────────────────────────── */
 window.initMarkAttendancePage = async function () {
   requireAuth(async () => {
-    await hydrateCurrentUserProfile();
     initSidebar();
     initTheme();
 
@@ -461,6 +440,7 @@ window.initMarkAttendancePage = async function () {
       const el      = document.getElementById('studentNameLabel');
       if (el) el.innerText = student.name || '';
 
+      // NEW: Auto-set today's date / default month
       const now          = new Date();
       const defaultMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
       const mp           = document.getElementById('monthPickerMark');
@@ -522,12 +502,12 @@ function buildAttRow(table, date, status) {
   const ab = makeBtn('Absent', '#ff6b6b', () => markAtt('absent'));
   r.insertCell(3).appendChild(ab);
 }
-
 /* CLASS MODE */
 async function loadClassAttendanceUI(className) {
   document.getElementById('classAttendanceUI').style.display  = 'block';
   document.getElementById('singleStudentUI').style.display    = 'none';
 
+  // NEW: Auto-set today's date
   const today = todayDateString();
   const safeClassName = escapeHtml(className);
 
@@ -587,7 +567,8 @@ async function loadClassAttendanceUI(className) {
         r.dataset.studentId = st.id;
       });
     }
-document.getElementById('saveClassAttendanceBtn').onclick = async () => {
+
+    document.getElementById('saveClassAttendanceBtn').onclick = async () => {
       const dateVal = document.getElementById('attendanceDate').value || today;
       showLoading('Saving…');
       try {
@@ -686,10 +667,7 @@ window.printReport = function () {
 /* ── TOP BUNKERS PAGE ─────────────────────────────────────── */
 window.initTopBunkersPage = function () {
   requireAuth(async () => {
-    await hydrateCurrentUserProfile();
-    initSidebar();
     initTheme();
-    loadTeacherProfile();
     showLoading('Loading…');
     try {
       const snap    = await get(ref(db, 'students'));
@@ -719,8 +697,7 @@ window.initTopBunkersPage = function () {
 };
 /* ── ANALYTICS PAGE ───────────────────────────────────────── */
 window.initAnalyticsPage = function () {
-  requireAuth(async () => {
-    await hydrateCurrentUserProfile();
+  requireAuth(() => {
     initSidebar();
     initTheme();
     loadTeacherProfile();
@@ -771,7 +748,8 @@ window.renderAnalytics = async function () {
       }
       studentTotals.push({ id: s.id, name: s.name, present: sp, absent: sa, totalDays: mdays, attObj: s.attendance });
     }
-const area = document.getElementById('chartsArea');
+
+    const area = document.getElementById('chartsArea');
     area.innerHTML = '';
 
     const pct = (students.length * mdays) ? Math.round((totals.present / (students.length * mdays)) * 100) : 0;
@@ -786,7 +764,7 @@ const area = document.getElementById('chartsArea');
         </div>
       </div>`;
     area.appendChild(summary);
-
+// Bar chart
     const dayCard = document.createElement('div'); dayCard.className = 'card';
     dayCard.innerHTML = `<strong>Daily Present Count</strong>
       <div id="dayBar" style="margin-top:10px;display:flex;gap:4px;align-items:flex-end;height:120px;"></div>`;
@@ -800,7 +778,9 @@ const area = document.getElementById('chartsArea');
       col.title = `Day ${i+1}: ${v} present`;
       dayBar.appendChild(col);
     });
-const rankCard = document.createElement('div'); rankCard.className = 'card';
+
+    // Ranking table
+    const rankCard = document.createElement('div'); rankCard.className = 'card';
     rankCard.innerHTML = `<strong>Student Attendance Ranking</strong>`;
     const tw = document.createElement('div'); tw.className = 'table-wrap';
     const t  = document.createElement('table');
@@ -819,6 +799,7 @@ const rankCard = document.createElement('div'); rankCard.className = 'card';
     });
     tw.appendChild(t); rankCard.appendChild(tw); area.appendChild(rankCard);
 
+    // Controls
     const ctrl = document.createElement('div'); ctrl.className = 'action-row';
     const expBtn = document.createElement('button'); expBtn.className = 'btn-cta'; expBtn.innerText = '📥 Export Excel';
     expBtn.onclick = () => {
@@ -859,17 +840,17 @@ function getAcademicYear() {
 }
 
 function buildPromoClassMap(classList) {
-  const grades  = classList.map(c => { const m = c.match(/^(\\d+)/); return m ? parseInt(m[1]) : null; }).filter(g=>g!==null);
+  const grades  = classList.map(c => { const m = c.match(/^(\d+)/); return m ? parseInt(m[1]) : null; }).filter(g=>g!==null);
   const maxGrade = grades.length ? Math.max(...grades) : 0;
   const map = {};
   classList.forEach(cls => {
-    const m = cls.match(/^(\\d+)(.*)/);
+    const m = cls.match(/^(\d+)(.*)/);
     if (!m) { map[cls] = null; return; }
     map[cls] = parseInt(m[1]) >= maxGrade ? null : `${parseInt(m[1])+1}${m[2]}`;
   });
   return map;
 }
-
+// FIX #6: renamed checkAcademicYearAndPromote → checkYearlyPromotion (was never defined before)
 async function checkYearlyPromotion() {
   if (!auth.currentUser) return;
   const uid = auth.currentUser.uid;
@@ -936,7 +917,6 @@ window.startPromoteAll = async function () {
   document.getElementById('promoDoneSummary').innerText = msg;
   loadStudents(currentClassFilter);
 };
-
 window.startReviewPromotion = function () {
   document.getElementById('promoChoiceView').style.display = 'none';
   document.getElementById('promoReviewView').style.display = 'block';
@@ -1013,3 +993,7 @@ window.fixTeacherIds = async function () {
     finally { hideLoading(); }
   });
 };
+
+
+
+  

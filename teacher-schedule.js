@@ -13,6 +13,7 @@ let activeSchoolId = '';
 let teacherMap = new Map();
 let classMap = new Map();
 let currentProfile = null;
+let currentScheduleRows = [];
 
 const DAY_LABELS = {
   monday: 'Monday',
@@ -24,8 +25,12 @@ const DAY_LABELS = {
   sunday: 'Sunday'
 };
 
+function isActualSchoolAdmin() {
+  return currentProfile?.role === 'schoolAdmin' && !currentProfile?.teacherId;
+}
+
 function goBack() {
-  if (currentProfile?.role === 'schoolAdmin') {
+  if (isActualSchoolAdmin()) {
     window.location.href = `school-admin.html?schoolId=${encodeURIComponent(activeSchoolId)}`;
   } else {
     window.location.href = 'dashboard.html';
@@ -63,7 +68,48 @@ function fillTeacherSelect(rows) {
   if (current && rows.some(r => r.teacherId === current)) select.value = current;
 }
 
+function buildAttendanceUrl(row, selectedDate) {
+  const url = new URL('period-attendance.html', window.location.href);
+  url.searchParams.set('schoolId', activeSchoolId);
+  url.searchParams.set('classId', row.classId || '');
+  url.searchParams.set('date', selectedDate || '');
+  url.searchParams.set('periodId', row.periodId || '');
+  return url.toString();
+}
+
+function updateUpcomingClass(rows, selectedDate) {
+  const card = document.getElementById('teacherUpcomingClassCard');
+  const markBtn = document.getElementById('teacherUpcomingMarkBtn');
+  if (!card || !markBtn) return;
+
+  if (!rows.length) {
+    card.style.display = 'none';
+    return;
+  }
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  let nextRow = rows.find(row => {
+    const start = String(row.startTime || '');
+    if (!start.includes(':')) return false;
+    const [hh, mm] = start.split(':').map(Number);
+    return hh * 60 + mm >= nowMinutes;
+  }) || rows[0];
+
+  const classLabel = classMap.get(nextRow.classId)?.displayName || nextRow.classId || '—';
+  const timeLabel = [nextRow.startTime, nextRow.endTime].filter(Boolean).join(' - ') || '—';
+  document.getElementById('teacherUpcomingClassName').textContent = `Class: ${classLabel}`;
+  document.getElementById('teacherUpcomingClassTime').textContent = `Time: ${timeLabel}`;
+  document.getElementById('teacherUpcomingClassSubject').textContent = `Subject: ${nextRow.subjectName || nextRow.subjectId || '—'}`;
+  document.getElementById('teacherUpcomingClassRoom').textContent = `Room: ${nextRow.roomNo || '—'}`;
+  markBtn.onclick = () => { window.location.href = buildAttendanceUrl(nextRow, selectedDate); };
+  card.style.display = '';
+}
+
 function renderRows(rows, selectedDate) {
+  currentScheduleRows = rows;
+  updateUpcomingClass(rows, selectedDate);
+
   const tbody = document.querySelector('#teacherScheduleTable tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
@@ -105,12 +151,7 @@ function renderRows(rows, selectedDate) {
     openBtn.style.padding = '8px 12px';
     openBtn.textContent = '📌 Mark Attendance';
     openBtn.onclick = () => {
-      const url = new URL('period-attendance.html', window.location.href);
-      url.searchParams.set('schoolId', activeSchoolId);
-      url.searchParams.set('classId', row.classId || '');
-      url.searchParams.set('date', selectedDate || '');
-      url.searchParams.set('periodId', row.periodId || '');
-      window.location.href = url.toString();
+      window.location.href = buildAttendanceUrl(row, selectedDate);
     };
     actionTd.appendChild(openBtn);
     tr.appendChild(actionTd);
@@ -173,11 +214,18 @@ async function init() {
     fillTeacherSelect(teachers.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))));
     classMap = new Map(classes.map(item => [item.classId, item]));
 
-    if (currentProfile?.role !== 'schoolAdmin') {
+    if (!isActualSchoolAdmin()) {
       const ownTeacher = await resolveTeacherRecordForCurrentUser(activeSchoolId);
       if (ownTeacher) {
         const select = document.getElementById('teacherScheduleTeacherSelect');
-        if (select) select.value = ownTeacher.teacherId;
+        if (select) {
+          select.value = ownTeacher.teacherId;
+          select.disabled = true;
+        }
+        const teacherField = document.getElementById('teacherScheduleTeacherField');
+        if (teacherField) {
+          teacherField.querySelector('.label').textContent = 'Your Teacher Record';
+        }
       }
     }
 

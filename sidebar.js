@@ -54,7 +54,7 @@ async function injectAdminLinks(sidebar) {
     if (!snap.exists()) return;
 
     const profile = snap.val() || {};
-    if (profile.role !== "schoolAdmin") return;
+    if (profile.role !== "schoolAdmin" || profile.teacherId) return;
 
     const schoolId = profile.schoolId || new URLSearchParams(window.location.search).get("schoolId") || "";
     const withSchoolId = (fileName) => schoolId ? `${fileName}?schoolId=${encodeURIComponent(schoolId)}` : "school-setup.html";

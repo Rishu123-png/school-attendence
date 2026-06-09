@@ -211,7 +211,7 @@ export async function createTeacherRecord(schoolId, data) {
     email: normalizeWhitespace(data.email || ''),
     subject: normalizeWhitespace(data.subject || ''),
     classesText: normalizeWhitespace(data.classesText || ''),
-    role: normalizeWhitespace(data.role || 'teacher') || 'teacher',
+    role: 'teacher',
     status: normalizeWhitespace(data.status || 'active') || 'active',
     createdAt,
     updatedAt: createdAt
@@ -229,6 +229,7 @@ export async function updateTeacherRecord(schoolId, teacherId, data) {
 
   const existing = snap.val() || {};
   const updatedAt = serverTimestamp();
+  const isOwnAdminRecord = String(existing.authUid || existing.uid || '') === String(auth.currentUser?.uid || '') && String(existing.role || '') === 'schoolAdmin';
 
   const record = {
     ...existing,
@@ -238,7 +239,7 @@ export async function updateTeacherRecord(schoolId, teacherId, data) {
     email: normalizeWhitespace(data.email ?? existing.email ?? ''),
     subject: normalizeWhitespace(data.subject ?? existing.subject ?? ''),
     classesText: normalizeWhitespace(data.classesText ?? existing.classesText ?? ''),
-    role: normalizeWhitespace(data.role ?? existing.role ?? 'teacher') || 'teacher',
+    role: isOwnAdminRecord ? 'schoolAdmin' : 'teacher',
     status: normalizeWhitespace(data.status ?? existing.status ?? 'active') || 'active',
     updatedAt
   };
@@ -361,6 +362,56 @@ export async function createTeacherAssignmentRecord(schoolId, data) {
   return { assignmentId, teacherId, classId, subjectId };
 }
 
+function normalizeSelectedSubjectIds(raw) {
+  const list = Array.isArray(raw)
+    ? raw
+    : String(raw || '').split(',');
+  return Array.from(new Set(list.map(item => normalizeWhitespace(item)).filter(Boolean)));
+}
+
+function normalizeSelectedSubjectNames(raw) {
+  const list = Array.isArray(raw)
+    ? raw
+    : String(raw || '').split(',');
+  return Array.from(new Set(list.map(item => normalizeWhitespace(item)).filter(Boolean)));
+}
+
+async function syncStudentRosterIndexes(schoolId, studentRecord, previousRecord = null) {
+  const updates = {};
+  const studentId = studentRecord.studentId;
+  const oldClassId = normalizeWhitespace(previousRecord?.classId || '');
+  const newClassId = normalizeWhitespace(studentRecord.classId || '');
+  const oldSubjectIds = normalizeSelectedSubjectIds(previousRecord?.selectedSubjectIds || []);
+  const newSubjectIds = normalizeSelectedSubjectIds(studentRecord.selectedSubjectIds || []);
+
+  if (oldClassId && oldClassId !== newClassId) {
+    updates[`schools/${schoolId}/sectionStudents/${oldClassId}/${studentId}`] = null;
+    oldSubjectIds.forEach(subjectId => {
+      updates[`schools/${schoolId}/sectionSubjectRosters/${oldClassId}/${subjectId}/${studentId}`] = null;
+    });
+  }
+
+  if (newClassId) {
+    updates[`schools/${schoolId}/sectionStudents/${newClassId}/${studentId}`] = true;
+  }
+
+  oldSubjectIds.forEach(subjectId => {
+    if (!newSubjectIds.includes(subjectId) || oldClassId !== newClassId) {
+      updates[`schools/${schoolId}/sectionSubjectRosters/${oldClassId || newClassId}/${subjectId}/${studentId}`] = null;
+    }
+  });
+
+  newSubjectIds.forEach(subjectId => {
+    if (newClassId) {
+      updates[`schools/${schoolId}/sectionSubjectRosters/${newClassId}/${subjectId}/${studentId}`] = true;
+    }
+  });
+
+  if (Object.keys(updates).length) {
+    await update(ref(db), updates);
+  }
+}
+
 export async function createStudentRecord(schoolId, data) {
   const studentRef = push(ref(db, `schools/${schoolId}/students`));
   const studentId = studentRef.key;
@@ -371,6 +422,9 @@ export async function createStudentRecord(schoolId, data) {
   const section = normalizeWhitespace(data.section || '');
   const rollNo = normalizeWhitespace(data.rollNo || '');
   const admissionNo = normalizeWhitespace(data.admissionNo || '');
+  const subjectGroup = normalizeWhitespace(data.subjectGroup || '');
+  const selectedSubjectIds = normalizeSelectedSubjectIds(data.selectedSubjectIds || []);
+  const selectedSubjectNames = normalizeSelectedSubjectNames(data.selectedSubjectNames || []);
 
   const record = {
     studentId,
@@ -379,13 +433,53 @@ export async function createStudentRecord(schoolId, data) {
     section,
     rollNo,
     admissionNo,
+    subjectGroup,
+    selectedSubjectIds,
+    selectedSubjectNames,
     status: 'active',
     createdAt,
     updatedAt: createdAt
   };
 
   await set(studentRef, record);
+  await syncStudentRosterIndexes(schoolId, record, null);
   return record;
+}
+
+export async function updateStudentRecord(schoolId, studentId, data) {
+  const path = `schools/${schoolId}/students/${studentId}`;
+  const snap = await get(ref(db, path));
+  if (!snap.exists()) throw new Error('Student record not found');
+  const existing = snap.val() || {};
+  const updatedAt = serverTimestamp();
+
+  const record = {
+    ...existing,
+    studentId,
+    fullName: normalizeWhitespace(data.fullName ?? existing.fullName ?? existing.name ?? ''),
+    classId: normalizeWhitespace(data.classId ?? existing.classId ?? ''),
+    section: normalizeWhitespace(data.section ?? existing.section ?? ''),
+    rollNo: normalizeWhitespace(data.rollNo ?? existing.rollNo ?? ''),
+    admissionNo: normalizeWhitespace(data.admissionNo ?? existing.admissionNo ?? ''),
+    subjectGroup: normalizeWhitespace(data.subjectGroup ?? existing.subjectGroup ?? ''),
+    selectedSubjectIds: normalizeSelectedSubjectIds(data.selectedSubjectIds ?? existing.selectedSubjectIds ?? []),
+    selectedSubjectNames: normalizeSelectedSubjectNames(data.selectedSubjectNames ?? existing.selectedSubjectNames ?? []),
+    status: normalizeWhitespace(data.status ?? existing.status ?? 'active') || 'active',
+    updatedAt
+  };
+
+  await set(ref(db, path), record);
+  await syncStudentRosterIndexes(schoolId, record, existing);
+  return record;
+}
+
+export async function deleteStudentRecord(schoolId, studentId) {
+  const snap = await get(ref(db, `schools/${schoolId}/students/${studentId}`));
+  const existing = snap.exists() ? (snap.val() || {}) : null;
+  if (existing) {
+    await syncStudentRosterIndexes(schoolId, { studentId, classId: '', selectedSubjectIds: [] }, existing);
+  }
+  await set(ref(db, `schools/${schoolId}/students/${studentId}`), null);
 }
 
 export async function listVisibleSchoolStudents(schoolId) {
@@ -408,6 +502,9 @@ export async function listVisibleSchoolStudents(schoolId) {
         section: value?.section || '',
         rollNo: value?.rollNo || '',
         admissionNo: value?.admissionNo || '',
+        subjectGroup: value?.subjectGroup || '',
+        selectedSubjectIds: normalizeSelectedSubjectIds(value?.selectedSubjectIds || []),
+        selectedSubjectNames: normalizeSelectedSubjectNames(value?.selectedSubjectNames || []),
         status: value?.status || 'active',
         source: 'school'
       });
@@ -434,6 +531,9 @@ export async function listVisibleSchoolStudents(schoolId) {
         section: value?.section || '',
         rollNo: value?.rollNo || '',
         admissionNo: value?.admissionNo || '',
+        subjectGroup: value?.subjectGroup || '',
+        selectedSubjectIds: normalizeSelectedSubjectIds(value?.selectedSubjectIds || value?.subject || []),
+        selectedSubjectNames: normalizeSelectedSubjectNames(value?.selectedSubjectNames || value?.subject || []),
         status: value?.status || 'legacy',
         source: 'legacy'
       });
@@ -457,11 +557,14 @@ export async function upsertTimetableEntry(schoolId, data) {
   const existingSnap = await get(ref(db, path));
   const existing = existingSnap.exists() ? existingSnap.val() : {};
 
+  const slotType = normalizeWhitespace(data.slotType || existing.slotType || 'subject') || 'subject';
+
   const record = {
     ...existing,
     classId,
     dayKey,
     periodId,
+    slotType,
     periodNo: normalizeWhitespace(data.periodNo || existing.periodNo || ''),
     label: normalizeWhitespace(data.label || existing.label || ''),
     startTime: normalizeWhitespace(data.startTime || existing.startTime || ''),
@@ -488,8 +591,7 @@ export async function listTimetableForClass(schoolId, classId = '') {
   const basePath = classId
     ? `schools/${schoolId}/timetables/${classId}`
     : `schools/${schoolId}/timetables`;
-
-  const snap = await get(ref(db, basePath));
+const snap = await get(ref(db, basePath));
   if (!snap.exists()) return [];
 
   const order = {
@@ -518,8 +620,7 @@ export async function listTimetableForClass(schoolId, classId = '') {
       }
     }
   }
-
-  return entries.sort((a, b) => {
+return entries.sort((a, b) => {
     const dayDiff = (order[a.dayKey] || 99) - (order[b.dayKey] || 99);
     if (dayDiff !== 0) return dayDiff;
     const aNum = parseInt(String(a.periodNo || a.periodId || '').replace(/\D/g, '')) || 999;
@@ -531,6 +632,18 @@ export async function listTimetableForClass(schoolId, classId = '') {
 export async function listTimetableForDay(schoolId, classId, dayKey) {
   const rows = await listTimetableForClass(schoolId, classId);
   return rows.filter(row => String(row.dayKey || '') === String(dayKey || '').toLowerCase());
+}
+
+export async function listStudentsForAttendanceScope(schoolId, classId, slotType = 'class', subjectId = '') {
+  const students = await listVisibleSchoolStudents(schoolId);
+  const classStudents = students.filter(student => String(student.classId || student.class || '') === String(classId || ''));
+
+  if (slotType !== 'subject') {
+    return classStudents;
+  }
+
+  const normalizedSubjectId = normalizeWhitespace(subjectId || '');
+  return classStudents.filter(student => normalizeSelectedSubjectIds(student.selectedSubjectIds || []).includes(normalizedSubjectId));
 }
 
 export async function getPeriodAttendanceRecords(schoolId, classId, date, periodId) {
@@ -550,18 +663,20 @@ export async function savePeriodAttendanceBatch(schoolId, data) {
   const updates = {};
   const updatedAt = serverTimestamp();
   const rows = Array.isArray(data.rows) ? data.rows : [];
-
-  rows.forEach(row => {
+  const slotType = normalizeWhitespace(data.slotType || 'class') || 'class';
+rows.forEach(row => {
     const studentId = normalizeWhitespace(row.studentId || '');
     if (!studentId) return;
+    const status = normalizeWhitespace(row.status || 'present') || 'present';
     updates[`schools/${schoolId}/attendance/${classId}/${date}/${periodId}/${studentId}`] = {
       studentId,
       studentName: normalizeWhitespace(row.studentName || ''),
-      status: normalizeWhitespace(row.status || 'present') || 'present',
+      status,
       teacherId: normalizeWhitespace(data.teacherId || ''),
       teacherName: normalizeWhitespace(data.teacherName || ''),
       subjectId: normalizeWhitespace(data.subjectId || ''),
       subjectName: normalizeWhitespace(data.subjectName || ''),
+      slotType,
       date,
       classId,
       periodId,
@@ -569,6 +684,26 @@ export async function savePeriodAttendanceBatch(schoolId, data) {
       updatedAt,
       source: 'teacher-web'
     };
+
+    const bunkKey = `${date}_${periodId}`;
+    const bunkPath = `schools/${schoolId}/bunkEvents/${studentId}/${bunkKey}`;
+    if (slotType === 'subject' && status === 'absent') {
+      updates[bunkPath] = {
+        studentId,
+        studentName: normalizeWhitespace(row.studentName || ''),
+        classId,
+        subjectId: normalizeWhitespace(data.subjectId || ''),
+        subjectName: normalizeWhitespace(data.subjectName || ''),
+        date,
+        periodId,
+        teacherId: normalizeWhitespace(data.teacherId || ''),
+        teacherName: normalizeWhitespace(data.teacherName || ''),
+        status: 'bunk',
+        createdAt: updatedAt
+      };
+    } else {
+      updates[bunkPath] = null;
+    }
   });
 
   await update(ref(db), updates);

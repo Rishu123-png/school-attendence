@@ -56,11 +56,12 @@ function updateDashboardRoleUi() {
   const teacherScheduleBtn = document.getElementById('teacherScheduleShortcut');
   const roleLine = document.getElementById('dashboardRoleLine');
 
-  if (schoolAdminBtn) schoolAdminBtn.style.display = currentUserProfile?.role === 'schoolAdmin' ? '' : 'none';
+  const isActualSchoolAdmin = currentUserProfile?.role === 'schoolAdmin' && !currentUserProfile?.teacherId;
+  if (schoolAdminBtn) schoolAdminBtn.style.display = isActualSchoolAdmin ? '' : 'none';
   if (teacherScheduleBtn) teacherScheduleBtn.style.display = currentUserProfile?.schoolId ? '' : 'none';
 
   if (roleLine) {
-    if (currentUserProfile?.role === 'schoolAdmin') {
+    if (isActualSchoolAdmin) {
       roleLine.innerText = 'You are logged in as School Admin. Use School Admin tools and teacher tools from here.';
     } else if (currentUserProfile?.schoolId) {
       roleLine.innerText = 'Your school workspace is active. Open your schedule to view assigned periods and mark attendance.';
@@ -108,7 +109,7 @@ window.login = async function () {
       window.location.href = pendingRedirect;
       return;
     }
-    if (profile?.role === 'schoolAdmin') {
+    if (profile?.role === 'schoolAdmin' && !profile?.teacherId) {
       window.location.href = buildSchoolAdminUrl(profile);
       return;
     }
@@ -502,12 +503,12 @@ function buildAttRow(table, date, status) {
   const ab = makeBtn('Absent', '#ff6b6b', () => markAtt('absent'));
   r.insertCell(3).appendChild(ab);
 }
+
 /* CLASS MODE */
 async function loadClassAttendanceUI(className) {
   document.getElementById('classAttendanceUI').style.display  = 'block';
   document.getElementById('singleStudentUI').style.display    = 'none';
-
-  // NEW: Auto-set today's date
+// NEW: Auto-set today's date
   const today = todayDateString();
   const safeClassName = escapeHtml(className);
 
@@ -567,8 +568,7 @@ async function loadClassAttendanceUI(className) {
         r.dataset.studentId = st.id;
       });
     }
-
-    document.getElementById('saveClassAttendanceBtn').onclick = async () => {
+document.getElementById('saveClassAttendanceBtn').onclick = async () => {
       const dateVal = document.getElementById('attendanceDate').value || today;
       showLoading('Saving…');
       try {
@@ -664,6 +664,7 @@ window.printReport = function () {
   w.document.write(`<h3>Monthly Attendance Report — ${escapeHtml(title)}</h3>${table.outerHTML}`);
   w.document.close(); w.print();
 };
+
 /* ── TOP BUNKERS PAGE ─────────────────────────────────────── */
 window.initTopBunkersPage = function () {
   requireAuth(async () => {
@@ -850,6 +851,7 @@ function buildPromoClassMap(classList) {
   });
   return map;
 }
+
 // FIX #6: renamed checkAcademicYearAndPromote → checkYearlyPromotion (was never defined before)
 async function checkYearlyPromotion() {
   if (!auth.currentUser) return;
@@ -917,6 +919,7 @@ window.startPromoteAll = async function () {
   document.getElementById('promoDoneSummary').innerText = msg;
   loadStudents(currentClassFilter);
 };
+
 window.startReviewPromotion = function () {
   document.getElementById('promoChoiceView').style.display = 'none';
   document.getElementById('promoReviewView').style.display = 'block';
@@ -937,7 +940,6 @@ function showPromoStudent(idx) {
   const passBtn = document.getElementById('promoPassBtn');
   if (passBtn) passBtn.innerText = next===null ? '🎓 Graduate' : next ? `✅ Pass → Class ${next}` : '✅ Pass';
 }
-
 window.reviewDecision = function (decision) {
   promoResults[promoStudents[promoIndex].id] = decision;
   showPromoStudent(promoIndex + 1);
@@ -993,7 +995,3 @@ window.fixTeacherIds = async function () {
     finally { hideLoading(); }
   });
 };
-
-
-
-  

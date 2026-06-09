@@ -52,7 +52,7 @@ function renderTimetable(rows) {
   if (!rows.length) {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
-    td.colSpan = 7;
+    td.colSpan = 8;
     td.textContent = 'No timetable slots found for the selected class.';
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -63,9 +63,10 @@ function renderTimetable(rows) {
     const tr = document.createElement('tr');
     const timeLabel = [row.startTime, row.endTime].filter(Boolean).join(' - ') || '—';
     const periodLabel = row.label || row.periodNo || row.periodId || '—';
+    const slotTypeLabel = row.slotType === 'subject' ? 'Subject' : 'Class';
     const subjectLabel = row.subjectName || subjectMap.get(row.subjectId)?.name || row.subjectId || '—';
     const teacherLabel = row.teacherName || teacherMap.get(row.teacherId)?.name || row.teacherId || '—';
-    const values = [DAY_LABELS[row.dayKey] || row.dayKey, periodLabel, timeLabel, subjectLabel, teacherLabel, row.roomNo || '—'];
+    const values = [DAY_LABELS[row.dayKey] || row.dayKey, periodLabel, slotTypeLabel, timeLabel, subjectLabel, teacherLabel, row.roomNo || '—'];
 
     values.forEach(value => {
       const td = document.createElement('td');
@@ -87,6 +88,7 @@ function renderTimetable(rows) {
       document.getElementById('timetableClassSelect').value = row.classId || '';
       document.getElementById('timetableDaySelect').value = row.dayKey || 'monday';
       document.getElementById('timetablePeriodNoInput').value = row.periodNo || String(row.periodId || '').replace(/\D/g, '');
+      document.getElementById('timetableSlotTypeSelect').value = row.slotType || 'subject';
       document.getElementById('timetableLabelInput').value = row.label || '';
       document.getElementById('timetableStartTimeInput').value = row.startTime || '';
       document.getElementById('timetableEndTimeInput').value = row.endTime || '';
@@ -188,11 +190,16 @@ async function init() {
       const dayKey = normalizeWhitespace(document.getElementById('timetableDaySelect')?.value || '').toLowerCase();
       const periodNo = normalizeWhitespace(document.getElementById('timetablePeriodNoInput')?.value || '');
       const periodId = periodNo ? `period_${periodNo}` : '';
+      const slotType = normalizeWhitespace(document.getElementById('timetableSlotTypeSelect')?.value || 'subject') || 'subject';
       const subjectId = normalizeWhitespace(document.getElementById('timetableSubjectSelect')?.value || '');
       const teacherId = normalizeWhitespace(document.getElementById('timetableTeacherSelect')?.value || '');
 
-      if (!classId || !dayKey || !periodNo || !subjectId || !teacherId) {
-        showToast('Class, day, period no, subject, and teacher are required.', 'warning');
+      if (!classId || !dayKey || !periodNo || !teacherId) {
+        showToast('Class, day, period no and teacher are required.', 'warning');
+        return;
+      }
+      if (slotType === 'subject' && !subjectId) {
+        showToast('Choose a subject for subject slots.', 'warning');
         return;
       }
 
@@ -201,11 +208,12 @@ async function init() {
         dayKey,
         periodId,
         periodNo,
+        slotType,
         label: normalizeWhitespace(document.getElementById('timetableLabelInput')?.value || `Period ${periodNo}`),
         startTime: normalizeWhitespace(document.getElementById('timetableStartTimeInput')?.value || ''),
         endTime: normalizeWhitespace(document.getElementById('timetableEndTimeInput')?.value || ''),
         subjectId,
-        subjectName: subjectMap.get(subjectId)?.name || '',
+        subjectName: subjectMap.get(subjectId)?.name || (slotType === 'class' ? 'Homeroom / General' : ''),
         teacherId,
         teacherName: teacherMap.get(teacherId)?.name || '',
         roomNo: normalizeWhitespace(document.getElementById('timetableRoomInput')?.value || '')

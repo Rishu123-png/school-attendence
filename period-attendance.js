@@ -3,7 +3,7 @@ import { showToast, showLoading, hideLoading } from "./toast.js";
 import { logAudit } from "./audit.js";
 import {
   listSchoolCollection,
-  listVisibleSchoolStudents,
+  listStudentsForAttendanceScope,
   listTimetableForDay,
   getPeriodAttendanceRecords,
   savePeriodAttendanceBatch,
@@ -148,6 +148,7 @@ function updatePeriodSummary() {
 
   card.style.display = '';
   document.getElementById('periodSlotSummaryClass').textContent = `Class: ${classMap.get(classId)?.displayName || classId}`;
+  document.getElementById('periodSlotSummaryType').textContent = `Type: ${slot.slotType === 'subject' ? 'Subject Slot' : 'Class / Homeroom'}`;
   document.getElementById('periodSlotSummaryTime').textContent = `Time: ${[slot.startTime, slot.endTime].filter(Boolean).join(' - ') || '—'}`;
   document.getElementById('periodSlotSummarySubject').textContent = `Subject: ${slot.subjectName || slot.subjectId || '—'}`;
   document.getElementById('periodSlotSummaryTeacher').textContent = `Teacher: ${slot.teacherName || slot.teacherId || '—'}`;
@@ -169,16 +170,16 @@ async function loadSlotsAndStudents({ preloadAttendance = true } = {}) {
 
   showLoading('Loading class period attendance…');
   try {
-    const [slots, students] = await Promise.all([
-      listTimetableForDay(activeSchoolId, classId, dayInfo.key),
-      listVisibleSchoolStudents(activeSchoolId)
-    ]);
-
-    visibleStudents = students.filter(student => String(student.classId || student.class || '') === String(classId));
+    const slots = await listTimetableForDay(activeSchoolId, classId, dayInfo.key);
     fillPeriodSelect(slots);
 
     let records = {};
     const periodId = document.getElementById('periodAttendancePeriodSelect')?.value || '';
+    const slot = slots.find(item => item.periodId === periodId) || null;
+    visibleStudents = slot
+      ? await listStudentsForAttendanceScope(activeSchoolId, classId, slot.slotType || 'class', slot.subjectId || '')
+      : [];
+
     if (preloadAttendance && periodId) {
       records = await getPeriodAttendanceRecords(activeSchoolId, classId, dateStr, periodId);
     }
@@ -205,6 +206,10 @@ async function reloadExistingAttendanceForSelectedPeriod() {
 
   showLoading('Loading recorded attendance…');
   try {
+    const slot = timetableSlots.find(item => item.periodId === periodId) || null;
+    visibleStudents = slot
+      ? await listStudentsForAttendanceScope(activeSchoolId, classId, slot.slotType || 'class', slot.subjectId || '')
+      : visibleStudents;
     const records = await getPeriodAttendanceRecords(activeSchoolId, classId, dateStr, periodId);
     renderStudents(records);
     updatePeriodSummary();
@@ -274,6 +279,7 @@ async function init() {
           subjectName: slot.subjectName || '',
           teacherId: slot.teacherId || '',
           teacherName: slot.teacherName || '',
+          slotType: slot.slotType || 'class',
           rows
         });
 

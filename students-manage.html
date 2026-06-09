@@ -55,8 +55,13 @@
     </section>
 
     <div class="card">
-      <h3>Add Student Record</h3>
-      <p>This saves the student inside <strong>schools/&lt;schoolId&gt;/students</strong>.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 id="studentFormTitle">Add Student Record</h3>
+          <p id="studentFormHint">This saves the student inside <strong>schools/&lt;schoolId&gt;/students</strong>.</p>
+        </div>
+        <span class="badge" id="studentEditBadge" style="display:none;">Editing Student</span>
+      </div>
       <form id="studentManageForm">
         <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
           <div>
@@ -81,9 +86,19 @@
             <label class="label">Admission No</label>
             <input id="schoolStudentAdmissionInput" placeholder="2026-018">
           </div>
+          <div>
+            <label class="label">Subject Group / Stream (optional)</label>
+            <input id="schoolStudentSubjectGroupInput" placeholder="Science / Commerce / General">
+          </div>
+          <div style="grid-column:1/-1;">
+            <label class="label">Selected Subjects</label>
+            <select id="schoolStudentSubjectsSelect" multiple size="6"></select>
+            <p style="margin-top:8px;margin-bottom:0;">Hold Ctrl / Cmd on desktop for multi-select. On mobile, tap the needed subjects in the list.</p>
+          </div>
         </div>
         <div class="action-row" style="margin-top:16px;">
-          <button type="submit" class="btn-cta">➕ Save Student</button>
+          <button type="submit" class="btn-cta" id="studentSubmitBtn">➕ Save Student</button>
+          <button type="button" class="btn-ghost" id="studentsCancelEditBtn" style="display:none;">✖ Cancel Edit</button>
           <button type="button" class="btn-ghost" id="studentsRefreshBtn">🔄 Refresh</button>
         </div>
       </form>
@@ -100,7 +115,10 @@
               <th>Section</th>
               <th>Roll No</th>
               <th>Admission No</th>
+              <th>Group</th>
+              <th>Subjects</th>
               <th>Source</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody></tbody>

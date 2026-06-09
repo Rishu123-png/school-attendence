@@ -85,6 +85,12 @@ async function init() {
       const fromQuery = new URLSearchParams(window.location.search).get('schoolId');
       const schoolId = fromQuery || profile?.schoolId;
 
+      if (profile?.role !== 'schoolAdmin' || profile?.teacherId) {
+        showToast('School Admin access only.', 'warning');
+        setTimeout(() => window.location.href = schoolId ? `teacher-schedule.html?schoolId=${encodeURIComponent(schoolId)}` : 'dashboard.html', 700);
+        return;
+      }
+
       if (!schoolId) {
         showToast('No school profile found for this account.', 'warning');
         setTimeout(() => window.location.href = 'school-setup.html', 800);

@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#6b6cff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.webmanifest">
-  <title>Low Attendance</title>
+  <title>Top Bunkers</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body onload="initTopBunkersPage()">
+<body>
 
 <button id="menuToggle" class="menu-btn">⋮</button>
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
@@ -20,7 +20,6 @@
     <p id="teacherSubject">Subject</p>
   </div>
   <div class="sidebar-menu">
-    <button data-page="add-student" onclick="location.href='add-students.html'">🧑‍💼 Add Student</button>
     <button data-page="dashboard" onclick="location.href='dashboard.html'">🏠 Dashboard</button>
     <button data-page="attendance" onclick="location.href='mark-attendance.html'">📅 Attendance</button>
     <button data-page="marks" onclick="location.href='marks.html'">📊 Marks</button>
@@ -33,13 +32,13 @@
   <section class="hero-shell">
     <div class="hero-copy">
       <div class="eyebrow">Bunk Intelligence</div>
-      <h1>Low attendance alert board</h1>
-      <p>Find students with the highest number of absences, monitor risk early, and export the low-attendance report when needed.</p>
+      <h1>Class-wise and subject-wise top bunkers</h1>
+      <p>Track repeated subject-wise bunks, filter by class/section/subject, and export the current bunker summary for reports.</p>
       <div class="chip-row">
-        <span class="chip">Absence count</span>
-        <span class="chip">Teacher view</span>
-        <span class="chip">CSV export</span>
-        <span class="chip">Critical tracking</span>
+        <span class="chip">Subject-wise</span>
+        <span class="chip">Section-wise</span>
+        <span class="chip">Class-wise</span>
+        <span class="chip">Repeated bunks</span>
       </div>
     </div>
     <div class="hero-visual">
@@ -50,7 +49,7 @@
             <div class="orb-pulse"></div>
             <div class="orb-core"></div>
           </div>
-          <div class="orb-caption">Risk Detection Core</div>
+          <div class="orb-caption">Bunk Detection Core</div>
         </div>
       </div>
     </div>
@@ -59,18 +58,57 @@
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
       <div>
-        <h3>🕵️ Low Attendance</h3>
-        <p style="margin-bottom:0;">Students with highest absences</p>
+        <h3>Top Bunkers Filters</h3>
+        <p style="margin-bottom:0;">Filter repeated bunk events before exporting.</p>
       </div>
       <div class="top-controls">
-        <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
-        <button class="btn-ghost" onclick="exportBunkersCSV()">📥 Export CSV</button>
+        <button class="btn-ghost" id="bunkersAdminBtn" style="display:none;">🏫 School Admin</button>
+        <button class="btn-cta" id="bunkersBackBtn">⬅ Back</button>
       </div>
     </div>
 
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px;">
+      <div>
+        <label class="label">Class</label>
+        <select id="bunkerClassFilter">
+          <option value="">-- All classes --</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Section</label>
+        <select id="bunkerSectionFilter">
+          <option value="">-- All sections --</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Subject</label>
+        <select id="bunkerSubjectFilter">
+          <option value="">-- All subjects --</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:end;gap:10px;">
+        <button class="btn-ghost" id="bunkersRefreshBtn" style="width:100%;">🔄 Refresh</button>
+        <button class="btn-cta" id="bunkersExportBtn" style="width:100%;">📥 Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Repeated Bunk Summary</h3>
     <div class="table-wrap" style="margin-top:14px;">
       <table id="bunkersTable">
-        <thead><tr><th>Name</th><th>Class</th><th>Subject</th><th>Absences</th></tr></thead>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Section</th>
+            <th>Subject</th>
+            <th>Bunk Count</th>
+            <th>Last Date</th>
+            <th>Last Period</th>
+          </tr>
+        </thead>
         <tbody></tbody>
       </table>
     </div>
@@ -81,14 +119,7 @@
 
 <script type="module" src="./firebase.js"></script>
 <script type="module" src="./script.js"></script>
-<script type="module">
-  import { initSidebar } from "./sidebar.js";
-  import { initTheme } from "./theme.js";
-  window.addEventListener("DOMContentLoaded", () => {
-    initSidebar();
-    initTheme();
-  });
-</script>
+<script type="module" src="./top-bunkers.js"></script>
 <script src="./pwa-register.js"></script>
 </body>
 </html>

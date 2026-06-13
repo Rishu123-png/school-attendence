@@ -570,4 +570,187 @@ export async function upsertTimetableEntry(schoolId, data) {
     startTime: normalizeWhitespace(data.startTime || existing.startTime || ''),
     endTime: normalizeWhitespace(data.endTime || existing.endTime || ''),
     subjectId: normalizeWhitespace(data.subjectId || existing.subjectId || ''),
-    subjectName: normalizeWhitespace(data.su
+    subjectName: normalizeWhitespace(data.subjectName || existing.subjectName || ''),
+    teacherId: normalizeWhitespace(data.teacherId || existing.teacherId || ''),
+    teacherName: normalizeWhitespace(data.teacherName || existing.teacherName || ''),
+    roomNo: normalizeWhitespace(data.roomNo || existing.roomNo || ''),
+    status: 'active',
+    createdAt: existing.createdAt || createdAt,
+    updatedAt: createdAt
+  };
+
+  await set(ref(db, path), record);
+  return record;
+}
+
+export async function deleteTimetableEntry(schoolId, classId, dayKey, periodId) {
+  await set(ref(db, `schools/${schoolId}/timetables/${classId}/${dayKey}/${periodId}`), null);
+}
+
+export async function listTimetableForClass(schoolId, classId = '') {
+  const basePath = classId
+    ? `schools/${schoolId}/timetables/${classId}`
+    : `schools/${schoolId}/timetables`;
+
+  const snap = await get(ref(db, basePath));
+  if (!snap.exists()) return [];
+
+  const order = {
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+    sunday: 7
+  };
+
+  const entries = [];
+  const rootVal = snap.val() || {};
+
+  const classBlocks = classId ? { [classId]: rootVal } : rootVal;
+  for (const [resolvedClassId, days] of Object.entries(classBlocks || {})) {
+    for (const [dayKey, periods] of Object.entries(days || {})) {
+      for (const [periodId, value] of Object.entries(periods || {})) {
+        entries.push({
+          classId: resolvedClassId,
+          dayKey,
+          periodId,
+          ...(value || {})
+        });
+      }
+    }
+  }
+return entries.sort((a, b) => {
+    const dayDiff = (order[a.dayKey] || 99) - (order[b.dayKey] || 99);
+    if (dayDiff !== 0) return dayDiff;
+    const aNum = parseInt(String(a.periodNo || a.periodId || '').replace(/\D/g, '')) || 999;
+    const bNum = parseInt(String(b.periodNo || b.periodId || '').replace(/\D/g, '')) || 999;
+    return aNum - bNum;
+  });
+}
+
+export async function listTimetableForDay(schoolId, classId, dayKey) {
+  const rows = await listTimetableForClass(schoolId, classId);
+  return rows.filter(row => String(row.dayKey || '') === String(dayKey || '').toLowerCase());
+}
+
+export async function listStudentsForAttendanceScope(schoolId, classId, slotType = 'class', subjectId = '') {
+  const students = await listVisibleSchoolStudents(schoolId);
+  const classStudents = students.filter(student => String(student.classId || student.class || '') === String(classId || ''));
+
+  if (slotType !== 'subject') {
+    return classStudents;
+  }
+
+  const normalizedSubjectId = normalizeWhitespace(subjectId || '');
+  return classStudents.filter(student => normalizeSelectedSubjectIds(student.selectedSubjectIds || []).includes(normalizedSubjectId));
+}
+
+export async function getPeriodAttendanceRecords(schoolId, classId, date, periodId) {
+  const snap = await get(ref(db, `schools/${schoolId}/attendance/${classId}/${date}/${periodId}`));
+  return snap.exists() ? (snap.val() || {}) : {};
+}
+
+export async function savePeriodAttendanceBatch(schoolId, data) {
+  const classId = normalizeWhitespace(data.classId || '');
+  const date = normalizeWhitespace(data.date || '');
+  const periodId = normalizeWhitespace(data.periodId || '');
+
+  if (!classId || !date || !periodId) {
+    throw new Error('classId, date and periodId are required');
+  }
+
+  const updates = {};
+  const updatedAt = serverTimestamp();
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+  const slotType = normalizeWhitespace(data.slotType || 'class') || 'class';
+
+  rows.forEach(row => {
+    const studentId = normalizeWhitespace(row.studentId || '');
+    if (!studentId) return;
+    const status = normalizeWhitespace(row.status || 'present') || 'present';
+    updates[`schools/${schoolId}/attendance/${classId}/${date}/${periodId}/${studentId}`] = {
+      studentId,
+      studentName: normalizeWhitespace(row.studentName || ''),
+      status,
+      teacherId: normalizeWhitespace(data.teacherId || ''),
+      teacherName: normalizeWhitespace(data.teacherName || ''),
+      subjectId: normalizeWhitespace(data.subjectId || ''),
+      subjectName: normalizeWhitespace(data.subjectName || ''),
+      slotType,
+      date,
+      classId,
+      periodId,
+      recordedAt: updatedAt,
+      updatedAt,
+      source: 'teacher-web'
+    };
+const bunkKey = `${date}_${periodId}`;
+    const bunkPath = `schools/${schoolId}/bunkEvents/${studentId}/${bunkKey}`;
+    if (slotType === 'subject' && status === 'absent') {
+      updates[bunkPath] = {
+        studentId,
+        studentName: normalizeWhitespace(row.studentName || ''),
+        classId,
+        subjectId: normalizeWhitespace(data.subjectId || ''),
+        subjectName: normalizeWhitespace(data.subjectName || ''),
+        date,
+        periodId,
+        teacherId: normalizeWhitespace(data.teacherId || ''),
+        teacherName: normalizeWhitespace(data.teacherName || ''),
+        status: 'bunk',
+        createdAt: updatedAt
+      };
+    } else {
+      updates[bunkPath] = null;
+    }
+  });
+
+  await update(ref(db), updates);
+  return { saved: rows.length };
+}
+
+export async function resolveTeacherRecordForCurrentUser(schoolId) {
+  if (!auth.currentUser) return null;
+  const teachers = await listSchoolCollection(schoolId, 'teachers', 'teacherId');
+  const uid = String(auth.currentUser.uid);
+  return teachers.find(teacher =>
+    String(teacher.teacherId || '') === uid ||
+    String(teacher.uid || '') === uid ||
+    String(teacher.authUid || '') === uid
+  ) || null;
+}
+
+export async function listTeacherScheduleForDate(schoolId, teacherId, dateStr) {
+  const dayInfo = (() => {
+    if (!dateStr) return { key: '' };
+    const d = new Date(`${dateStr}T00:00:00`);
+    const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return { key: keys[d.getDay()] || '' };
+  })();
+
+  if (!teacherId || !dayInfo.key) return [];
+  const allRows = await listTimetableForClass(schoolId, '');
+  return allRows.filter(row =>
+    String(row.dayKey || '') === String(dayInfo.key) &&
+    String(row.teacherId || '') === String(teacherId)
+  );
+}
+export async function listBunkEvents(schoolId) {
+  const snap = await get(ref(db, `schools/${schoolId}/bunkEvents`));
+  if (!snap.exists()) return [];
+
+  const rows = [];
+  for (const [studentId, events] of Object.entries(snap.val() || {})) {
+    for (const [eventId, value] of Object.entries(events || {})) {
+      rows.push({
+        eventId,
+        studentId,
+        ...(value || {})
+      });
+    }
+  }
+
+  return rows.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.periodId || '').localeCompare(String(a.periodId || '')));
+}

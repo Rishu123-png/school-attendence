@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Page Not Found — School OS</title>
+  <link rel="stylesheet" href="./styles/main.css">
+  <script>
+    (function(){
+      var t = localStorage.getItem("rebuild-theme") || "dark";
+      if (t === "light") document.documentElement.classList.add("light-mode");
+    })();
+  </script>
+</head>
+<body>
+<div class="page">
+  <main class="container" style="display:grid;place-items:center;min-height:80vh;">
+    <div style="text-align:center;">
+      <div style="font-size:80px;margin-bottom:16px;">🔍</div>
+      <h1 style="font-size:32px;">Page Not Found</h1>
+      <p style="margin:12px 0 28px;max-width:360px;">
+        The page you're looking for doesn't exist or has moved.
+      </p>
+      <div class="action-row" style="justify-content:center;">
+        <a href="./index.html" class="btn-cta">🏠 Go to Home</a>
+      </div>
+    </div>
+  </main>
+</div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dafebd6850fadc',t:'MTc4MTc5MzA1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -4,28 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <meta name="description" content="School OS — Attendance and performance management system for teachers and admins.">
   <title>School OS — Login</title>
   <link rel="stylesheet" href="./styles/main.css">
-  <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
-  <!-- Prevent theme flash -->
-  <script>
-    (function(){
-      var t = localStorage.getItem("rebuild-theme") || "dark";
-      if (t === "light") document.documentElement.classList.add("light-mode");
-    })();
-  </script>
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
+  <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");</script>
 </head>
 <body>
-
 <div id="offlineBanner">⚠️ You are offline. Check your connection.</div>
 <div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
 
 <div class="page">
   <main class="container">
-
     <header class="header">
       <div class="brand">
         <div class="logo">🎓</div>
@@ -36,7 +27,7 @@
       </div>
       <div class="top-controls">
         <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
-        <button id="openLoginBtn" class="btn-cta" type="button">🔐 Login</button>
+        <button id="openLoginBtn" class="btn-cta"   type="button">🔐 Login</button>
       </div>
     </header>
 
@@ -44,42 +35,30 @@
       <div class="hero-copy">
         <div class="eyebrow">🏫 School Management System</div>
         <h1>One backend.<br>Web admin + Teacher app flow.</h1>
-        <p style="margin:12px 0 18px;">
-          Manage your school from the web — teachers, students, classes, timetables,
-          attendance, marks, and bunker tracking. Teachers get a dedicated daily view.
-        </p>
+        <p style="margin:12px 0 18px;">Manage school from the web — teachers, students, classes, timetables, attendance, marks, analytics and bunk tracking. Teachers get a dedicated daily app view.</p>
         <div class="chip-row" style="margin-bottom:18px;">
           <span class="chip">🏫 School Setup</span>
           <span class="chip">👨‍💼 Admin Web</span>
           <span class="chip">👨‍🏫 Teacher Flow</span>
+          <span class="chip">📈 Analytics</span>
           <span class="chip">📱 PWA Ready</span>
         </div>
         <div class="action-row">
-          <button id="startSchoolSetupBtn" class="btn-cta" type="button">🏫 Create School Workspace</button>
-          <button id="openLoginBtn2" class="btn-ghost" type="button">🔐 Teacher / Admin Login</button>
+          <button id="startSchoolSetupBtn" class="btn-cta"   type="button">🏫 Create School Workspace</button>
+          <button id="openLoginBtn2"       class="btn-ghost" type="button">🔐 Teacher / Admin Login</button>
         </div>
       </div>
-      <div class="hero-visual">
-        <div class="orb-wrap"><div class="orb"></div></div>
-      </div>
+      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
     </section>
 
     <div class="grid">
-      <div class="card">
-        <h3>👨‍💼 Web Admin</h3>
-        <p style="margin-top:8px;">Setup school, manage teachers, students, classes, subjects, timetables and view analytics.</p>
-      </div>
-      <div class="card">
-        <h3>👨‍🏫 Teacher Flow</h3>
-        <p style="margin-top:8px;">Today's schedule, next class card, fast per-period attendance, marks entry, and bunk tracking.</p>
-      </div>
-      <div class="card">
-        <h3>📱 App Ready</h3>
-        <p style="margin-top:8px;">Same Firebase backend powers your mobile app. Install as PWA from Chrome instantly on Android.</p>
-      </div>
+      <div class="card"><h3>👨‍💼 Web Admin</h3><p style="margin-top:8px;">Full school control: teachers, students, timetables, analytics, reports, announcements, holidays.</p></div>
+      <div class="card"><h3>👨‍🏫 Teacher Flow</h3><p style="margin-top:8px;">Today's schedule, next class, one-tap attendance, marks, bunk tracking and leaderboard.</p></div>
+      <div class="card"><h3>📈 Analytics</h3><p style="margin-top:8px;">14-day trend charts, subject heatmap, teacher performance, at-risk student alerts.</p></div>
+      <div class="card"><h3>📱 App Ready</h3><p style="margin-top:8px;">Same Firebase backend powers the mobile app. Install as PWA from Chrome right now.</p></div>
     </div>
 
-    <p class="footer">Developed by <strong>Rishu Jaswar</strong> &nbsp;·&nbsp; School OS v2.0</p>
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
   </main>
 </div>
 
@@ -97,12 +76,12 @@
         <label for="password">Password</label>
         <div class="input-group">
           <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" required>
-          <button type="button" class="eye-btn" id="togglePwd" aria-label="Show password">👁️</button>
+          <button type="button" class="eye-btn" id="togglePwd">👁️</button>
         </div>
         <div class="field-error" id="passwordError"></div>
       </div>
-      <div class="action-row" style="justify-content:flex-end;">
-        <button type="button" id="forgotPwdBtn" class="btn-ghost" style="font-size:13px;padding:8px 12px;">Forgot password?</button>
+      <div style="text-align:right;">
+        <button type="button" id="forgotPwdBtn" class="btn-ghost" style="font-size:12px;padding:6px 12px;">Forgot password?</button>
       </div>
       <div class="action-row">
         <button class="btn-cta" type="submit" id="loginSubmitBtn" style="flex:1;">Sign In</button>
@@ -113,5 +92,5 @@
 </div>
 
 <script type="module" src="./scripts/index.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0db1d6a7f670c0b',t:'MTc4MTc5NDMxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dc4389691bc1c5',t:'MTc4MTgwNjM2Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

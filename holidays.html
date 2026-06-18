@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Holiday Calendar — School OS</title>
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
+</head>
+<body>
+<div id="offlineBanner">⚠️ You are offline.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
+<div id="toastHost"></div>
+
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">📅</div>
+        <div>
+          <h2>Holiday Calendar</h2>
+          <p id="schoolMeta" style="font-size:13px;">Loading…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="backBtn" class="btn-ghost" type="button">← Back</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+    <nav class="breadcrumb">👨‍💼 <a href="#">Admin</a> <span>›</span> 📅 Holidays</nav>
+
+    <div class="card" style="margin-bottom:18px;">
+      <h3>➕ Add Holiday</h3>
+      <form id="holidayForm" style="display:grid;gap:14px;margin-top:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+          <div>
+            <label for="holidayDate">Date *</label>
+            <input id="holidayDate" type="date">
+          </div>
+          <div>
+            <label for="holidayReason">Reason *</label>
+            <input id="holidayReason" type="text" placeholder="e.g. Diwali">
+          </div>
+          <div>
+            <label for="holidayType">Type</label>
+            <select id="holidayType">
+              <option value="holiday">🎉 Holiday</option>
+              <option value="exam">📝 Exam Day</option>
+              <option value="event">🎊 Event</option>
+              <option value="halfday">🕐 Half Day</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button id="holidaySubmitBtn" class="btn-cta" type="submit">💾 Add Holiday</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>📋 Upcoming & Past Holidays</h3>
+      <div class="table-wrap mobile-stack-table" style="margin-top:12px;">
+        <table id="holidaysTable">
+          <thead><tr><th>Date</th><th>Reason</th><th>Type</th><th>Action</th></tr></thead>
+          <tbody><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📅</div><p>No holidays set yet.</p></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+<script type="module" src="./scripts/holidays.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dc2e5e0b7774de',t:'MTc4MTgwNTQ5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,7 +1,6 @@
 import { db } from "./firebase.js";
 import { ref, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { listStudents } from "./student-service.js";
-import { listTimetableForDay } from "./timetable-service.js";
 
 function norm(value = "") {
   return String(value).replace(/\s+/g, " ").trim();
@@ -56,6 +55,25 @@ export async function savePeriodAttendance(schoolId, payload) {
       periodId,
       updatedAt: ts
     };
+
+    const bunkKey = `${date}_${periodId}`;
+    if (slotType === "subject" && status === "absent") {
+      updates[`schools/${schoolId}/bunkEvents/${studentId}/${bunkKey}`] = {
+        studentId,
+        studentName: norm(row.studentName),
+        classId,
+        subjectId: norm(payload.subjectId),
+        subjectName: norm(payload.subjectName),
+        teacherId: norm(payload.teacherId),
+        teacherName: norm(payload.teacherName),
+        date,
+        periodId,
+        status: "bunk",
+        createdAt: ts
+      };
+    } else {
+      updates[`schools/${schoolId}/bunkEvents/${studentId}/${bunkKey}`] = null;
+    }
   });
 
   updates[`schools/${schoolId}/attendanceMeta/${classId}/${date}/${periodId}`] = {
@@ -73,12 +91,4 @@ export async function savePeriodAttendance(schoolId, payload) {
 
   await update(ref(db), updates);
   return { saved: rows.length };
-}
-
-export async function getTodayTeacherPeriodContext(schoolId, teacherId, dateStr) {
-  const dayKeys = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-  const date = new Date(`${dateStr}T00:00:00`);
-  const dayKey = dayKeys[date.getDay()] || "";
-  const rows = await listTimetableForDay(schoolId, "", dayKey);
-  return rows.filter(row => String(row.teacherId || "") === String(teacherId));
 }

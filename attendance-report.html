@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Attendance Report — School OS</title>
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
+  <style>
+    @media print {
+      .no-print { display:none !important; }
+      body { background:#fff !important; color:#000 !important; }
+      .card { box-shadow:none !important; border:1px solid #ddd !important; }
+      table { font-size:11px; }
+    }
+  </style>
+</head>
+<body>
+<div id="offlineBanner" class="no-print">⚠️ You are offline.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
+<div id="toastHost"></div>
+
+<div class="page">
+  <main class="container">
+    <header class="header no-print">
+      <div class="brand">
+        <div class="logo">🖨️</div>
+        <div>
+          <h2>Attendance Report</h2>
+          <p id="pageMeta" style="font-size:13px;">Export &amp; Print</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="backBtn" class="btn-ghost" type="button">← Back</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+    <nav class="breadcrumb no-print" id="breadcrumb">🏠 <a href="#">Home</a> <span>›</span> 🖨️ Report</nav>
+
+    <div class="card no-print" style="margin-bottom:16px;">
+      <h3>🔎 Report Filters</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:14px;">
+        <div>
+          <label for="repClassSelect">Class *</label>
+          <select id="repClassSelect"><option value="">-- Select class --</option></select>
+        </div>
+        <div>
+          <label for="repFromDate">From Date</label>
+          <input id="repFromDate" type="date">
+        </div>
+        <div>
+          <label for="repToDate">To Date</label>
+          <input id="repToDate" type="date">
+        </div>
+      </div>
+      <div class="action-row" style="margin-top:14px;">
+        <button id="repLoadBtn" class="btn-cta" type="button">📊 Generate Report</button>
+        <button id="repCSVBtn"  class="btn-ghost" type="button">📥 Export CSV</button>
+        <button id="repPrintBtn" class="btn-ghost" type="button">🖨️ Print</button>
+      </div>
+    </div>
+
+    <!-- Print header (only shows on print) -->
+    <div id="printHeader" style="display:none;margin-bottom:16px;text-align:center;">
+      <h2 id="printSchoolName">School OS</h2>
+      <p id="printReportTitle">Attendance Report</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="grid no-print" id="repSummaryGrid" style="margin-bottom:16px;display:none;">
+      <div class="metric"><span>Total Records</span><strong id="repTotal">—</strong></div>
+      <div class="metric"><span>Present</span><strong id="repPresent" style="color:var(--success)">—</strong></div>
+      <div class="metric"><span>Absent</span><strong id="repAbsent" style="color:var(--danger)">—</strong></div>
+      <div class="metric"><span>Overall %</span><strong id="repPct" style="color:var(--accent-a)">—</strong></div>
+    </div>
+
+    <!-- Student-wise summary -->
+    <div class="card" id="repStudentCard" style="display:none;margin-bottom:16px;">
+      <h3>👥 Student-wise Summary</h3>
+      <div class="table-wrap mobile-stack-table" style="margin-top:12px;">
+        <table id="repStudentTable">
+          <thead><tr><th>Student</th><th>Roll</th><th>Present</th><th>Absent</th><th>Late</th><th>Total</th><th>Attendance %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detailed records -->
+    <div class="card" id="repDetailCard" style="display:none;">
+      <h3>📋 Detailed Records</h3>
+      <div class="table-wrap mobile-stack-table" style="margin-top:12px;">
+        <table id="repDetailTable">
+          <thead><tr><th>Date</th><th>Period</th><th>Student</th><th>Roll</th><th>Status</th><th>Subject</th><th>Teacher</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="footer no-print">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+<script type="module" src="./scripts/attendance-report.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dc242c9a8e2141',t:'MTc4MTgwNTA3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

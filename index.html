@@ -4,89 +4,114 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>School OS — Clean Rebuild</title>
+  <meta name="description" content="School OS — Attendance and performance management system for teachers and admins.">
+  <title>School OS — Login</title>
   <link rel="stylesheet" href="./styles/main.css">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  <!-- Prevent theme flash -->
+  <script>
+    (function(){
+      var t = localStorage.getItem("rebuild-theme") || "dark";
+      if (t === "light") document.documentElement.classList.add("light-mode");
+    })();
+  </script>
 </head>
 <body>
+
+<div id="offlineBanner">⚠️ You are offline. Check your connection.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
+<div id="toastHost"></div>
+
 <div class="page">
   <main class="container">
+
     <header class="header">
       <div class="brand">
-        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
+        <div class="logo">🎓</div>
         <div>
           <h2>School OS</h2>
-          <p>Clean rebuild foundation for web admin + teacher app flow</p>
+          <p style="font-size:13px;">Attendance &amp; Performance System</p>
         </div>
       </div>
       <div class="top-controls">
         <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
-        <button id="openLoginBtn" class="btn-cta" type="button">Login</button>
+        <button id="openLoginBtn" class="btn-cta" type="button">🔐 Login</button>
       </div>
     </header>
 
     <section class="hero-shell">
       <div class="hero-copy">
-        <div class="eyebrow">Clean Foundation</div>
-        <h1>One backend. Separate admin web and teacher app flows.</h1>
-        <p>
-          This clean rebuild removes the old mixed teacher/admin logic. Use the web for school management,
-          then build a real teacher/parent app on top of the same Firebase backend.
+        <div class="eyebrow">🏫 School Management System</div>
+        <h1>One backend.<br>Web admin + Teacher app flow.</h1>
+        <p style="margin:12px 0 18px;">
+          Manage your school from the web — teachers, students, classes, timetables,
+          attendance, marks, and bunker tracking. Teachers get a dedicated daily view.
         </p>
-        <div class="chip-row">
-          <span class="chip">School setup</span>
-          <span class="chip">Admin web</span>
-          <span class="chip">Teacher app flow</span>
-          <span class="chip">Play Store ready later</span>
+        <div class="chip-row" style="margin-bottom:18px;">
+          <span class="chip">🏫 School Setup</span>
+          <span class="chip">👨‍💼 Admin Web</span>
+          <span class="chip">👨‍🏫 Teacher Flow</span>
+          <span class="chip">📱 PWA Ready</span>
         </div>
-        <div class="action-row" style="margin-top:18px;">
+        <div class="action-row">
           <button id="startSchoolSetupBtn" class="btn-cta" type="button">🏫 Create School Workspace</button>
           <button id="openLoginBtn2" class="btn-ghost" type="button">🔐 Teacher / Admin Login</button>
         </div>
       </div>
       <div class="hero-visual">
-        <div class="orb-wrap">
-          <div class="orb"></div>
-        </div>
+        <div class="orb-wrap"><div class="orb"></div></div>
       </div>
     </section>
 
     <div class="grid">
-      <div class="card"><h3>Web Admin</h3><p>Setup schools, teachers, students, subjects, classes, and timetables.</p></div>
-      <div class="card"><h3>Teacher Flow</h3><p>Today schedule, next class, fast attendance, and later push reminders.</p></div>
-      <div class="card"><h3>Student/Parent Later</h3><p>Attendance, bunk alerts, notices, and leaderboard through dedicated app screens.</p></div>
-    </div>
-
-    <div id="toastHost"></div>
-
-    <div id="loginModal" class="modal-overlay">
-      <div class="modal-card">
-        <h3>Login</h3>
-        <form id="loginForm" style="display:grid;gap:12px;">
-          <div>
-            <label>Email</label>
-            <input id="email" type="email" placeholder="teacher@school.com">
-          </div>
-          <div>
-            <label>Password</label>
-            <input id="password" type="password" placeholder="Enter password">
-          </div>
-          <div class="action-row">
-            <button class="btn-cta" type="submit">Sign In</button>
-            <button id="closeLoginBtn" class="btn-ghost" type="button">Close</button>
-          </div>
-        </form>
+      <div class="card">
+        <h3>👨‍💼 Web Admin</h3>
+        <p style="margin-top:8px;">Setup school, manage teachers, students, classes, subjects, timetables and view analytics.</p>
+      </div>
+      <div class="card">
+        <h3>👨‍🏫 Teacher Flow</h3>
+        <p style="margin-top:8px;">Today's schedule, next class card, fast per-period attendance, marks entry, and bunk tracking.</p>
+      </div>
+      <div class="card">
+        <h3>📱 App Ready</h3>
+        <p style="margin-top:8px;">Same Firebase backend powers your mobile app. Install as PWA from Chrome instantly on Android.</p>
       </div>
     </div>
 
-      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+    <p class="footer">Developed by <strong>Rishu Jaswar</strong> &nbsp;·&nbsp; School OS v2.0</p>
   </main>
 </div>
 
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3>🔐 Sign In</h3>
+    <form id="loginForm" style="display:grid;gap:14px;">
+      <div>
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="teacher@school.com" autocomplete="email" required>
+        <div class="field-error" id="emailError"></div>
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <div class="input-group">
+          <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" required>
+          <button type="button" class="eye-btn" id="togglePwd" aria-label="Show password">👁️</button>
+        </div>
+        <div class="field-error" id="passwordError"></div>
+      </div>
+      <div class="action-row" style="justify-content:flex-end;">
+        <button type="button" id="forgotPwdBtn" class="btn-ghost" style="font-size:13px;padding:8px 12px;">Forgot password?</button>
+      </div>
+      <div class="action-row">
+        <button class="btn-cta" type="submit" id="loginSubmitBtn" style="flex:1;">Sign In</button>
+        <button id="closeLoginBtn" class="btn-ghost" type="button">Close</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script type="module" src="./scripts/index.js"></script>
-<script>
-  document.getElementById('openLoginBtn2')?.addEventListener('click', () => {
-    document.getElementById('openLoginBtn')?.click();
-  });
-</script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0db1d6a7f670c0b',t:'MTc4MTc5NDMxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

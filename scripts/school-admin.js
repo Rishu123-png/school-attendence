@@ -45,6 +45,9 @@ requireAuth(async (user) => {
   document.getElementById("classesLink")?.setAttribute("href", to("./classes-manage.html"));
   document.getElementById("subjectsLink")?.setAttribute("href", to("./subjects-manage.html"));
   document.getElementById("assignmentsLink")?.setAttribute("href", to("./teacher-assignments.html"));
+  document.getElementById("timetableLink")?.setAttribute("href", to("./timetable-manage.html"));
+  document.getElementById("teacherScheduleLink")?.setAttribute("href", to("./teacher-schedule.html"));
+  document.getElementById("periodAttendanceLink")?.setAttribute("href", to("./period-attendance.html"));
 }, () => {
   window.location.href = "./index.html";
 });

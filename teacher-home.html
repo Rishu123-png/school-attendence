@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Teacher Home — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
+        <div>
+          <h2 id="teacherName">Teacher Home</h2>
+          <p id="teacherMeta">Loading teacher profile…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Teacher App Flow</div>
+        <h1>Teacher schedule-first experience starts here</h1>
+        <p>This placeholder confirms routing is clean. Next build phase should replace this with Today Schedule, Next Class, and one-tap period attendance.</p>
+      </div>
+      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
+    </section>
+
+    <div class="grid">
+      <div class="card"><h3>Today Schedule</h3><p>Coming in the next clean module.</p></div>
+      <div class="card"><h3>Period Attendance</h3><p>Teacher will mark class-wise or subject-wise attendance from here.</p></div>
+      <div class="card"><h3>Alerts</h3><p>Reminder and late-teacher logic will connect after schedule is finalized.</p></div>
+    </div>
+
+    <div id="toastHost"></div>
+  </main>
+</div>
+
+<script type="module" src="./scripts/teacher-home.js"></script>
+</body>
+</html>

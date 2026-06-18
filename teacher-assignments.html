@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Teacher Assignments — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2>Teacher Assignments</h2><p id="schoolMeta">Loading school…</p></div></div>
+  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
+</header>
+<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Assignment Matrix</div><h1>Connect teacher, class and subject</h1><p>This mapping controls who should teach which class-subject combination and later powers teacher schedules and attendance visibility.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
+<div class="card">
+  <h3>Create Assignment</h3>
+  <form id="assignmentForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div><label>Teacher</label><select id="assignTeacherSelect"><option value="">-- Select teacher --</option></select></div>
+    <div><label>Class</label><select id="assignClassSelect"><option value="">-- Select class --</option></select></div>
+    <div><label>Subject</label><select id="assignSubjectSelect"><option value="">-- Select subject --</option></select></div>
+    <div class="action-row" style="grid-column:1/-1; margin-top:8px;"><button class="btn-cta" type="submit">Save Assignment</button></div>
+  </form>
+</div>
+<div class="card"><h3>Assignment List</h3><div class="table-wrap"><table id="assignmentsTable"><thead><tr><th>Teacher</th><th>Class</th><th>Subject</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+<div id="toastHost"></div>
+</main></div>
+<script type="module" src="./scripts/teacher-assignments.js"></script>
+</body>
+</html>

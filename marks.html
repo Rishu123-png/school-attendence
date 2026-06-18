@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Marks — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2 id="marksPageTitle">Marks & Predictions</h2><p id="marksPageMeta">Loading teacher marks workspace…</p></div></div>
+  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
+</header>
+<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Marks Intelligence</div><h1>Subject-wise marks and annual prediction</h1><p>Teachers can open their assigned class-subject scopes, pick a student, save term marks, and view an AI-style annual prediction using weighted performance and attendance.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
+<div class="card">
+  <h3>Teacher Scope</h3>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div><label>Assigned Scope</label><select id="marksScopeSelect"><option value="">-- Select class / subject --</option></select></div>
+    <div><label>Student</label><select id="marksStudentSelect"><option value="">-- Select student --</option></select></div>
+    <div><label>Attendance %</label><input id="marksAttendancePct" type="number" min="0" max="100" placeholder="Auto / manual"></div>
+    <div class="action-row" style="align-items:end;"><button id="marksLoadBtn" class="btn-ghost" type="button">Load Student</button></div>
+  </div>
+</div>
+<div class="card" id="marksFormCard" style="margin-top:16px;display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h3 id="marksStudentName">Student</h3>
+      <p id="marksScopeLabel" style="margin-bottom:0;">Scope: —</p>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:16px;">
+    <div><label>UT-1 Score</label><input id="ut1ScoreInput" type="number" min="0"><label style="margin-top:8px;">UT-1 Max</label><input id="ut1MaxInput" type="number" min="1" value="25"></div>
+    <div><label>Half-Yearly Score</label><input id="hyScoreInput" type="number" min="0"><label style="margin-top:8px;">Half-Yearly Max</label><input id="hyMaxInput" type="number" min="1" value="100"></div>
+    <div><label>UT-2 Score</label><input id="ut2ScoreInput" type="number" min="0"><label style="margin-top:8px;">UT-2 Max</label><input id="ut2MaxInput" type="number" min="1" value="25"></div>
+    <div><label>Annual Score</label><input id="annualScoreInput" type="number" min="0"><label style="margin-top:8px;">Annual Max</label><input id="annualMaxInput" type="number" min="1" value="100"></div>
+  </div>
+  <div class="action-row" style="margin-top:16px;"><button id="marksSaveBtn" class="btn-cta" type="button">Save Marks</button><button id="marksPredictBtn" class="btn-ghost" type="button">Recompute Prediction</button><button id="marksClearBtn" class="btn-ghost" type="button">Clear</button></div>
+</div>
+<div class="card" id="predictionCard" style="margin-top:16px;display:none;">
+  <h3>Prediction Summary</h3>
+  <div class="chip-row">
+    <span class="chip" id="predictionPercentChip">Predicted %: —</span>
+    <span class="chip" id="predictionScoreChip">Predicted Annual: —</span>
+    <span class="chip" id="predictionGradeChip">Grade: —</span>
+  </div>
+</div>
+<div id="toastHost"></div>
+</main></div>
+<script type="module" src="./scripts/marks.js"></script>
+</body>
+</html>

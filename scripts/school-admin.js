@@ -38,6 +38,13 @@ requireAuth(async (user) => {
   setText("countClasses", summary.counts.classes);
   setText("countSubjects", summary.counts.subjects);
   setText("countTimetables", summary.counts.timetables);
+
+  const to = (fileName) => `${fileName}?schoolId=${encodeURIComponent(schoolId)}`;
+  document.getElementById("teachersLink")?.setAttribute("href", to("./teachers-manage.html"));
+  document.getElementById("studentsLink")?.setAttribute("href", to("./students-manage.html"));
+  document.getElementById("classesLink")?.setAttribute("href", to("./classes-manage.html"));
+  document.getElementById("subjectsLink")?.setAttribute("href", to("./subjects-manage.html"));
+  document.getElementById("assignmentsLink")?.setAttribute("href", to("./teacher-assignments.html"));
 }, () => {
   window.location.href = "./index.html";
 });

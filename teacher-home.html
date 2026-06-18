@@ -7,15 +7,10 @@
   <title>Teacher Home — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
   <link rel="manifest" href="./manifest.json">
-  <script>
-    (function(){
-      var t = localStorage.getItem("rebuild-theme") || "dark";
-      if (t === "light") document.documentElement.classList.add("light-mode");
-    })();
-  </script>
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
+  <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");</script>
 </head>
 <body class="has-bottom-nav">
-
 <div id="offlineBanner">⚠️ You are offline. Changes may not save.</div>
 <div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
@@ -28,7 +23,7 @@
         <div class="logo">🎓</div>
         <div>
           <h2 id="teacherName">Teacher Home</h2>
-          <p id="teacherMeta" style="font-size:13px;">Loading profile…</p>
+          <p id="teacherMeta" style="font-size:13px;">Loading…</p>
         </div>
       </div>
       <div class="top-controls">
@@ -38,11 +33,26 @@
       </div>
     </header>
 
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb" id="breadcrumb">
-      🏠 <a href="./index.html">Home</a> <span>›</span> Teacher Dashboard
-    </nav>
+    <nav class="breadcrumb">🏠 Teacher Dashboard</nav>
 
+    <!-- Holiday Warning -->
+    <div id="holidayWarning" class="card" style="display:none;margin-bottom:12px;border-left:4px solid var(--warn);">
+      <h3>🎉 Today is a Holiday</h3>
+      <p style="margin-top:6px;">No attendance needs to be marked today. Enjoy your day!</p>
+    </div>
+
+    <!-- At-Risk Banner -->
+    <div id="atRiskBanner" class="card" style="display:none;margin-bottom:12px;border-left:4px solid var(--danger);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3>⚠️ <span id="atRiskCount">0</span> Students At Risk (&lt;75% Attendance)</h3>
+          <p style="margin-top:4px;font-size:13px;">Some students need attention. Check the leaderboard for details.</p>
+        </div>
+        <a id="goLeaderboardBtn" href="#" class="btn-danger" style="font-size:13px;">View At-Risk →</a>
+      </div>
+    </div>
+
+    <!-- Hero -->
     <section class="hero-shell">
       <div class="hero-copy">
         <div class="eyebrow">👨‍🏫 Teacher Dashboard</div>
@@ -53,33 +63,27 @@
           <span class="chip" id="teacherSchoolChip">🏫 School: —</span>
           <span class="chip" id="teacherSubjectChip">📘 Subject: —</span>
         </div>
-        <div class="action-row">
-          <a id="goScheduleBtn" class="btn-cta" href="#">🧭 My Schedule</a>
-          <button id="goAttendanceBtn" class="btn-cta" type="button" disabled>📌 Mark Attendance</button>
-          <a id="goBunkersBtn" class="btn-ghost" href="#">🕵️ Bunkers</a>
-          <a id="goMarksBtn" class="btn-ghost" href="#">📊 Marks</a>
+        <div class="action-row" style="flex-wrap:wrap;">
+          <a id="goScheduleBtn"    class="btn-cta"   href="#">🧭 Schedule</a>
+          <button id="goAttendanceBtn" class="btn-cta" type="button" disabled>✅ Attendance</button>
+          <a id="goBunkersBtn"     class="btn-ghost" href="#">🕵️ Bunkers</a>
+          <a id="goMarksBtn"       class="btn-ghost" href="#">📊 Marks</a>
+          <a id="goReportBtn"      class="btn-ghost" href="#">🖨️ Report</a>
         </div>
       </div>
-      <div class="hero-visual">
-        <div class="orb-wrap"><div class="orb"></div></div>
-      </div>
+      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
     </section>
 
-    <!-- Not-linked warning card -->
+    <!-- Not-linked card -->
     <div class="card" id="notLinkedCard" style="display:none;border-left:4px solid var(--warn);margin-bottom:16px;">
       <h3>⚠️ Teacher Account Not Linked</h3>
-      <p style="margin-top:8px;">Your login email is not linked to a teacher record in this school. Ask the school admin to:</p>
-      <ol style="color:var(--muted);padding-left:20px;margin-top:8px;line-height:2;">
-        <li>Go to <strong>Teachers → Manage Teachers</strong></li>
-        <li>Find your teacher record</li>
-        <li>Paste your <strong>Auth UID</strong> into the Auth UID field and save</li>
-      </ol>
+      <p style="margin-top:8px;">Ask the admin to go to <strong>Teachers → Edit your record → paste your Auth UID below → Save</strong>.</p>
       <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:10px;font-size:13px;">
         Your Auth UID: <strong id="myAuthUidDisplay" style="color:var(--accent-a);">Loading…</strong>
       </div>
     </div>
 
-    <!-- Next / Current Class Card -->
+    <!-- Next Class -->
     <div class="card" id="nextClassCard" style="display:none;margin-bottom:16px;border-left:4px solid var(--accent-a);">
       <h3>⏰ Next / Current Class</h3>
       <div class="summary-chips" style="margin-top:10px;">
@@ -100,41 +104,28 @@
       <div class="metric"><span>Class Slots</span><strong id="todayClassCount">—</strong></div>
     </div>
 
+    <!-- Announcements -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3>📢 Latest Announcements</h3>
+      </div>
+      <div id="announcementsWrap"><p style="color:var(--muted);font-size:13px;">Loading…</p></div>
+    </div>
+
     <!-- Today Schedule -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <h3>📅 Today's Schedule</h3>
-          <p style="margin-top:4px;font-size:13px;">Your assigned periods for today. Tap Mark Attendance to start.</p>
+          <p style="font-size:13px;margin-top:4px;">Tap Mark to open attendance for that period.</p>
         </div>
         <button id="refreshHomeScheduleBtn" class="btn-ghost" type="button">🔄 Refresh</button>
       </div>
       <div class="table-wrap mobile-stack-table">
         <table id="teacherHomeScheduleTable">
-          <thead>
-            <tr>
-              <th>Class</th>
-              <th>Period</th>
-              <th>Type</th>
-              <th>Time</th>
-              <th>Subject</th>
-              <th>Room</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Class</th><th>Period</th><th>Type</th><th>Time</th><th>Subject</th><th>Room</th><th>Action</th></tr></thead>
           <tbody></tbody>
         </table>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:16px;">
-      <div class="card">
-        <h3>💡 Quick Guide</h3>
-        <p style="margin-top:8px;">Open this page daily. Use the <em>Next Class card</em> to jump directly to marking attendance for your current period.</p>
-      </div>
-      <div class="card">
-        <h3>📊 Performance</h3>
-        <p style="margin-top:8px;">Check Marks to enter student scores and view predicted annual performance per subject.</p>
       </div>
     </div>
 
@@ -142,16 +133,16 @@
   </main>
 </div>
 
-<!-- Mobile Bottom Navigation -->
+<!-- Bottom Nav (5 tabs) -->
 <nav class="bottom-nav">
-  <a href="./teacher-home.html" id="nav-home">
+  <a href="./teacher-home.html" id="nav-home" class="active">
     <span class="nav-icon">🏠</span>Home
   </a>
   <a href="#" id="nav-schedule">
     <span class="nav-icon">📅</span>Schedule
   </a>
   <a href="#" id="nav-attendance">
-    <span class="nav-icon">✅</span>Attendance
+    <span class="nav-icon">✅</span>Attend
   </a>
   <a href="#" id="nav-bunkers">
     <span class="nav-icon">🕵️</span>Bunkers
@@ -162,5 +153,5 @@
 </nav>
 
 <script type="module" src="./scripts/teacher-home.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0db2cb0695554f6',t:'MTc4MTc5NDk0MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dc3b279abb8ad3',t:'MTc4MTgwNjAxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -4,45 +4,97 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>Teacher Home — Clean Rebuild</title>
+  <title>Teacher Home</title>
   <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
-<div class="page">
-  <main class="container">
-    <header class="header">
-      <div class="brand">
-        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
-        <div>
-          <h2 id="teacherName">Teacher Home</h2>
-          <p id="teacherMeta">Loading teacher profile…</p>
-        </div>
-      </div>
-      <div class="top-controls">
-        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
-        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
-      </div>
-    </header>
-
-    <section class="hero-shell">
-      <div class="hero-copy">
-        <div class="eyebrow">Teacher App Flow</div>
-        <h1>Teacher schedule-first experience starts here</h1>
-        <p>This placeholder confirms routing is clean. Next build phase should replace this with Today Schedule, Next Class, and one-tap period attendance.</p>
-      </div>
-      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
-    </section>
-
-    <div class="grid">
-      <div class="card"><h3>Today Schedule</h3><p>Coming in the next clean module.</p></div>
-      <div class="card"><h3>Period Attendance</h3><p>Teacher will mark class-wise or subject-wise attendance from here.</p></div>
-      <div class="card"><h3>Alerts</h3><p>Reminder and late-teacher logic will connect after schedule is finalized.</p></div>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand">
+    <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
+    <div>
+      <h2 id="teacherName">Teacher Home</h2>
+      <p id="teacherMeta">Loading teacher profile…</p>
     </div>
+  </div>
+  <div class="top-controls">
+    <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+    <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+  </div>
+</header>
 
-    <div id="toastHost"></div>
-  </main>
+<section class="hero-shell">
+  <div class="hero-copy">
+    <div class="eyebrow">Teacher Dashboard</div>
+    <h1>Start from your schedule, not from admin pages</h1>
+    <p id="teacherWelcomeLine">Loading today’s classes and quick actions…</p>
+    <div class="chip-row">
+      <span class="chip" id="teacherTodayChip">Today: —</span>
+      <span class="chip" id="teacherSchoolChip">School: —</span>
+      <span class="chip" id="teacherSubjectChip">Subject: —</span>
+    </div>
+    <div class="action-row" style="margin-top:18px;">
+      <a id="goScheduleBtn" class="btn-cta" href="#">🧭 Open My Schedule</a>
+      <button id="goAttendanceBtn" class="btn-cta" type="button">📌 Mark Attendance</button>
+      <a id="goBunkersBtn" class="btn-ghost" href="#">🕵️ Top Bunkers</a>
+      <button id="goMarksBtn" class="btn-ghost" type="button">📊 Marks</button>
+    </div>
+  </div>
+  <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
+</section>
+
+<div class="card" id="nextClassCard" style="display:none;">
+  <h3>Next / Current Class</h3>
+  <div class="chip-row">
+    <span class="chip" id="nextClassLabel">Class: —</span>
+    <span class="chip" id="nextTimeLabel">Time: —</span>
+    <span class="chip" id="nextSubjectLabel">Subject: —</span>
+    <span class="chip" id="nextRoomLabel">Room: —</span>
+  </div>
+  <div class="action-row" style="margin-top:12px;">
+    <button id="nextAttendanceBtn" class="btn-cta" type="button">Mark This Attendance</button>
+  </div>
 </div>
 
+<div class="grid">
+  <div class="metric"><span>Today Slots</span><strong id="todaySlotCount">0</strong></div>
+  <div class="metric"><span>Subject Slots</span><strong id="todaySubjectCount">0</strong></div>
+  <div class="metric"><span>Class Slots</span><strong id="todayClassCount">0</strong></div>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h3>Today Schedule</h3>
+      <p style="margin-bottom:0;">Your assigned periods for today.</p>
+    </div>
+    <button id="refreshHomeScheduleBtn" class="btn-ghost" type="button">Refresh</button>
+  </div>
+  <div class="table-wrap">
+    <table id="teacherHomeScheduleTable">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Period</th>
+          <th>Type</th>
+          <th>Time</th>
+          <th>Subject</th>
+          <th>Room</th>
+          <th>Attendance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card"><h3>Teacher Flow</h3><p>Timetable → Schedule → Period Attendance → Bunk Tracking.</p></div>
+  <div class="card"><h3>Quick Use</h3><p>Open this page first every day and directly jump to your current/next class attendance.</p></div>
+</div>
+
+<div id="toastHost"></div>
+</main></div>
 <script type="module" src="./scripts/teacher-home.js"></script>
 </body>
 </html>

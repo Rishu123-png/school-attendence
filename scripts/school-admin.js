@@ -49,6 +49,7 @@ requireAuth(async (user) => {
   document.getElementById("teacherScheduleLink")?.setAttribute("href", to("./teacher-schedule.html"));
   document.getElementById("periodAttendanceLink")?.setAttribute("href", to("./period-attendance.html"));
   document.getElementById("topBunkersLink")?.setAttribute("href", to("./top-bunkers.html"));
+  document.getElementById("notificationsLink")?.setAttribute("href", to("./notifications.html"));
 }, () => {
   window.location.href = "./index.html";
 });

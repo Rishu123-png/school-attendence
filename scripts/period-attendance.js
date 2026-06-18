@@ -78,8 +78,8 @@ function fillPeriodSelect(rows) {
 
 function updateSummary(slot, classId) {
   const card = document.getElementById("attendanceSummaryCard");
-  if (!slot || !classId) {
-    card.style.display = "none";
+  if (!card || !slot || !classId) {
+    if (card) card.style.display = "none";
     return;
   }
   const classLabel = classMap.get(classId)?.displayName || classId;

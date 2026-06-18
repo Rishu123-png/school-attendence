@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>Teacher Home</title>
+  <title>Teacher Home — Clean Rebuild</title>
   <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
       <a id="goScheduleBtn" class="btn-cta" href="#">🧭 Open My Schedule</a>
       <button id="goAttendanceBtn" class="btn-cta" type="button">📌 Mark Attendance</button>
       <a id="goBunkersBtn" class="btn-ghost" href="#">🕵️ Top Bunkers</a>
-      <button id="goMarksBtn" class="btn-ghost" type="button">📊 Marks</button>
+      <a id="goMarksBtn" class="btn-ghost" href="#">📊 Marks</a>
     </div>
   </div>
   <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
@@ -51,9 +51,7 @@
     <span class="chip" id="nextSubjectLabel">Subject: —</span>
     <span class="chip" id="nextRoomLabel">Room: —</span>
   </div>
-  <div class="action-row" style="margin-top:12px;">
-    <button id="nextAttendanceBtn" class="btn-cta" type="button">Mark This Attendance</button>
-  </div>
+  <div class="action-row" style="margin-top:12px;"><button id="nextAttendanceBtn" class="btn-cta" type="button">Mark This Attendance</button></div>
 </div>
 
 <div class="grid">
@@ -70,22 +68,7 @@
     </div>
     <button id="refreshHomeScheduleBtn" class="btn-ghost" type="button">Refresh</button>
   </div>
-  <div class="table-wrap">
-    <table id="teacherHomeScheduleTable">
-      <thead>
-        <tr>
-          <th>Class</th>
-          <th>Period</th>
-          <th>Type</th>
-          <th>Time</th>
-          <th>Subject</th>
-          <th>Room</th>
-          <th>Attendance</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <div class="table-wrap"><table id="teacherHomeScheduleTable"><thead><tr><th>Class</th><th>Period</th><th>Type</th><th>Time</th><th>Subject</th><th>Room</th><th>Attendance</th></tr></thead><tbody></tbody></table></div>
 </div>
 
 <div class="grid">

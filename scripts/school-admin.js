@@ -1,76 +1,54 @@
-/* ============================================================
-   SCHOOL ADMIN — UPGRADED
-   Fixes: loader, breadcrumb, schoolId from profile only,
-          error handling, clean link setup
-   ============================================================ */
-
 import { initTheme, showToast, showLoader, hideLoader, initOfflineBanner } from "./app-shell.js";
 import { requireAuth, logoutCurrentUser } from "../services/auth-service.js";
 import { getUserProfile, isSchoolAdmin, getSchoolIdFromProfile } from "../services/profile-service.js";
 import { getSchoolSummary } from "../services/school-service.js";
 
-initTheme();
-initOfflineBanner();
-showLoader();
+initTheme(); initOfflineBanner(); showLoader();
 
 document.getElementById("logoutBtn")?.addEventListener("click", async () => {
   await logoutCurrentUser();
   window.location.href = "./index.html";
 });
 
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = String(value ?? "");
-}
+function setText(id, v) { const el=document.getElementById(id); if(el) el.textContent=String(v??"")}
 
-requireAuth(async (user) => {
+requireAuth(async user => {
   try {
     const profile = await getUserProfile(user.uid);
-    if (!isSchoolAdmin(profile)) {
-      showToast("School admin access only", "warn");
-      setTimeout(() => { window.location.href = "./index.html"; }, 700);
-      return;
-    }
-
-    // SECURITY: schoolId from profile only
+    if (!isSchoolAdmin(profile)) { showToast("Admin access only","warn"); setTimeout(()=>{window.location.href="./index.html";},700); return; }
     const schoolId = getSchoolIdFromProfile(profile);
-    if (!schoolId) {
-      showToast("No school linked to this account.", "error");
-      return;
-    }
+    if (!schoolId) { showToast("No school linked","error"); return; }
+    const summary  = await getSchoolSummary(schoolId);
+    if (!summary)  { showToast("School not found","error"); return; }
 
-    const summary = await getSchoolSummary(schoolId);
-    if (!summary) {
-      showToast("School workspace not found", "error");
-      return;
-    }
+    setText("schoolName",   summary.profile.name||"School");
+    setText("schoolMeta",   `${summary.profile.code||schoolId} · ${summary.profile.city||"City"}`);
+    setText("countAdmins",  summary.counts.admins);
+    setText("countTeachers",summary.counts.teachers);
+    setText("countStudents",summary.counts.students);
+    setText("countClasses", summary.counts.classes);
+    setText("countSubjects",summary.counts.subjects);
 
-    setText("schoolName",     summary.profile.name || "School");
-    setText("schoolMeta",     `${summary.profile.code || schoolId} · ${summary.profile.city || "City"}`);
-    setText("countAdmins",    summary.counts.admins);
-    setText("countTeachers",  summary.counts.teachers);
-    setText("countStudents",  summary.counts.students);
-    setText("countClasses",   summary.counts.classes);
-    setText("countSubjects",  summary.counts.subjects);
-
-    const to = (file) => `${file}?schoolId=${encodeURIComponent(schoolId)}`;
-    document.getElementById("teachersLink")?.setAttribute("href",         to("./teachers-manage.html"));
-    document.getElementById("studentsLink")?.setAttribute("href",         to("./students-manage.html"));
-    document.getElementById("classesLink")?.setAttribute("href",          to("./classes-manage.html"));
-    document.getElementById("subjectsLink")?.setAttribute("href",         to("./subjects-manage.html"));
-    document.getElementById("assignmentsLink")?.setAttribute("href",      to("./teacher-assignments.html"));
-    document.getElementById("timetableLink")?.setAttribute("href",        to("./timetable-manage.html"));
-    document.getElementById("teacherScheduleLink")?.setAttribute("href",  to("./teacher-schedule.html"));
-    document.getElementById("periodAttendanceLink")?.setAttribute("href", to("./period-attendance.html"));
-    document.getElementById("topBunkersLink")?.setAttribute("href",       to("./top-bunkers.html"));
-    document.getElementById("notificationsLink")?.setAttribute("href",    to("./notifications.html"));
-
-  } catch (err) {
-    console.error(err);
-    showToast("Failed to load admin panel: " + (err.message || ""), "error");
-  } finally {
-    hideLoader();
-  }
-}, () => {
-  window.location.href = "./index.html";
-});
+    const to = f => `${f}?schoolId=${encodeURIComponent(schoolId)}`;
+    const links = {
+      teachersLink:         to("./teachers-manage.html"),
+      classesLink:          to("./classes-manage.html"),
+      subjectsLink:         to("./subjects-manage.html"),
+      studentsLink:         to("./students-manage.html"),
+      assignmentsLink:      to("./teacher-assignments.html"),
+      timetableLink:        to("./timetable-manage.html"),
+      teacherScheduleLink:  to("./teacher-schedule.html"),
+      periodAttendanceLink: to("./period-attendance.html"),
+      topBunkersLink:       to("./top-bunkers.html"),
+      notificationsLink:    to("./notifications.html"),
+      announcementsLink:    to("./announcements.html"),
+      holidaysLink:         to("./holidays.html"),
+      analyticsLink:        to("./analytics.html"),
+      reportLink:           to("./attendance-report.html"),
+      leaderboardLink:      to("./leaderboard.html"),
+      studentProfileLink:   to("./student-profile.html"),
+    };
+    Object.entries(links).forEach(([id, href]) => document.getElementById(id)?.setAttribute("href", href));
+  } catch(err) { console.error(err); showToast("Error: "+(err.message||""),"error"); }
+  finally { hideLoader(); }
+}, () => { window.location.href = "./index.html"; });

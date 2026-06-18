@@ -141,8 +141,9 @@ document.getElementById("goBunkersBtn")?.addEventListener("click", (e) => {
   window.location.href = `./top-bunkers.html?schoolId=${encodeURIComponent(activeSchoolId)}`;
 });
 
-document.getElementById("goMarksBtn")?.addEventListener("click", () => {
-  showToast("Marks module will be rebuilt next in the clean structure.", "info");
+document.getElementById("goMarksBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  window.location.href = `./marks.html?schoolId=${encodeURIComponent(activeSchoolId)}`;
 });
 
 document.getElementById("refreshHomeScheduleBtn")?.addEventListener("click", loadTeacherHome);

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Classes — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2>Classes</h2><p id="schoolMeta">Loading school…</p></div></div>
+  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
+</header>
+<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Class Structure</div><h1>Create class + section + stream units</h1><p>Use these class records as the main section containers for student enrollment, timetable, and attendance.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
+<div class="card">
+  <h3>Add / Edit Class</h3>
+  <form id="classForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div><label>Class Name</label><input id="classNameInput" placeholder="11"></div>
+    <div><label>Section</label><input id="classSectionInput" placeholder="A1"></div>
+    <div><label>Stream</label><input id="classStreamInput" placeholder="PCM"></div>
+    <div><label>Room No</label><input id="classRoomInput" placeholder="204"></div>
+    <div><label>Class Teacher</label><select id="classTeacherSelect"><option value="">-- Optional class teacher --</option></select></div>
+    <div class="action-row" style="grid-column:1/-1; margin-top:8px;"><button id="classSubmitBtn" class="btn-cta" type="submit">Save Class</button><button id="classCancelBtn" class="btn-ghost" type="button">Clear</button></div>
+  </form>
+</div>
+<div class="card"><h3>Class List</h3><div class="table-wrap"><table id="classesTable"><thead><tr><th>Display</th><th>Name</th><th>Section</th><th>Stream</th><th>Class Teacher</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+<div id="toastHost"></div>
+</main></div>
+<script type="module" src="./scripts/classes-manage.js"></script>
+</body>
+</html>

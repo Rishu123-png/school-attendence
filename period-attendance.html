@@ -4,30 +4,152 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>Period Attendance — Clean Rebuild</title>
+  <title>Period Attendance — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>
+    (function(){
+      var t = localStorage.getItem("rebuild-theme") || "dark";
+      if (t === "light") document.documentElement.classList.add("light-mode");
+    })();
+  </script>
 </head>
-<body>
-<div class="page"><main class="container">
-<header class="header">
-  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2>Period Attendance</h2><p id="attendanceMeta">Loading attendance context…</p></div></div>
-  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
-</header>
-<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Attendance Execution</div><h1>Mark this period in seconds</h1><p>Roster changes automatically based on slot type: class shows everyone, subject shows only enrolled students.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
-<div class="card">
-  <h3>Attendance Context</h3>
-  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-    <div><label>Class</label><select id="attendanceClassSelect"><option value="">-- Select class --</option></select></div>
-    <div><label>Date</label><input id="attendanceDateInput" type="date"></div>
-    <div><label>Day</label><input id="attendanceDayInput" type="text" readonly></div>
-    <div><label>Period Slot</label><select id="attendancePeriodSelect"><option value="">-- Select period --</option></select></div>
-    <div class="action-row" style="align-items:end;"><button id="attendanceLoadBtn" class="btn-ghost" type="button">Load Students</button><button id="attendanceSaveBtn" class="btn-cta" type="button">Save Attendance</button></div>
-  </div>
-</div>
-<div class="card" id="attendanceSummaryCard" style="display:none;"><h3>Selected Slot</h3><div class="chip-row"><span class="chip" id="summaryClass">Class: —</span><span class="chip" id="summaryType">Type: —</span><span class="chip" id="summarySubject">Subject: —</span><span class="chip" id="summaryTeacher">Teacher: —</span><span class="chip" id="summaryTime">Time: —</span></div></div>
-<div class="card"><h3>Student Attendance Sheet</h3><div class="table-wrap"><table id="attendanceTable"><thead><tr><th>Name</th><th>Class</th><th>Roll No</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+<body class="has-bottom-nav">
+
+<div id="offlineBanner">⚠️ You are offline. Attendance will NOT save.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
-</main></div>
+
+<div class="page">
+  <main class="container">
+
+    <header class="header">
+      <div class="brand">
+        <div class="logo">✅</div>
+        <div>
+          <h2>Period Attendance</h2>
+          <p id="teacherMeta" style="font-size:13px;">Loading…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="backBtn" class="btn-ghost" type="button">← Back</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+
+    <nav class="breadcrumb" id="breadcrumb">
+      🏠 <a href="./teacher-home.html">Teacher Home</a> <span>›</span> Period Attendance
+    </nav>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:16px;">
+      <h3>🔎 Select Class & Period</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px;">
+        <div>
+          <label>Date</label>
+          <input id="attendanceDateInput" type="date">
+        </div>
+        <div>
+          <label>Day</label>
+          <input id="attendanceDayInput" type="text" readonly placeholder="Auto-detected">
+        </div>
+        <div>
+          <label>Class</label>
+          <select id="attendanceClassSelect">
+            <option value="">-- Select class --</option>
+          </select>
+        </div>
+        <div>
+          <label>Period</label>
+          <select id="attendancePeriodSelect">
+            <option value="">-- Select period --</option>
+          </select>
+        </div>
+      </div>
+      <div class="action-row" style="margin-top:14px;">
+        <button id="attendanceLoadBtn" class="btn-cta" type="button">📥 Load Roster</button>
+      </div>
+    </div>
+
+    <!-- Attendance Summary Card -->
+    <div class="card" id="attendanceSummaryCard" style="display:none;margin-bottom:16px;border-left:4px solid var(--accent-a);">
+      <h3>📋 Period Summary</h3>
+      <div class="summary-chips" style="margin-top:10px;">
+        <span class="summary-chip" id="summaryClass">Class: —</span>
+        <span class="summary-chip" id="summaryType">Type: —</span>
+        <span class="summary-chip" id="summarySubject">Subject: —</span>
+        <span class="summary-chip" id="summaryTeacher">Teacher: —</span>
+        <span class="summary-chip" id="summaryTime">Time: —</span>
+      </div>
+      <!-- Quick mark all -->
+      <div class="action-row" style="margin-top:12px;">
+        <button id="markAllPresentBtn" class="btn-ghost" type="button" style="font-size:13px;">✅ All Present</button>
+        <button id="markAllAbsentBtn"  class="btn-ghost" type="button" style="font-size:13px;">❌ All Absent</button>
+      </div>
+    </div>
+
+    <!-- Attendance Stats (live count) -->
+    <div class="grid" id="attStatsGrid" style="margin-bottom:16px;display:none;">
+      <div class="metric"><span>Present</span><strong id="statPresent" style="color:var(--success)">0</strong></div>
+      <div class="metric"><span>Absent</span><strong id="statAbsent"  style="color:var(--danger)">0</strong></div>
+      <div class="metric"><span>Late</span><strong id="statLate"    style="color:var(--warn)">0</strong></div>
+      <div class="metric"><span>Other</span><strong id="statOther"   style="color:var(--muted)">0</strong></div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <h3>👥 Student Roster</h3>
+        <div class="action-row">
+          <button id="attendanceSaveBtn" class="btn-cta" type="button">💾 Save Attendance</button>
+        </div>
+      </div>
+      <div class="table-wrap mobile-stack-table">
+        <table id="attendanceTable">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Class</th>
+              <th>Roll No</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>Select class and period, then tap Load Roster.</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav">
+  <a href="./teacher-home.html" id="nav-home">
+    <span class="nav-icon">🏠</span>Home
+  </a>
+  <a href="#" id="nav-schedule">
+    <span class="nav-icon">📅</span>Schedule
+  </a>
+  <a href="./period-attendance.html" id="nav-attendance" class="active">
+    <span class="nav-icon">✅</span>Attendance
+  </a>
+  <a href="#" id="nav-bunkers">
+    <span class="nav-icon">🕵️</span>Bunkers
+  </a>
+  <a href="#" id="nav-marks">
+    <span class="nav-icon">📊</span>Marks
+  </a>
+</nav>
+
 <script type="module" src="./scripts/period-attendance.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0db3ab08bee8cf7',t:'MTc4MTc5NTUxNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

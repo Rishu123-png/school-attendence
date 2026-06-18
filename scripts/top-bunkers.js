@@ -1,15 +1,31 @@
-import { initAdminPage, schoolLink } from "./admin-common.js";
-import { showToast } from "./app-shell.js";
+import { initTheme, showToast } from "./app-shell.js";
+import { requireAuth, logoutCurrentUser } from "../services/auth-service.js";
+import { getUserProfile, isTeacher, isSchoolAdmin } from "../services/profile-service.js";
 import { listClasses } from "../services/class-service.js";
 import { listSubjects } from "../services/subject-service.js";
 import { listStudents } from "../services/student-service.js";
 import { listBunkEvents, summarizeBunkEvents } from "../services/bunk-service.js";
+import { listTeachers } from "../services/teacher-service.js";
 
 let activeSchoolId = "";
+let currentProfile = null;
+let currentTeacher = null;
 let classMap = new Map();
 let subjectMap = new Map();
 let studentMap = new Map();
 let currentRows = [];
+
+function goLogin() {
+  window.location.href = "./index.html";
+}
+
+function goBack() {
+  if (isSchoolAdmin(currentProfile)) {
+    window.location.href = `./school-admin.html?schoolId=${encodeURIComponent(activeSchoolId)}`;
+  } else {
+    window.location.href = `./teacher-home.html?schoolId=${encodeURIComponent(activeSchoolId)}`;
+  }
+}
 
 function fillSelect(id, rows, getValue, getLabel, placeholder) {
   const select = document.getElementById(id);
@@ -51,12 +67,18 @@ function applyFilters() {
   const classId = document.getElementById("bunkerClassFilter").value;
   const section = document.getElementById("bunkerSectionFilter").value;
   const subjectId = document.getElementById("bunkerSubjectFilter").value;
-  const rows = currentRows.filter(row => {
+
+  let rows = currentRows.filter(row => {
     if (classId && String(row.classId || "") !== String(classId)) return false;
     if (section && String(row.section || "") !== String(section)) return false;
     if (subjectId && String(row.subjectId || "") !== String(subjectId)) return false;
     return true;
   });
+
+  if (isTeacher(currentProfile) && currentTeacher) {
+    rows = rows.filter(row => String(row.teacherName || "") === String(currentTeacher.name || ""));
+  }
+
   renderRows(rows);
   return rows;
 }
@@ -77,16 +99,22 @@ function exportCsv(rows) {
 }
 
 async function refresh() {
-  const [classes, subjects, students, bunkEvents] = await Promise.all([
+  const [classes, subjects, students, bunkEvents, teachers] = await Promise.all([
     listClasses(activeSchoolId),
     listSubjects(activeSchoolId),
     listStudents(activeSchoolId),
-    listBunkEvents(activeSchoolId)
+    listBunkEvents(activeSchoolId),
+    listTeachers(activeSchoolId)
   ]);
 
   classMap = new Map(classes.map(item => [item.classId, item]));
   subjectMap = new Map(subjects.map(item => [item.subjectId, item]));
   studentMap = new Map(students.map(item => [item.studentId, item]));
+  currentTeacher = isTeacher(currentProfile)
+    ? teachers.find(row => String(row.authUid || "") === String(currentProfile.teacherId || currentProfile.authUid || ""))
+      || teachers.find(row => String(row.authUid || "") === String(currentProfile.uid || ""))
+      || currentTeacher
+    : currentTeacher;
 
   fillSelect('bunkerClassFilter', classes, item => item.classId, item => item.displayName || item.classId, '-- All classes --');
   fillSelect('bunkerSubjectFilter', subjects, item => item.subjectId, item => item.name || item.subjectId, '-- All subjects --');
@@ -97,17 +125,29 @@ async function refresh() {
   applyFilters();
 }
 
-initAdminPage(async (profile) => {
-  activeSchoolId = new URLSearchParams(window.location.search).get("schoolId") || profile.schoolId || "";
-  document.getElementById("schoolMeta").textContent = `School ID: ${activeSchoolId}`;
-  document.getElementById("backBtn").addEventListener("click", () => {
-    window.location.href = schoolLink("./school-admin.html", activeSchoolId);
-  });
-  document.getElementById("bunkersRefreshBtn").addEventListener("click", refresh);
-  document.getElementById("bunkerClassFilter").addEventListener("change", applyFilters);
-  document.getElementById("bunkerSectionFilter").addEventListener("change", applyFilters);
-  document.getElementById("bunkerSubjectFilter").addEventListener("change", applyFilters);
-  document.getElementById("bunkersExportBtn").addEventListener("click", () => exportCsv(applyFilters()));
+initTheme();
 
-  await refresh();
+document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+  await logoutCurrentUser();
+  goLogin();
 });
+
+document.getElementById("backBtn")?.addEventListener("click", goBack);
+document.getElementById("bunkersRefreshBtn")?.addEventListener("click", refresh);
+document.getElementById("bunkerClassFilter")?.addEventListener("change", applyFilters);
+document.getElementById("bunkerSectionFilter")?.addEventListener("change", applyFilters);
+document.getElementById("bunkerSubjectFilter")?.addEventListener("change", applyFilters);
+document.getElementById("bunkersExportBtn")?.addEventListener("click", () => exportCsv(applyFilters()));
+
+requireAuth(async (user) => {
+  currentProfile = await getUserProfile(user.uid);
+  if (!isTeacher(currentProfile) && !isSchoolAdmin(currentProfile)) {
+    showToast("Teacher or admin access only", "warn");
+    setTimeout(goLogin, 700);
+    return;
+  }
+
+  activeSchoolId = new URLSearchParams(window.location.search).get("schoolId") || currentProfile.schoolId || "";
+  document.getElementById("schoolMeta").textContent = activeSchoolId ? `School ID: ${activeSchoolId}` : "School not linked";
+  await refresh();
+}, goLogin);

@@ -3,151 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#6b6cff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>School Attendance — Home</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#6a7cff">
+  <title>School OS — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
 <div class="page">
   <main class="container">
-
-    <!-- LOGIN MODAL -->
-    <div id="loginModal" class="modal-overlay">
-      <div class="login-modal">
-        <h2>🔐 Login</h2>
-        <input type="email" id="email" placeholder="Enter email" autocomplete="email" />
-        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" />
-        <button class="btn-cta" onclick="window.login()">Login</button>
-        <button class="btn-close" onclick="closeLogin()">Close</button>
-      </div>
-    </div>
-
-    <!-- HEADER -->
     <header class="header">
       <div class="brand">
-        <div class="logo">
-          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
-        </div>
+        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
         <div>
-          <h2 style="margin-bottom:4px;">School Attendance</h2>
-          <p style="margin-bottom:0;">Smart attendance, admin control, and app-ready school management</p>
+          <h2>School OS</h2>
+          <p>Clean rebuild foundation for web admin + teacher app flow</p>
         </div>
       </div>
       <div class="top-controls">
-        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
-        <button class="btn-cta" onclick="openLogin(false)">Login</button>
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="openLoginBtn" class="btn-cta" type="button">Login</button>
       </div>
     </header>
 
     <section class="hero-shell">
       <div class="hero-copy">
-        <div class="eyebrow">AI Powered School OS</div>
-        <h1>Run your school like a cinematic command center</h1>
+        <div class="eyebrow">Clean Foundation</div>
+        <h1>One backend. Separate admin web and teacher app flows.</h1>
         <p>
-          Manage teachers, students, attendance, marks, analytics, and school setup from one futuristic dashboard.
-          This website is designed first for the web and later can be packaged into a Play Store app using the same Firebase backend.
+          This clean rebuild removes the old mixed teacher/admin logic. Use the web for school management,
+          then build a real teacher/parent app on top of the same Firebase backend.
         </p>
-
         <div class="chip-row">
-          <span class="chip">📅 Attendance</span>
-          <span class="chip">📊 Marks & Analytics</span>
-          <span class="chip">🏫 School Setup</span>
-          <span class="chip">📱 App Ready</span>
+          <span class="chip">School setup</span>
+          <span class="chip">Admin web</span>
+          <span class="chip">Teacher app flow</span>
+          <span class="chip">Play Store ready later</span>
         </div>
-
-        <div class="hero-buttons" style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button class="btn-cta" onclick="openLogin(true)">🏫 Create School Workspace</button>
-          <button class="btn-ghost" onclick="openLogin(false)">🔐 Login to Dashboard</button>
-          <button class="btn-ghost" onclick="alert('Contact admin: jaswarrishu642@gmail.com')">📩 Need Help?</button>
-        </div>
-
-        <div class="metrics-row">
-          <div class="stat-mini">
-            <strong>Web First</strong>
-            <span>Secure school platform before app packaging</span>
-          </div>
-          <div class="stat-mini">
-            <strong>Firebase</strong>
-            <span>RTDB + Authentication for website and app</span>
-          </div>
-          <div class="stat-mini">
-            <strong>Admin + Teacher</strong>
-            <span>School admin tools and teacher workflow in one system</span>
-          </div>
+        <div class="action-row" style="margin-top:18px;">
+          <button id="startSchoolSetupBtn" class="btn-cta" type="button">🏫 Create School Workspace</button>
+          <button id="openLoginBtn2" class="btn-ghost" type="button">🔐 Teacher / Admin Login</button>
         </div>
       </div>
-
       <div class="hero-visual">
-        <div class="orb-scene">
-          <div>
-            <div class="ai-orb">
-              <div class="orb-ring"></div>
-              <div class="orb-pulse"></div>
-              <div class="orb-core"></div>
-            </div>
-            <div class="orb-caption">School Intelligence Core</div>
-          </div>
+        <div class="orb-wrap">
+          <div class="orb"></div>
         </div>
       </div>
     </section>
 
-    <section class="grid">
-      <div class="card">
-        <h3>📅 Instant Attendance</h3>
-        <p>Mark attendance for individual students or full classes in seconds.</p>
-      </div>
-      <div class="card">
-        <h3>📊 Smart Insights</h3>
-        <p>Track attendance trends, marks, and performance in one system.</p>
-      </div>
-      <div class="card">
-        <h3>🏫 School Workspace Setup</h3>
-        <p>Schools can create their workspace and manage teachers, classes, and subjects.</p>
-      </div>
-      <div class="card">
-        <h3>📱 Website + App Path</h3>
-        <p>The same Firebase backend can later power a Play Store Android app too.</p>
-      </div>
-    </section>
+    <div class="grid">
+      <div class="card"><h3>Web Admin</h3><p>Setup schools, teachers, students, subjects, classes, and timetables.</p></div>
+      <div class="card"><h3>Teacher Flow</h3><p>Today schedule, next class, fast attendance, and later push reminders.</p></div>
+      <div class="card"><h3>Student/Parent Later</h3><p>Attendance, bunk alerts, notices, and leaderboard through dedicated app screens.</p></div>
+    </div>
 
-    <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+    <div id="toastHost"></div>
+
+    <div id="loginModal" class="modal-overlay">
+      <div class="modal-card">
+        <h3>Login</h3>
+        <form id="loginForm" style="display:grid;gap:12px;">
+          <div>
+            <label>Email</label>
+            <input id="email" type="email" placeholder="teacher@school.com">
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="password" type="password" placeholder="Enter password">
+          </div>
+          <div class="action-row">
+            <button class="btn-cta" type="submit">Sign In</button>
+            <button id="closeLoginBtn" class="btn-ghost" type="button">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
   </main>
 </div>
 
+<script type="module" src="./scripts/index.js"></script>
 <script>
-  function openLogin(forSchoolSetup = false) {
-    if (forSchoolSetup) {
-      localStorage.setItem("postLoginRedirect", "school-setup.html");
-    } else {
-      localStorage.removeItem("postLoginRedirect");
-    }
-    document.getElementById("loginModal").classList.add("active");
-  }
-
-  function closeLogin() {
-    document.getElementById("loginModal").classList.remove("active");
-  }
-
-  document.getElementById("loginModal").addEventListener("click", function(e) {
-    if (e.target === this) closeLogin();
-  });
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Enter" && document.getElementById("loginModal").classList.contains("active")) {
-      window.login && window.login();
-    }
-    if (e.key === "Escape") closeLogin();
+  document.getElementById('openLoginBtn2')?.addEventListener('click', () => {
+    document.getElementById('openLoginBtn')?.click();
   });
 </script>
-
-<script type="module" src="./firebase.js"></script>
-<script type="module" src="./script.js"></script>
-<script type="module">
-  import { initTheme } from "./theme.js";
-  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
-</script>
-<script src="./pwa-register.js"></script>
 </body>
 </html>

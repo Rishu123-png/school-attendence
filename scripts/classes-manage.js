@@ -1,5 +1,10 @@
+/* ============================================================
+   CLASSES MANAGE — UPGRADED
+   Fixes: delete confirmation, empty state, mobile data-labels
+   ============================================================ */
+
 import { initAdminPage, schoolLink } from "./admin-common.js";
-import { showToast } from "./app-shell.js";
+import { showToast, confirmAction } from "./app-shell.js";
 import { listClasses, createClass, updateClass, deleteClass } from "../services/class-service.js";
 import { listTeachers } from "../services/teacher-service.js";
 
@@ -14,10 +19,10 @@ function fillTeachers(rows) {
   teacherMap = new Map();
   rows.forEach(row => {
     teacherMap.set(row.teacherId, row);
-    const option = document.createElement("option");
-    option.value = row.teacherId;
-    option.textContent = row.name || row.teacherId;
-    select.appendChild(option);
+    const opt = document.createElement("option");
+    opt.value = row.teacherId;
+    opt.textContent = row.name || row.teacherId;
+    select.appendChild(opt);
   });
   if (current) select.value = current;
 }
@@ -25,53 +30,66 @@ function fillTeachers(rows) {
 function resetForm() {
   editingClassId = "";
   document.getElementById("classForm")?.reset();
-  document.getElementById("classSubmitBtn").textContent = "Save Class";
+  const btn = document.getElementById("classSubmitBtn");
+  if (btn) btn.textContent = "💾 Save Class";
+  document.getElementById("classCancelBtn").style.display = "none";
 }
 
 function startEdit(row) {
   editingClassId = row.classId;
-  document.getElementById("classNameInput").value = row.name || "";
-  document.getElementById("classSectionInput").value = row.section || "";
-  document.getElementById("classStreamInput").value = row.stream || "";
-  document.getElementById("classRoomInput").value = row.roomNo || "";
+  document.getElementById("classNameInput").value     = row.name         || "";
+  document.getElementById("classSectionInput").value  = row.section      || "";
+  document.getElementById("classStreamInput").value   = row.stream       || "";
+  document.getElementById("classRoomInput").value     = row.roomNo       || "";
   document.getElementById("classTeacherSelect").value = row.classTeacherId || "";
-  document.getElementById("classSubmitBtn").textContent = "Update Class";
+  document.getElementById("classSubmitBtn").textContent = "✏️ Update Class";
+  document.getElementById("classCancelBtn").style.display = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function renderTable(rows) {
   const tbody = document.querySelector("#classesTable tbody");
   tbody.innerHTML = "";
   if (!rows.length) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 6;
-    td.textContent = "No classes found yet.";
-    tr.appendChild(td);
-    tbody.appendChild(tr);
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="empty-state">
+        <div class="empty-icon">🏛️</div>
+        <p>No classes created yet.<br>Use the form above to create a class.</p>
+      </div>
+    </td></tr>`;
     return;
   }
   rows.forEach(row => {
     const tr = document.createElement("tr");
     const teacher = teacherMap.get(row.classTeacherId)?.name || "—";
-    [row.displayName || row.classId, row.name || "—", row.section || "—", row.stream || "—", teacher].forEach(value => {
+    const fields = [
+      { label: "Class",     value: row.displayName || row.classId },
+      { label: "Name",      value: row.name         || "—" },
+      { label: "Section",   value: row.section       || "—" },
+      { label: "Stream",    value: row.stream        || "—" },
+      { label: "Teacher",   value: teacher },
+    ];
+    fields.forEach(({ label, value }) => {
       const td = document.createElement("td");
+      td.setAttribute("data-label", label);
       td.textContent = String(value || "—");
       tr.appendChild(td);
     });
     const actionTd = document.createElement("td");
+    actionTd.setAttribute("data-label", "Actions");
     const editBtn = document.createElement("button");
-    editBtn.className = "btn-ghost";
-    editBtn.textContent = "Edit";
+    editBtn.className = "btn-ghost"; editBtn.textContent = "✏️ Edit";
     editBtn.onclick = () => startEdit(row);
     const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn-ghost";
-    deleteBtn.textContent = "Delete";
+    deleteBtn.className = "btn-danger"; deleteBtn.textContent = "🗑️ Delete";
     deleteBtn.onclick = async () => {
+      const ok = await confirmAction(`Delete class "${row.displayName || row.name}"? This cannot be undone.`);
+      if (!ok) return;
       await deleteClass(activeSchoolId, row.classId);
       showToast("Class deleted", "success");
       await refresh();
     };
-    actionTd.append(editBtn, deleteBtn);
+    actionTd.append(editBtn, " ", deleteBtn);
     tr.appendChild(actionTd);
     tbody.appendChild(tr);
   });
@@ -83,36 +101,44 @@ async function refresh() {
   renderTable(classes.sort((a,b) => String(a.displayName||"").localeCompare(String(b.displayName||""))));
 }
 
-initAdminPage(async (profile) => {
-  activeSchoolId = new URLSearchParams(window.location.search).get("schoolId") || profile.schoolId || "";
+initAdminPage(async (profile, safeSchoolId) => {
+  activeSchoolId = safeSchoolId;
   document.getElementById("schoolMeta").textContent = `School ID: ${activeSchoolId}`;
-  document.getElementById("backBtn").addEventListener("click", () => {
+  document.getElementById("backBtn")?.addEventListener("click", () => {
     window.location.href = schoolLink("./school-admin.html", activeSchoolId);
   });
-  document.getElementById("classCancelBtn").addEventListener("click", resetForm);
+  document.getElementById("classCancelBtn")?.addEventListener("click", resetForm);
+  document.getElementById("classCancelBtn").style.display = "none";
 
-  document.getElementById("classForm").addEventListener("submit", async (e) => {
+  document.getElementById("classForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const payload = {
-      name: document.getElementById("classNameInput").value,
-      section: document.getElementById("classSectionInput").value,
-      stream: document.getElementById("classStreamInput").value,
-      roomNo: document.getElementById("classRoomInput").value,
-      classTeacherId: document.getElementById("classTeacherSelect").value
+      name:          document.getElementById("classNameInput").value.trim(),
+      section:       document.getElementById("classSectionInput").value.trim(),
+      stream:        document.getElementById("classStreamInput").value.trim(),
+      roomNo:        document.getElementById("classRoomInput").value.trim(),
+      classTeacherId:document.getElementById("classTeacherSelect").value
     };
-    if (!payload.name || !payload.section) {
-      showToast("Class name and section are required", "warn");
-      return;
+    if (!payload.name)    { showToast("Class name is required", "warn");    return; }
+    if (!payload.section) { showToast("Section is required", "warn"); return; }
+
+    const btn = document.getElementById("classSubmitBtn");
+    btn.disabled = true;
+    try {
+      if (editingClassId) {
+        await updateClass(activeSchoolId, editingClassId, payload);
+        showToast("Class updated", "success");
+      } else {
+        await createClass(activeSchoolId, payload);
+        showToast("Class created", "success");
+      }
+      resetForm();
+      await refresh();
+    } catch (err) {
+      showToast(err.message || "Failed to save class", "error");
+    } finally {
+      btn.disabled = false;
     }
-    if (editingClassId) {
-      await updateClass(activeSchoolId, editingClassId, payload);
-      showToast("Class updated", "success");
-    } else {
-      await createClass(activeSchoolId, payload);
-      showToast("Class created", "success");
-    }
-    resetForm();
-    await refresh();
   });
 
   await refresh();

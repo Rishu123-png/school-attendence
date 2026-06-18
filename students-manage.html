@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Students — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2>Students</h2><p id="schoolMeta">Loading school…</p></div></div>
+  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
+</header>
+<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Student Structure</div><h1>Add class, section, stream and subject enrollment</h1><p>This is the clean student source of truth. Subject-wise attendance and bunk tracking will use these enrollments.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
+<div class="card">
+  <h3>Add / Edit Student</h3>
+  <form id="studentForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div><label>Full Name</label><input id="studentNameInput" placeholder="Aarav Sharma"></div>
+    <div><label>Class</label><select id="studentClassSelect"><option value="">-- Select class --</option></select></div>
+    <div><label>Section</label><input id="studentSectionInput" placeholder="A1"></div>
+    <div><label>Stream / Group</label><input id="studentStreamInput" placeholder="PCM / Commerce / General"></div>
+    <div><label>Roll No</label><input id="studentRollInput" placeholder="18"></div>
+    <div><label>Admission No</label><input id="studentAdmissionInput" placeholder="2026-018"></div>
+    <div style="grid-column:1/-1;"><label>Selected Subjects</label><select id="studentSubjectsSelect" multiple size="8"></select><p style="margin-top:8px;">Hold Ctrl / Cmd on desktop for multi-select. On mobile, select the needed subjects from the list.</p></div>
+    <div class="action-row" style="grid-column:1/-1; margin-top:8px;"><button id="studentSubmitBtn" class="btn-cta" type="submit">Save Student</button><button id="studentCancelBtn" class="btn-ghost" type="button">Clear</button></div>
+  </form>
+</div>
+<div class="card"><h3>Student List</h3><div class="table-wrap"><table id="studentsTable"><thead><tr><th>Name</th><th>Class</th><th>Section</th><th>Stream</th><th>Roll</th><th>Admission</th><th>Subjects</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+<div id="toastHost"></div>
+</main></div>
+<script type="module" src="./scripts/students-manage.js"></script>
+</body>
+</html>

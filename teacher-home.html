@@ -4,80 +4,163 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>Teacher Home — Clean Rebuild</title>
+  <title>Teacher Home — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>
+    (function(){
+      var t = localStorage.getItem("rebuild-theme") || "dark";
+      if (t === "light") document.documentElement.classList.add("light-mode");
+    })();
+  </script>
 </head>
-<body>
-<div class="page"><main class="container">
-<header class="header">
-  <div class="brand">
-    <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
-    <div>
-      <h2 id="teacherName">Teacher Home</h2>
-      <p id="teacherMeta">Loading teacher profile…</p>
-    </div>
-  </div>
-  <div class="top-controls">
-    <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
-    <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
-  </div>
-</header>
+<body class="has-bottom-nav">
 
-<section class="hero-shell">
-  <div class="hero-copy">
-    <div class="eyebrow">Teacher Dashboard</div>
-    <h1>Start from your schedule, not from admin pages</h1>
-    <p id="teacherWelcomeLine">Loading today’s classes and quick actions…</p>
-    <div class="chip-row">
-      <span class="chip" id="teacherTodayChip">Today: —</span>
-      <span class="chip" id="teacherSchoolChip">School: —</span>
-      <span class="chip" id="teacherSubjectChip">Subject: —</span>
-    </div>
-    <div class="action-row" style="margin-top:18px;">
-      <a id="goScheduleBtn" class="btn-cta" href="#">🧭 Open My Schedule</a>
-      <button id="goAttendanceBtn" class="btn-cta" type="button">📌 Mark Attendance</button>
-      <a id="goBunkersBtn" class="btn-ghost" href="#">🕵️ Top Bunkers</a>
-      <a id="goMarksBtn" class="btn-ghost" href="#">📊 Marks</a>
-    </div>
-  </div>
-  <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
-</section>
-
-<div class="card" id="nextClassCard" style="display:none;">
-  <h3>Next / Current Class</h3>
-  <div class="chip-row">
-    <span class="chip" id="nextClassLabel">Class: —</span>
-    <span class="chip" id="nextTimeLabel">Time: —</span>
-    <span class="chip" id="nextSubjectLabel">Subject: —</span>
-    <span class="chip" id="nextRoomLabel">Room: —</span>
-  </div>
-  <div class="action-row" style="margin-top:12px;"><button id="nextAttendanceBtn" class="btn-cta" type="button">Mark This Attendance</button></div>
-</div>
-
-<div class="grid">
-  <div class="metric"><span>Today Slots</span><strong id="todaySlotCount">0</strong></div>
-  <div class="metric"><span>Subject Slots</span><strong id="todaySubjectCount">0</strong></div>
-  <div class="metric"><span>Class Slots</span><strong id="todayClassCount">0</strong></div>
-</div>
-
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-    <div>
-      <h3>Today Schedule</h3>
-      <p style="margin-bottom:0;">Your assigned periods for today.</p>
-    </div>
-    <button id="refreshHomeScheduleBtn" class="btn-ghost" type="button">Refresh</button>
-  </div>
-  <div class="table-wrap"><table id="teacherHomeScheduleTable"><thead><tr><th>Class</th><th>Period</th><th>Type</th><th>Time</th><th>Subject</th><th>Room</th><th>Attendance</th></tr></thead><tbody></tbody></table></div>
-</div>
-
-<div class="grid">
-  <div class="card"><h3>Teacher Flow</h3><p>Timetable → Schedule → Period Attendance → Bunk Tracking.</p></div>
-  <div class="card"><h3>Quick Use</h3><p>Open this page first every day and directly jump to your current/next class attendance.</p></div>
-</div>
-
+<div id="offlineBanner">⚠️ You are offline. Changes may not save.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
-</main></div>
+
+<div class="page">
+  <main class="container">
+
+    <header class="header">
+      <div class="brand">
+        <div class="logo">🎓</div>
+        <div>
+          <h2 id="teacherName">Teacher Home</h2>
+          <p id="teacherMeta" style="font-size:13px;">Loading profile…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <span class="network-dot" id="netDot" title="Network status"></span>
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" id="breadcrumb">
+      🏠 <a href="./index.html">Home</a> <span>›</span> Teacher Dashboard
+    </nav>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">👨‍🏫 Teacher Dashboard</div>
+        <h1>Start from your schedule</h1>
+        <p id="teacherWelcomeLine" style="margin:10px 0 16px;">Loading today's classes…</p>
+        <div class="chip-row" style="margin-bottom:16px;">
+          <span class="chip" id="teacherTodayChip">📅 Today: —</span>
+          <span class="chip" id="teacherSchoolChip">🏫 School: —</span>
+          <span class="chip" id="teacherSubjectChip">📘 Subject: —</span>
+        </div>
+        <div class="action-row">
+          <a id="goScheduleBtn" class="btn-cta" href="#">🧭 My Schedule</a>
+          <button id="goAttendanceBtn" class="btn-cta" type="button" disabled>📌 Mark Attendance</button>
+          <a id="goBunkersBtn" class="btn-ghost" href="#">🕵️ Bunkers</a>
+          <a id="goMarksBtn" class="btn-ghost" href="#">📊 Marks</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb-wrap"><div class="orb"></div></div>
+      </div>
+    </section>
+
+    <!-- Not-linked warning card -->
+    <div class="card" id="notLinkedCard" style="display:none;border-left:4px solid var(--warn);margin-bottom:16px;">
+      <h3>⚠️ Teacher Account Not Linked</h3>
+      <p style="margin-top:8px;">Your login email is not linked to a teacher record in this school. Ask the school admin to:</p>
+      <ol style="color:var(--muted);padding-left:20px;margin-top:8px;line-height:2;">
+        <li>Go to <strong>Teachers → Manage Teachers</strong></li>
+        <li>Find your teacher record</li>
+        <li>Paste your <strong>Auth UID</strong> into the Auth UID field and save</li>
+      </ol>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:10px;font-size:13px;">
+        Your Auth UID: <strong id="myAuthUidDisplay" style="color:var(--accent-a);">Loading…</strong>
+      </div>
+    </div>
+
+    <!-- Next / Current Class Card -->
+    <div class="card" id="nextClassCard" style="display:none;margin-bottom:16px;border-left:4px solid var(--accent-a);">
+      <h3>⏰ Next / Current Class</h3>
+      <div class="summary-chips" style="margin-top:10px;">
+        <span class="summary-chip" id="nextClassLabel">Class: —</span>
+        <span class="summary-chip" id="nextTimeLabel">Time: —</span>
+        <span class="summary-chip" id="nextSubjectLabel">Subject: —</span>
+        <span class="summary-chip" id="nextRoomLabel">Room: —</span>
+      </div>
+      <div class="action-row" style="margin-top:14px;">
+        <button id="nextAttendanceBtn" class="btn-cta" type="button">📌 Mark This Attendance</button>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid" style="margin-bottom:16px;">
+      <div class="metric"><span>Today's Slots</span><strong id="todaySlotCount">—</strong></div>
+      <div class="metric"><span>Subject Slots</span><strong id="todaySubjectCount">—</strong></div>
+      <div class="metric"><span>Class Slots</span><strong id="todayClassCount">—</strong></div>
+    </div>
+
+    <!-- Today Schedule -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3>📅 Today's Schedule</h3>
+          <p style="margin-top:4px;font-size:13px;">Your assigned periods for today. Tap Mark Attendance to start.</p>
+        </div>
+        <button id="refreshHomeScheduleBtn" class="btn-ghost" type="button">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap mobile-stack-table">
+        <table id="teacherHomeScheduleTable">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Period</th>
+              <th>Type</th>
+              <th>Time</th>
+              <th>Subject</th>
+              <th>Room</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      <div class="card">
+        <h3>💡 Quick Guide</h3>
+        <p style="margin-top:8px;">Open this page daily. Use the <em>Next Class card</em> to jump directly to marking attendance for your current period.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Performance</h3>
+        <p style="margin-top:8px;">Check Marks to enter student scores and view predicted annual performance per subject.</p>
+      </div>
+    </div>
+
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav">
+  <a href="./teacher-home.html" id="nav-home">
+    <span class="nav-icon">🏠</span>Home
+  </a>
+  <a href="#" id="nav-schedule">
+    <span class="nav-icon">📅</span>Schedule
+  </a>
+  <a href="#" id="nav-attendance">
+    <span class="nav-icon">✅</span>Attendance
+  </a>
+  <a href="#" id="nav-bunkers">
+    <span class="nav-icon">🕵️</span>Bunkers
+  </a>
+  <a href="#" id="nav-marks">
+    <span class="nav-icon">📊</span>Marks
+  </a>
+</nav>
+
 <script type="module" src="./scripts/teacher-home.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0db2cb0695554f6',t:'MTc4MTc5NDk0MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -71,8 +71,24 @@ export async function savePeriodAttendance(schoolId, payload) {
         status: "bunk",
         createdAt: ts
       };
+      updates[`schools/${schoolId}/parentNotifications/${studentId}/${bunkKey}`] = {
+        notificationId: bunkKey,
+        studentId,
+        studentName: norm(row.studentName),
+        classId,
+        subjectId: norm(payload.subjectId),
+        subjectName: norm(payload.subjectName),
+        teacherId: norm(payload.teacherId),
+        teacherName: norm(payload.teacherName),
+        date,
+        periodId,
+        type: "subject_bunk",
+        status: "pending-parent-link",
+        createdAt: ts
+      };
     } else {
       updates[`schools/${schoolId}/bunkEvents/${studentId}/${bunkKey}`] = null;
+      updates[`schools/${schoolId}/parentNotifications/${studentId}/${bunkKey}`] = null;
     }
   });
 
@@ -86,6 +102,8 @@ export async function savePeriodAttendance(schoolId, payload) {
     subjectName: norm(payload.subjectName),
     slotType,
     savedCount: rows.length,
+    saveStatus: "submitted",
+    savedAt: ts,
     updatedAt: ts
   };
 

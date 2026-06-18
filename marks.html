@@ -4,50 +4,180 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>Marks — Clean Rebuild</title>
+  <title>Marks — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
 </head>
-<body>
-<div class="page"><main class="container">
-<header class="header">
-  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2 id="marksPageTitle">Marks & Predictions</h2><p id="marksPageMeta">Loading teacher marks workspace…</p></div></div>
-  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
-</header>
-<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Marks Intelligence</div><h1>Subject-wise marks and annual prediction</h1><p>Teachers can open their assigned class-subject scopes, pick a student, save term marks, and view an AI-style annual prediction using weighted performance and attendance.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
-<div class="card">
-  <h3>Teacher Scope</h3>
-  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-    <div><label>Assigned Scope</label><select id="marksScopeSelect"><option value="">-- Select class / subject --</option></select></div>
-    <div><label>Student</label><select id="marksStudentSelect"><option value="">-- Select student --</option></select></div>
-    <div><label>Attendance %</label><input id="marksAttendancePct" type="number" min="0" max="100" placeholder="Auto / manual"></div>
-    <div class="action-row" style="align-items:end;"><button id="marksLoadBtn" class="btn-ghost" type="button">Load Student</button></div>
-  </div>
-</div>
-<div class="card" id="marksFormCard" style="margin-top:16px;display:none;">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-    <div>
-      <h3 id="marksStudentName">Student</h3>
-      <p id="marksScopeLabel" style="margin-bottom:0;">Scope: —</p>
-    </div>
-  </div>
-  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:16px;">
-    <div><label>UT-1 Score</label><input id="ut1ScoreInput" type="number" min="0"><label style="margin-top:8px;">UT-1 Max</label><input id="ut1MaxInput" type="number" min="1" value="25"></div>
-    <div><label>Half-Yearly Score</label><input id="hyScoreInput" type="number" min="0"><label style="margin-top:8px;">Half-Yearly Max</label><input id="hyMaxInput" type="number" min="1" value="100"></div>
-    <div><label>UT-2 Score</label><input id="ut2ScoreInput" type="number" min="0"><label style="margin-top:8px;">UT-2 Max</label><input id="ut2MaxInput" type="number" min="1" value="25"></div>
-    <div><label>Annual Score</label><input id="annualScoreInput" type="number" min="0"><label style="margin-top:8px;">Annual Max</label><input id="annualMaxInput" type="number" min="1" value="100"></div>
-  </div>
-  <div class="action-row" style="margin-top:16px;"><button id="marksSaveBtn" class="btn-cta" type="button">Save Marks</button><button id="marksPredictBtn" class="btn-ghost" type="button">Recompute Prediction</button><button id="marksClearBtn" class="btn-ghost" type="button">Clear</button></div>
-</div>
-<div class="card" id="predictionCard" style="margin-top:16px;display:none;">
-  <h3>Prediction Summary</h3>
-  <div class="chip-row">
-    <span class="chip" id="predictionPercentChip">Predicted %: —</span>
-    <span class="chip" id="predictionScoreChip">Predicted Annual: —</span>
-    <span class="chip" id="predictionGradeChip">Grade: —</span>
-  </div>
-</div>
+<body class="has-bottom-nav">
+<div id="offlineBanner">⚠️ You are offline.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
-</main></div>
+
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">📊</div>
+        <div>
+          <h2>Marks Intelligence</h2>
+          <p id="teacherMeta" style="font-size:13px;">Loading…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="backBtn" class="btn-ghost" type="button">← Back</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+
+    <nav class="breadcrumb" id="breadcrumb">
+      🏠 <a href="./teacher-home.html">Home</a> <span>›</span> 📊 Marks
+    </nav>
+
+    <div class="hero-copy" style="margin-bottom:18px;">
+      <div class="eyebrow">📊 Marks &amp; Prediction</div>
+      <h1 style="font-size:28px;margin:8px 0 6px;">Subject-wise marks &amp; annual prediction</h1>
+      <p>Enter UT-1, Half-Yearly, UT-2, and Annual marks per student. The system predicts annual performance using a weighted formula + attendance.</p>
+    </div>
+
+    <!-- Scope Selector -->
+    <div class="card" style="margin-bottom:16px;">
+      <h3>🎯 Teacher Scope</h3>
+      <p style="margin-top:4px;font-size:13px;">Only your assigned class-subject scopes are shown.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px;">
+        <div>
+          <label for="marksScopeSelect">Assigned Scope *</label>
+          <select id="marksScopeSelect"><option value="">-- Select class / subject --</option></select>
+        </div>
+        <div>
+          <label for="marksStudentSelect">Student *</label>
+          <select id="marksStudentSelect"><option value="">-- Select student --</option></select>
+        </div>
+        <div>
+          <label for="marksAttendancePct">Attendance %</label>
+          <input id="marksAttendancePct" type="number" min="0" max="100" placeholder="e.g. 85" value="100">
+        </div>
+      </div>
+      <div class="action-row" style="margin-top:14px;">
+        <button id="marksLoadBtn" class="btn-cta" type="button">📥 Load Student</button>
+      </div>
+    </div>
+
+    <!-- Student Card -->
+    <div class="card" id="marksStudentCard" style="display:none;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <div>
+          <h3 id="marksStudentName">Student</h3>
+          <p id="marksScopeLabel" style="font-size:13px;margin-top:2px;">Scope: —</p>
+        </div>
+        <span class="badge badge-info" id="marksGradeBadge" style="font-size:16px;padding:6px 16px;">—</span>
+      </div>
+
+      <!-- Exam scores grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+        <div class="form-section">
+          <h3 style="font-size:15px;margin-bottom:12px;">📝 UT-1</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label for="ut1Score">Score</label><input id="ut1Score" type="number" min="0" placeholder="0" value="0"></div>
+            <div><label for="ut1Max">Max</label><input id="ut1Max" type="number" min="1" placeholder="25" value="25"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3 style="font-size:15px;margin-bottom:12px;">📝 Half-Yearly</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label for="hyScore">Score</label><input id="hyScore" type="number" min="0" placeholder="0" value="0"></div>
+            <div><label for="hyMax">Max</label><input id="hyMax" type="number" min="1" placeholder="100" value="100"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3 style="font-size:15px;margin-bottom:12px;">📝 UT-2</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label for="ut2Score">Score</label><input id="ut2Score" type="number" min="0" placeholder="0" value="0"></div>
+            <div><label for="ut2Max">Max</label><input id="ut2Max" type="number" min="1" placeholder="25" value="25"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3 style="font-size:15px;margin-bottom:12px;">📝 Annual</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label for="annualScore">Score</label><input id="annualScore" type="number" min="0" placeholder="0" value="0"></div>
+            <div><label for="annualMax">Max</label><input id="annualMax" type="number" min="1" placeholder="100" value="100"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row" style="margin-top:16px;">
+        <button id="marksSaveBtn" class="btn-cta" type="button">💾 Save Marks</button>
+        <button id="marksPredictBtn" class="btn-ghost" type="button">🔮 Recompute Prediction</button>
+        <button id="marksClearBtn" class="btn-ghost" type="button">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Prediction Summary Card -->
+    <div class="card" id="marksPredictionCard" style="display:none;">
+      <h3>🔮 Prediction Summary</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:16px;">
+        <div class="metric">
+          <span>Predicted %</span>
+          <strong id="predPct" style="color:var(--accent-a);">—</strong>
+        </div>
+        <div class="metric">
+          <span>Predicted Annual Score</span>
+          <strong id="predScore">—</strong>
+        </div>
+        <div class="metric" style="display:grid;place-items:center;">
+          <span>Grade</span>
+          <div id="predGrade" class="grade-display">—</div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px;">
+          <span>Performance</span>
+          <span id="predBarLabel">0%</span>
+        </div>
+        <div class="prediction-bar-wrap">
+          <div class="prediction-bar" id="predBar" style="width:0%"></div>
+        </div>
+      </div>
+      <!-- Formula info -->
+      <div style="margin-top:14px;padding:12px;background:var(--btn-ghost-bg);border-radius:12px;font-size:12px;color:var(--muted);">
+        <strong>Formula:</strong> UT-1×15% + Half-Yearly×35% + UT-2×20% + Attendance×10% + Annual×20%
+      </div>
+    </div>
+
+    <!-- All students marks table -->
+    <div class="card" style="margin-top:16px;" id="marksTableCard" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <h3>📋 All Students — Marks Overview</h3>
+        <button id="marksExportBtn" class="btn-ghost" type="button">📥 Export CSV</button>
+      </div>
+      <div class="table-wrap mobile-stack-table">
+        <table id="marksTable">
+          <thead>
+            <tr><th>Student</th><th>UT-1</th><th>Half-Yearly</th><th>UT-2</th><th>Annual</th><th>Predicted %</th><th>Grade</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7">
+              <div class="empty-state"><div class="empty-icon">📊</div><p>Select a scope and load to see marks overview.</p></div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
+  </main>
+</div>
+
+<nav class="bottom-nav">
+  <a href="#" id="nav-home"><span class="nav-icon">🏠</span>Home</a>
+  <a href="#" id="nav-schedule"><span class="nav-icon">📅</span>Schedule</a>
+  <a href="#" id="nav-attendance"><span class="nav-icon">✅</span>Attendance</a>
+  <a href="#" id="nav-bunkers"><span class="nav-icon">🕵️</span>Bunkers</a>
+  <a href="./marks.html" id="nav-marks" class="active"><span class="nav-icon">📊</span>Marks</a>
+</nav>
+
 <script type="module" src="./scripts/marks.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dbb8c51ccd3029',t:'MTc4MTgwMDY3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>School Admin — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page">
+  <main class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
+        <div>
+          <h2 id="schoolName">School Admin</h2>
+          <p id="schoolMeta">Loading school profile…</p>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="hero-shell">
+      <div class="hero-copy">
+        <div class="eyebrow">Web Admin Portal</div>
+        <h1>Connected school control foundation</h1>
+        <p>This is the clean admin start point. Teachers, students, classes, subjects, sections, timetables, and attendance will all connect from here.</p>
+      </div>
+      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
+    </section>
+
+    <div class="grid">
+      <div class="metric"><span>Admins</span><strong id="countAdmins">0</strong></div>
+      <div class="metric"><span>Teachers</span><strong id="countTeachers">0</strong></div>
+      <div class="metric"><span>Students</span><strong id="countStudents">0</strong></div>
+      <div class="metric"><span>Classes</span><strong id="countClasses">0</strong></div>
+      <div class="metric"><span>Subjects</span><strong id="countSubjects">0</strong></div>
+      <div class="metric"><span>Timetables</span><strong id="countTimetables">0</strong></div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><h3>Teachers</h3><p>Next module: clean teacher registry with auth linking and subject/class allocation.</p></div>
+      <div class="card"><h3>Students</h3><p>Next module: student structure with section, stream, and subject enrollment.</p></div>
+      <div class="card"><h3>Timetable</h3><p>Next module: weekly template + period slots + teacher assignments.</p></div>
+    </div>
+
+    <div id="toastHost"></div>
+  </main>
+</div>
+
+<script type="module" src="./scripts/school-admin.js"></script>
+</body>
+</html>

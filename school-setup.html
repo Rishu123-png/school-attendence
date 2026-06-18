@@ -3,138 +3,57 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#6b6cff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>School Setup</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#6a7cff">
+  <title>School Setup — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
 <div class="page">
   <main class="container">
     <header class="header">
       <div class="brand">
-        <div class="logo">
-          <img src="file_000000000b80720891a13f8f2b0b0935.png" class="brand-logo" alt="Logo">
-        </div>
+        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
         <div>
-          <h2 style="margin-bottom:4px;">School Workspace Setup</h2>
-          <p style="margin-bottom:0;">Create a secure school control hub for admins and teachers</p>
+          <h2>School Setup</h2>
+          <p>Create the first school admin workspace</p>
         </div>
       </div>
       <div class="top-controls">
-        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light Mode</button>
-        <button class="btn-cta" onclick="location.href='dashboard.html'">⬅ Back</button>
+        <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
+        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
       </div>
     </header>
 
     <section class="hero-shell">
       <div class="hero-copy">
         <div class="eyebrow">School Onboarding</div>
-        <h1>Create your school workspace</h1>
-        <p>
-          This creates the first admin profile and school container in Firebase so your school can later manage teachers,
-          classes, subjects, assignments, attendance, and future student features from one system.
-        </p>
-
-        <div class="chip-row">
-          <span class="chip">🏫 School Profile</span>
-          <span class="chip">🛡️ Admin Control</span>
-          <span class="chip">👨‍🏫 Teacher Records</span>
-          <span class="chip">📱 App Ready</span>
-        </div>
-
-        <div id="existingProfileNotice" class="card" style="display:none;margin-top:18px;color:#f39c12;"></div>
+        <h1>Create a clean school workspace</h1>
+        <p>This creates the admin identity, school profile, and the first school-scoped teacher/admin record in the clean architecture.</p>
       </div>
-
-      <div class="hero-visual">
-        <div class="orb-scene">
-          <div>
-            <div class="ai-orb">
-              <div class="orb-ring"></div>
-              <div class="orb-pulse"></div>
-              <div class="orb-core"></div>
-            </div>
-            <div class="orb-caption">School Admin Activation Core</div>
-          </div>
-        </div>
-      </div>
+      <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
     </section>
 
-    <form id="schoolSetupForm" class="card">
-      <h3>🏫 School Details</h3>
-      <p>Fill these details to create your school workspace.</p>
-
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
-        <div>
-          <label class="label">School Name</label>
-          <input id="schoolName" required placeholder="Demo Public School">
+    <div class="card">
+      <h3>School Details</h3>
+      <form id="schoolSetupForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+        <div><label>School Name</label><input id="schoolName" required placeholder="Jaypee Public School"></div>
+        <div><label>School Code</label><input id="schoolCode" required placeholder="JPS001"></div>
+        <div><label>Admin Name</label><input id="adminName" required placeholder="Rishu Jaswar"></div>
+        <div><label>Admin Email</label><input id="adminEmail" type="email" required placeholder="admin@school.com"></div>
+        <div><label>Phone</label><input id="phone" placeholder="+91 ..."></div>
+        <div><label>City</label><input id="city" placeholder="Greater Noida"></div>
+        <div><label>State</label><input id="state" placeholder="Uttar Pradesh"></div>
+        <div><label>Website</label><input id="website" placeholder="https://school.com"></div>
+        <div class="action-row" style="grid-column:1/-1; margin-top:8px;">
+          <button class="btn-cta" type="submit">Create School Workspace</button>
         </div>
-        <div>
-          <label class="label">School Code</label>
-          <input id="schoolCode" required placeholder="DPS001">
-        </div>
-        <div>
-          <label class="label">Admin Name</label>
-          <input id="adminName" required placeholder="Rishu Jaswar">
-        </div>
-        <div>
-          <label class="label">Admin Email</label>
-          <input id="adminEmail" type="email" required placeholder="admin@school.com">
-        </div>
-        <div>
-          <label class="label">Phone</label>
-          <input id="schoolPhone" placeholder="+91 9876543210">
-        </div>
-        <div>
-          <label class="label">City</label>
-          <input id="schoolCity" placeholder="Dehradun">
-        </div>
-        <div>
-          <label class="label">State</label>
-          <input id="schoolState" placeholder="Uttarakhand">
-        </div>
-        <div>
-          <label class="label">Website</label>
-          <input id="schoolWebsite" placeholder="https://school.com">
-        </div>
-      </div>
-
-      <div class="action-row" style="margin-top:18px;">
-        <button class="btn-cta" type="submit">✅ Create School Workspace</button>
-      </div>
-    </form>
-
-    <div class="grid">
-      <div class="card">
-        <h3>What this creates</h3>
-        <p>`userProfiles/{uid}` for the logged-in admin</p>
-        <p>`schools/{schoolId}/profile` with school info</p>
-        <p>`schools/{schoolId}/admins/{uid}` admin record</p>
-        <p style="margin-bottom:0;">`schools/{schoolId}/teachers/{uid}` starter admin-teacher record</p>
-      </div>
-      <div class="card">
-        <h3>What comes next</h3>
-        <p>After setup, you can open the school admin dashboard and manage teachers, classes, subjects, and assignments.</p>
-        <div class="chip-row">
-          <span class="chip">Teachers</span>
-          <span class="chip">Classes</span>
-          <span class="chip">Subjects</span>
-          <span class="chip">Assignments</span>
-        </div>
-      </div>
+      </form>
     </div>
 
-      <p class="footer">Developed by <strong>Rishu Jaswar</strong></p>
+    <div id="toastHost"></div>
   </main>
 </div>
 
-<script type="module" src="./firebase.js"></script>
-<script type="module" src="./school-setup.js"></script>
-<script type="module">
-  import { initTheme } from "./theme.js";
-  window.addEventListener("DOMContentLoaded", () => { initTheme(); });
-</script>
-<script src="./pwa-register.js"></script>
+<script type="module" src="./scripts/school-setup.js"></script>
 </body>
 </html>

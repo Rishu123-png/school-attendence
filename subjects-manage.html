@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6a7cff">
+  <title>Subjects — Clean Rebuild</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+<div class="page"><main class="container">
+<header class="header">
+  <div class="brand"><div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div><div><h2>Subjects</h2><p id="schoolMeta">Loading school…</p></div></div>
+  <div class="top-controls"><button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button><button id="backBtn" class="btn-ghost" type="button">Back</button><button id="logoutBtn" class="btn-ghost" type="button">Logout</button></div>
+</header>
+<section class="hero-shell"><div class="hero-copy"><div class="eyebrow">Subject Catalog</div><h1>Create the school subject list</h1><p>All timetable slots, teacher assignments, and student enrollments depend on this catalog.</p></div><div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div></section>
+<div class="card">
+  <h3>Add Subject</h3>
+  <form id="subjectForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div><label>Subject Name</label><input id="subjectNameInput" placeholder="Physics"></div>
+    <div><label>Code</label><input id="subjectCodeInput" placeholder="PHY-01"></div>
+    <div><label>Type</label><select id="subjectTypeInput"><option value="core">Core</option><option value="elective">Elective</option><option value="lab">Lab</option><option value="activity">Activity</option></select></div>
+    <div class="action-row" style="grid-column:1/-1; margin-top:8px;"><button class="btn-cta" type="submit">Save Subject</button></div>
+  </form>
+</div>
+<div class="card"><h3>Subject List</h3><div class="table-wrap"><table id="subjectsTable"><thead><tr><th>Name</th><th>Code</th><th>Type</th><th>ID</th></tr></thead><tbody></tbody></table></div></div>
+<div id="toastHost"></div>
+</main></div>
+<script type="module" src="./scripts/subjects-manage.js"></script>
+</body>
+</html>

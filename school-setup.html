@@ -4,18 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#6a7cff">
-  <title>School Setup — Clean Rebuild</title>
+  <title>School Setup — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
+  <link rel="manifest" href="./manifest.json">
+  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
 </head>
 <body>
+<div id="offlineBanner">⚠️ You are offline.</div>
+<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
+<div id="toastHost"></div>
+
 <div class="page">
   <main class="container">
     <header class="header">
       <div class="brand">
-        <div class="logo"><img src="./assets/logo.png" class="brand-logo" alt="Logo"></div>
+        <div class="logo">🏫</div>
         <div>
           <h2>School Setup</h2>
-          <p>Create the first school admin workspace</p>
+          <p style="font-size:13px;">Create your school workspace</p>
         </div>
       </div>
       <div class="top-controls">
@@ -26,34 +32,59 @@
 
     <section class="hero-shell">
       <div class="hero-copy">
-        <div class="eyebrow">School Onboarding</div>
-        <h1>Create a clean school workspace</h1>
-        <p>This creates the admin identity, school profile, and the first school-scoped teacher/admin record in the clean architecture.</p>
+        <div class="eyebrow">🚀 First Time Setup</div>
+        <h1>Create your school workspace</h1>
+        <p style="margin:10px 0 0;">This creates your admin identity, school profile, and connects everything to the same Firebase backend used by the teacher app.</p>
       </div>
       <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
     </section>
 
     <div class="card">
-      <h3>School Details</h3>
-      <form id="schoolSetupForm" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-        <div><label>School Name</label><input id="schoolName" required placeholder="Jaypee Public School"></div>
-        <div><label>School Code</label><input id="schoolCode" required placeholder="JPS001"></div>
-        <div><label>Admin Name</label><input id="adminName" required placeholder="Rishu Jaswar"></div>
-        <div><label>Admin Email</label><input id="adminEmail" type="email" required placeholder="admin@school.com"></div>
-        <div><label>Phone</label><input id="phone" placeholder="+91 ..."></div>
-        <div><label>City</label><input id="city" placeholder="Greater Noida"></div>
-        <div><label>State</label><input id="state" placeholder="Uttar Pradesh"></div>
-        <div><label>Website</label><input id="website" placeholder="https://school.com"></div>
-        <div class="action-row" style="grid-column:1/-1; margin-top:8px;">
-          <button class="btn-cta" type="submit">Create School Workspace</button>
+      <h3>🏫 School Details</h3>
+      <form id="schoolSetupForm" style="display:grid;gap:16px;margin-top:18px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+          <div>
+            <label for="schoolName">School Name *</label>
+            <input id="schoolName" type="text" placeholder="e.g. St. Mary's School" required>
+          </div>
+          <div>
+            <label for="schoolCode">School Code</label>
+            <input id="schoolCode" type="text" placeholder="e.g. SMS-001">
+          </div>
+          <div>
+            <label for="adminName">Admin Name *</label>
+            <input id="adminName" type="text" placeholder="Your full name" required>
+          </div>
+          <div>
+            <label for="adminEmail">Admin Email *</label>
+            <input id="adminEmail" type="email" placeholder="admin@school.com" required>
+          </div>
+          <div>
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" placeholder="+91 98765 43210">
+          </div>
+          <div>
+            <label for="city">City</label>
+            <input id="city" type="text" placeholder="e.g. Delhi">
+          </div>
+          <div>
+            <label for="state">State</label>
+            <input id="state" type="text" placeholder="e.g. Delhi">
+          </div>
+          <div>
+            <label for="website">Website</label>
+            <input id="website" type="url" placeholder="https://school.com">
+          </div>
+        </div>
+        <div class="action-row">
+          <button id="schoolSetupSubmitBtn" class="btn-cta" type="submit">🏫 Create School Workspace</button>
         </div>
       </form>
     </div>
 
-    <div id="toastHost"></div>
+    <p class="footer">School OS v2.0 &nbsp;·&nbsp; <strong>Rishu Jaswar</strong></p>
   </main>
 </div>
-
 <script type="module" src="./scripts/school-setup.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dbc699fbc2f47c',t:'MTc4MTgwMTI0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

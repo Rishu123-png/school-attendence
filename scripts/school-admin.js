@@ -48,6 +48,7 @@ requireAuth(async (user) => {
   document.getElementById("timetableLink")?.setAttribute("href", to("./timetable-manage.html"));
   document.getElementById("teacherScheduleLink")?.setAttribute("href", to("./teacher-schedule.html"));
   document.getElementById("periodAttendanceLink")?.setAttribute("href", to("./period-attendance.html"));
+  document.getElementById("topBunkersLink")?.setAttribute("href", to("./top-bunkers.html"));
 }, () => {
   window.location.href = "./index.html";
 });

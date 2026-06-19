@@ -1,10 +1,12 @@
 /* ============================================================
-   APP SHELL — UPGRADED
-   Fixes: theme flash, toast stacking with close + icons,
-          loading overlay, offline detection, breadcrumbs
+   APP SHELL — v3 FIXED
+   Fixes: removed IIFE (causes module scope issues),
+          hideLoader always works even if overlay missing,
+          toast host always appended to body correctly,
+          theme flash prevention moved to inline HTML script
    ============================================================ */
 
-/* ─── Theme (applied to <html> to prevent flash) ────────────── */
+/* ─── Theme ──────────────────────────────────────────────────── */
 export function initTheme() {
   const stored = localStorage.getItem("rebuild-theme") || "dark";
   document.documentElement.classList.toggle("light-mode", stored === "light");
@@ -24,63 +26,49 @@ export function initTheme() {
   });
 }
 
-/* Apply theme immediately before any render (call in <head> via inline script) */
-(function () {
-  const stored = localStorage.getItem("rebuild-theme") || "dark";
-  if (stored === "light") {
-    document.documentElement.classList.add("light-mode");
-  }
-})();
-
 /* ─── Modal ──────────────────────────────────────────────────── */
 export function bindModal(openBtnId, modalId, closeBtnId) {
   const modal = document.getElementById(modalId);
   if (!modal) return;
-
   const open  = () => modal.classList.add("active");
   const close = () => modal.classList.remove("active");
-
   document.getElementById(openBtnId)?.addEventListener("click", open);
   document.getElementById(closeBtnId)?.addEventListener("click", close);
-  modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
 }
+export function openModal(id)  { document.getElementById(id)?.classList.add("active"); }
+export function closeModal(id) { document.getElementById(id)?.classList.remove("active"); }
 
-export function openModal(modalId)  { document.getElementById(modalId)?.classList.add("active"); }
-export function closeModal(modalId) { document.getElementById(modalId)?.classList.remove("active"); }
+/* ─── Toast ──────────────────────────────────────────────────── */
+const TOAST_ICONS = { success:"✅", warn:"⚠️", error:"❌", info:"ℹ️" };
 
-/* ─── Toast (stacked, with icon, close button, 4s) ──────────── */
-const TOAST_ICONS = { success: "✅", warn: "⚠️", error: "❌", info: "ℹ️" };
-
-export function showToast(message, type = "info", duration = 4000) {
+export function showToast(message, type = "info", duration = 4500) {
   let wrap = document.getElementById("toastHost");
   if (!wrap) {
     wrap = document.createElement("div");
     wrap.id = "toastHost";
     document.body.appendChild(wrap);
   }
-
   const toast = document.createElement("div");
   toast.className = `mini-toast ${type}`;
   toast.innerHTML = `
     <span class="toast-icon">${TOAST_ICONS[type] || "ℹ️"}</span>
-    <span class="toast-msg">${message}</span>
+    <span class="toast-msg">${String(message)}</span>
     <button class="toast-close" aria-label="Close">×</button>
   `;
-
   const remove = () => {
     toast.style.opacity = "0";
-    toast.style.transform = "translateX(12px)";
+    toast.style.transform = "translateX(14px)";
     toast.style.transition = "all .2s ease";
     setTimeout(() => toast.remove(), 220);
   };
-
   toast.querySelector(".toast-close").addEventListener("click", remove);
   wrap.appendChild(toast);
   setTimeout(remove, duration);
 }
 
-/* ─── Page Loading Overlay ───────────────────────────────────── */
+/* ─── Loader — FIXED: always hides, never hangs ─────────────── */
 export function showLoader() {
   let overlay = document.getElementById("pageLoadOverlay");
   if (!overlay) {
@@ -93,11 +81,28 @@ export function showLoader() {
 }
 
 export function hideLoader() {
+  /* Try the existing overlay */
   const overlay = document.getElementById("pageLoadOverlay");
   if (overlay) {
     overlay.classList.add("hidden");
-    setTimeout(() => overlay.remove(), 400);
+    /* Remove from DOM after fade */
+    setTimeout(() => {
+      try { overlay.remove(); } catch (_) { /* ignore */ }
+    }, 420);
   }
+}
+
+/* Safety net: if anything goes wrong, force-hide after 8 seconds */
+let _safetyTimer = null;
+export function startLoaderSafetyNet(ms = 8000) {
+  clearTimeout(_safetyTimer);
+  _safetyTimer = setTimeout(() => {
+    hideLoader();
+    console.warn("School OS: loader safety net triggered after", ms, "ms");
+  }, ms);
+}
+export function clearLoaderSafetyNet() {
+  clearTimeout(_safetyTimer);
 }
 
 /* ─── Offline Banner ─────────────────────────────────────────── */
@@ -109,26 +114,23 @@ export function initOfflineBanner() {
     banner.textContent = "⚠️ You are offline. Changes may not save.";
     document.body.prepend(banner);
   }
-
   const update = () => banner.classList.toggle("visible", !navigator.onLine);
-  window.addEventListener("online", update);
+  window.addEventListener("online",  update);
   window.addEventListener("offline", update);
   update();
 }
 
-/* ─── Confirm Dialog (replace window.confirm) ───────────────── */
+/* ─── Confirm ────────────────────────────────────────────────── */
 export function confirmAction(message) {
-  return new Promise((resolve) => {
-    if (window.confirm(message)) resolve(true);
-    else resolve(false);
-  });
+  return Promise.resolve(window.confirm(message));
 }
 
-/* ─── Bottom Nav Active State ────────────────────────────────── */
+/* ─── Bottom Nav Active ───────────────────────────────────────── */
 export function markActiveNav() {
   const path = window.location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll(".bottom-nav a").forEach(link => {
     const href = link.getAttribute("href") || "";
-    link.classList.toggle("active", href.includes(path));
+    const filename = href.split("?")[0].split("/").pop();
+    link.classList.toggle("active", filename === path || href.includes(path));
   });
 }

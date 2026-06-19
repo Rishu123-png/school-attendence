@@ -1,9 +1,7 @@
 /* ============================================================
-   APP SHELL — v3 FIXED
-   Fixes: removed IIFE (causes module scope issues),
-          hideLoader always works even if overlay missing,
-          toast host always appended to body correctly,
-          theme flash prevention moved to inline HTML script
+   APP SHELL — v4 CLEAN FIX
+   The loader is ONLY controlled by CSS class, never removed from DOM.
+   This prevents the "double overlay" and "removed element" bugs.
    ============================================================ */
 
 /* ─── Theme ──────────────────────────────────────────────────── */
@@ -16,7 +14,6 @@ export function initTheme() {
   if (!toggle || toggle.dataset.bound) return;
   toggle.dataset.bound = "true";
   toggle.textContent = stored === "light" ? "🌙 Dark" : "☀️ Light";
-
   toggle.addEventListener("click", () => {
     const next = document.body.classList.contains("light-mode") ? "dark" : "light";
     localStorage.setItem("rebuild-theme", next);
@@ -27,13 +24,13 @@ export function initTheme() {
 }
 
 /* ─── Modal ──────────────────────────────────────────────────── */
-export function bindModal(openBtnId, modalId, closeBtnId) {
+export function bindModal(openId, modalId, closeId) {
   const modal = document.getElementById(modalId);
   if (!modal) return;
   const open  = () => modal.classList.add("active");
   const close = () => modal.classList.remove("active");
-  document.getElementById(openBtnId)?.addEventListener("click", open);
-  document.getElementById(closeBtnId)?.addEventListener("click", close);
+  document.getElementById(openId)?.addEventListener("click", open);
+  document.getElementById(closeId)?.addEventListener("click", close);
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
 }
@@ -41,64 +38,42 @@ export function openModal(id)  { document.getElementById(id)?.classList.add("act
 export function closeModal(id) { document.getElementById(id)?.classList.remove("active"); }
 
 /* ─── Toast ──────────────────────────────────────────────────── */
-const TOAST_ICONS = { success:"✅", warn:"⚠️", error:"❌", info:"ℹ️" };
-
-export function showToast(message, type = "info", duration = 4500) {
-  let wrap = document.getElementById("toastHost");
-  if (!wrap) {
-    wrap = document.createElement("div");
-    wrap.id = "toastHost";
-    document.body.appendChild(wrap);
-  }
-  const toast = document.createElement("div");
-  toast.className = `mini-toast ${type}`;
-  toast.innerHTML = `
-    <span class="toast-icon">${TOAST_ICONS[type] || "ℹ️"}</span>
-    <span class="toast-msg">${String(message)}</span>
-    <button class="toast-close" aria-label="Close">×</button>
-  `;
-  const remove = () => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateX(14px)";
-    toast.style.transition = "all .2s ease";
-    setTimeout(() => toast.remove(), 220);
-  };
-  toast.querySelector(".toast-close").addEventListener("click", remove);
-  wrap.appendChild(toast);
-  setTimeout(remove, duration);
+const ICONS = { success: "✅", warn: "⚠️", error: "❌", info: "ℹ️" };
+export function showToast(msg, type = "info", ms = 4500) {
+  let host = document.getElementById("toastHost");
+  if (!host) { host = document.createElement("div"); host.id = "toastHost"; document.body.appendChild(host); }
+  const t = document.createElement("div");
+  t.className = `mini-toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${ICONS[type]||"ℹ️"}</span><span class="toast-msg">${String(msg)}</span><button class="toast-close">×</button>`;
+  const rm = () => { t.style.opacity="0"; t.style.transform="translateX(14px)"; t.style.transition="all .2s"; setTimeout(()=>t.remove(),220); };
+  t.querySelector(".toast-close").addEventListener("click", rm);
+  host.appendChild(t);
+  setTimeout(rm, ms);
 }
 
-/* ─── Loader — FIXED: always hides, never hangs ─────────────── */
+/* ─── Loader ─────────────────────────────────────────────────── */
+/*
+   IMPORTANT: The overlay <div id="pageLoadOverlay"> MUST exist in HTML.
+   We only toggle the "hidden" CSS class — we never create or remove it.
+   This prevents the duplicate/missing element bug.
+*/
 export function showLoader() {
-  let overlay = document.getElementById("pageLoadOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "pageLoadOverlay";
-    overlay.innerHTML = `<div class="loader-ring"></div>`;
-    document.body.prepend(overlay);
-  }
-  overlay.classList.remove("hidden");
+  const el = document.getElementById("pageLoadOverlay");
+  if (el) el.classList.remove("hidden");
 }
 
 export function hideLoader() {
-  /* Try the existing overlay */
-  const overlay = document.getElementById("pageLoadOverlay");
-  if (overlay) {
-    overlay.classList.add("hidden");
-    /* Remove from DOM after fade */
-    setTimeout(() => {
-      try { overlay.remove(); } catch (_) { /* ignore */ }
-    }, 420);
-  }
+  const el = document.getElementById("pageLoadOverlay");
+  if (el) el.classList.add("hidden");
 }
 
-/* Safety net: if anything goes wrong, force-hide after 8 seconds */
+/* Safety net — force hide after N ms no matter what */
 let _safetyTimer = null;
 export function startLoaderSafetyNet(ms = 8000) {
   clearTimeout(_safetyTimer);
   _safetyTimer = setTimeout(() => {
     hideLoader();
-    console.warn("School OS: loader safety net triggered after", ms, "ms");
+    console.warn("[SchoolOS] Loader safety net fired after", ms, "ms");
   }, ms);
 }
 export function clearLoaderSafetyNet() {
@@ -107,30 +82,24 @@ export function clearLoaderSafetyNet() {
 
 /* ─── Offline Banner ─────────────────────────────────────────── */
 export function initOfflineBanner() {
-  let banner = document.getElementById("offlineBanner");
-  if (!banner) {
-    banner = document.createElement("div");
-    banner.id = "offlineBanner";
-    banner.textContent = "⚠️ You are offline. Changes may not save.";
-    document.body.prepend(banner);
-  }
+  const banner = document.getElementById("offlineBanner");
+  if (!banner) return;
   const update = () => banner.classList.toggle("visible", !navigator.onLine);
-  window.addEventListener("online",  update);
+  window.addEventListener("online", update);
   window.addEventListener("offline", update);
   update();
 }
 
 /* ─── Confirm ────────────────────────────────────────────────── */
-export function confirmAction(message) {
-  return Promise.resolve(window.confirm(message));
+export function confirmAction(msg) {
+  return Promise.resolve(window.confirm(msg));
 }
 
-/* ─── Bottom Nav Active ───────────────────────────────────────── */
+/* ─── Bottom Nav Active ──────────────────────────────────────── */
 export function markActiveNav() {
-  const path = window.location.pathname.split("/").pop() || "index.html";
-  document.querySelectorAll(".bottom-nav a").forEach(link => {
-    const href = link.getAttribute("href") || "";
-    const filename = href.split("?")[0].split("/").pop();
-    link.classList.toggle("active", filename === path || href.includes(path));
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll(".bottom-nav a").forEach(a => {
+    const file = (a.getAttribute("href") || "").split("?")[0].split("/").pop();
+    a.classList.toggle("active", file === page);
   });
 }

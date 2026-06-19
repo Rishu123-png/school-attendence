@@ -1,4 +1,4 @@
-* ============================================================
+/* ============================================================
    ANALYTICS SERVICE — NEW
    Powers the analytics dashboard, daily reports, leaderboard
    All computed from existing Firebase data

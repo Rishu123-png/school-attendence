@@ -7,12 +7,20 @@
   <title>Teacher Home — School OS</title>
   <link rel="stylesheet" href="./styles/main.css">
   <link rel="manifest" href="./manifest.json">
-  <script>(function(){var t=localStorage.getItem("rebuild-theme")||"dark";if(t==="light")document.documentElement.classList.add("light-mode");})()</script>
-  <script>if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");</script>
+  <script>
+    try {
+      var t = localStorage.getItem("rebuild-theme") || "dark";
+      if (t === "light") document.documentElement.classList.add("light-mode");
+    } catch(e) {}
+  </script>
 </head>
 <body class="has-bottom-nav">
+
+<!-- ✅ Overlay is IN HTML -->
+<div id="pageLoadOverlay">
+  <div class="loader-ring"></div>
+</div>
 <div id="offlineBanner">⚠️ You are offline. Changes may not save.</div>
-<div id="pageLoadOverlay"><div class="loader-ring"></div></div>
 <div id="toastHost"></div>
 
 <div class="page">
@@ -27,9 +35,9 @@
         </div>
       </div>
       <div class="top-controls">
-        <span class="network-dot" id="netDot" title="Network status"></span>
+        <span class="network-dot" id="netDot" title="Network"></span>
         <button id="themeToggle" class="btn-ghost" type="button">☀️ Light</button>
-        <button id="logoutBtn" class="btn-ghost" type="button">Logout</button>
+        <button id="logoutBtn"   class="btn-ghost" type="button">Logout</button>
       </div>
     </header>
 
@@ -38,7 +46,7 @@
     <!-- Holiday Warning -->
     <div id="holidayWarning" class="card" style="display:none;margin-bottom:12px;border-left:4px solid var(--warn);">
       <h3>🎉 Today is a Holiday</h3>
-      <p style="margin-top:6px;">No attendance needs to be marked today. Enjoy your day!</p>
+      <p style="margin-top:6px;">No attendance needs to be marked today.</p>
     </div>
 
     <!-- At-Risk Banner -->
@@ -46,9 +54,9 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div>
           <h3>⚠️ <span id="atRiskCount">0</span> Students At Risk (&lt;75% Attendance)</h3>
-          <p style="margin-top:4px;font-size:13px;">Some students need attention. Check the leaderboard for details.</p>
+          <p style="margin-top:4px;font-size:13px;">Check the leaderboard for details.</p>
         </div>
-        <a id="goLeaderboardBtn" href="#" class="btn-danger" style="font-size:13px;">View At-Risk →</a>
+        <a id="goLeaderboardBtn" href="#" class="btn-danger" style="font-size:13px;">View →</a>
       </div>
     </div>
 
@@ -63,27 +71,27 @@
           <span class="chip" id="teacherSchoolChip">🏫 School: —</span>
           <span class="chip" id="teacherSubjectChip">📘 Subject: —</span>
         </div>
-        <div class="action-row" style="flex-wrap:wrap;">
-          <a id="goScheduleBtn"    class="btn-cta"   href="#">🧭 Schedule</a>
-          <button id="goAttendanceBtn" class="btn-cta" type="button" disabled>✅ Attendance</button>
-          <a id="goBunkersBtn"     class="btn-ghost" href="#">🕵️ Bunkers</a>
-          <a id="goMarksBtn"       class="btn-ghost" href="#">📊 Marks</a>
-          <a id="goReportBtn"      class="btn-ghost" href="#">🖨️ Report</a>
+        <div class="action-row" style="flex-wrap:wrap;gap:8px;">
+          <a id="goScheduleBtn"        class="btn-cta"   href="#">🧭 Schedule</a>
+          <button id="goAttendanceBtn" class="btn-cta"   type="button" disabled>✅ Attendance</button>
+          <a id="goBunkersBtn"         class="btn-ghost" href="#">🕵️ Bunkers</a>
+          <a id="goMarksBtn"           class="btn-ghost" href="#">📊 Marks</a>
+          <a id="goReportBtn"          class="btn-ghost" href="#">🖨️ Report</a>
         </div>
       </div>
       <div class="hero-visual"><div class="orb-wrap"><div class="orb"></div></div></div>
     </section>
 
-    <!-- Not-linked card -->
+    <!-- Not Linked Card -->
     <div class="card" id="notLinkedCard" style="display:none;border-left:4px solid var(--warn);margin-bottom:16px;">
       <h3>⚠️ Teacher Account Not Linked</h3>
-      <p style="margin-top:8px;">Ask the admin to go to <strong>Teachers → Edit your record → paste your Auth UID below → Save</strong>.</p>
-      <div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:10px;font-size:13px;">
-        Your Auth UID: <strong id="myAuthUidDisplay" style="color:var(--accent-a);">Loading…</strong>
+      <p style="margin-top:8px;">Ask the admin to go to <strong>Teachers → Edit your record → paste your Auth UID → Save</strong>.</p>
+      <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,.05);border-radius:10px;font-size:13px;word-break:break-all;">
+        Your Auth UID: <strong id="myAuthUidDisplay" style="color:var(--accent-a);">—</strong>
       </div>
     </div>
 
-    <!-- Next Class -->
+    <!-- Next Class Card -->
     <div class="card" id="nextClassCard" style="display:none;margin-bottom:16px;border-left:4px solid var(--accent-a);">
       <h3>⏰ Next / Current Class</h3>
       <div class="summary-chips" style="margin-top:10px;">
@@ -106,9 +114,7 @@
 
     <!-- Announcements -->
     <div class="card" style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <h3>📢 Latest Announcements</h3>
-      </div>
+      <h3 style="margin-bottom:10px;">📢 Latest Announcements</h3>
       <div id="announcementsWrap"><p style="color:var(--muted);font-size:13px;">Loading…</p></div>
     </div>
 
@@ -123,8 +129,14 @@
       </div>
       <div class="table-wrap mobile-stack-table">
         <table id="teacherHomeScheduleTable">
-          <thead><tr><th>Class</th><th>Period</th><th>Type</th><th>Time</th><th>Subject</th><th>Room</th><th>Action</th></tr></thead>
-          <tbody></tbody>
+          <thead>
+            <tr><th>Class</th><th>Period</th><th>Type</th><th>Time</th><th>Subject</th><th>Room</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7">
+              <div class="empty-state"><div class="empty-icon">📅</div><p>Loading schedule…</p></div>
+            </td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -133,25 +145,15 @@
   </main>
 </div>
 
-<!-- Bottom Nav (5 tabs) -->
+<!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <a href="./teacher-home.html" id="nav-home" class="active">
-    <span class="nav-icon">🏠</span>Home
-  </a>
-  <a href="#" id="nav-schedule">
-    <span class="nav-icon">📅</span>Schedule
-  </a>
-  <a href="#" id="nav-attendance">
-    <span class="nav-icon">✅</span>Attend
-  </a>
-  <a href="#" id="nav-bunkers">
-    <span class="nav-icon">🕵️</span>Bunkers
-  </a>
-  <a href="#" id="nav-marks">
-    <span class="nav-icon">📊</span>Marks
-  </a>
+  <a href="./teacher-home.html" id="nav-home" class="active"><span class="nav-icon">🏠</span>Home</a>
+  <a href="#" id="nav-schedule"><span class="nav-icon">📅</span>Schedule</a>
+  <a href="#" id="nav-attendance"><span class="nav-icon">✅</span>Attend</a>
+  <a href="#" id="nav-bunkers"><span class="nav-icon">🕵️</span>Bunkers</a>
+  <a href="#" id="nav-marks"><span class="nav-icon">📊</span>Marks</a>
 </nav>
 
 <script type="module" src="./scripts/teacher-home.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0dc3b279abb8ad3',t:'MTc4MTgwNjAxOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0e192116e5b5f1d',t:'MTc4MTg2MjAwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

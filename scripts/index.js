@@ -1,3 +1,9 @@
+/* ============================================================
+   INDEX.JS — v4 CLEAN FIX
+   Key fix: hideLoader() is called ONCE when observeAuth fires.
+   The loader overlay is IN the HTML, not created by JS.
+   Auto-redirect happens smoothly without double-loader issue.
+   ============================================================ */
 import {
   initTheme, bindModal, showToast, hideLoader,
   initOfflineBanner, startLoaderSafetyNet, clearLoaderSafetyNet
@@ -5,35 +11,35 @@ import {
 import { loginWithEmail, observeAuth, sendPasswordReset } from "../services/auth-service.js";
 import { getRouteForProfile, getUserProfile } from "../services/profile-service.js";
 
+/* Init — overlay already in HTML, just start the safety net */
 initTheme();
 initOfflineBanner();
-startLoaderSafetyNet(6000);
+startLoaderSafetyNet(5000); /* If Firebase takes too long, hide spinner after 5s */
 
+/* Bind modal */
 bindModal("openLoginBtn", "loginModal", "closeLoginBtn");
-
-/* Both login buttons → same modal */
 document.getElementById("openLoginBtn2")?.addEventListener("click", () => {
   document.getElementById("loginModal")?.classList.add("active");
 });
 
-/* School setup button */
+/* School setup */
 document.getElementById("startSchoolSetupBtn")?.addEventListener("click", () => {
   localStorage.setItem("postLoginIntent", "school-setup");
   document.getElementById("loginModal")?.classList.add("active");
 });
 
 /* Show/hide password */
-const pwdInput = document.getElementById("password");
 document.getElementById("togglePwd")?.addEventListener("click", () => {
-  const hidden = pwdInput.type === "password";
-  pwdInput.type = hidden ? "text" : "password";
-  document.getElementById("togglePwd").textContent = hidden ? "🙈" : "👁️";
+  const pwd = document.getElementById("loginPassword");
+  const isHidden = pwd.type === "password";
+  pwd.type = isHidden ? "text" : "password";
+  document.getElementById("togglePwd").textContent = isHidden ? "🙈" : "👁️";
 });
 
 /* Forgot password */
 document.getElementById("forgotPwdBtn")?.addEventListener("click", async () => {
-  const email = document.getElementById("email")?.value?.trim();
-  if (!email) { showToast("Enter your email address above first", "warn"); return; }
+  const email = document.getElementById("loginEmail")?.value?.trim();
+  if (!email) { showToast("Enter your email above first", "warn"); return; }
   try {
     await sendPasswordReset(email);
     showToast("Password reset email sent! Check your inbox.", "success");
@@ -42,37 +48,22 @@ document.getElementById("forgotPwdBtn")?.addEventListener("click", async () => {
   }
 });
 
-/* Clear errors */
-function clearErrors() {
+/* Login form */
+document.getElementById("loginForm")?.addEventListener("submit", async e => {
+  e.preventDefault();
   document.getElementById("emailError").textContent    = "";
   document.getElementById("passwordError").textContent = "";
-  document.getElementById("email")?.classList.remove("input-error");
-  document.getElementById("password")?.classList.remove("input-error");
-}
 
-/* Login form */
-const form = document.getElementById("loginForm");
-form?.addEventListener("submit", async e => {
-  e.preventDefault();
-  clearErrors();
-  const email    = document.getElementById("email")?.value?.trim() || "";
-  const password = document.getElementById("password")?.value || "";
-  let valid = true;
-  if (!email) {
-    document.getElementById("emailError").textContent = "Email is required";
-    document.getElementById("email")?.classList.add("input-error");
-    valid = false;
-  }
-  if (!password) {
-    document.getElementById("passwordError").textContent = "Password is required";
-    document.getElementById("password")?.classList.add("input-error");
-    valid = false;
-  }
-  if (!valid) return;
+  const email    = document.getElementById("loginEmail")?.value?.trim()    || "";
+  const password = document.getElementById("loginPassword")?.value || "";
+
+  if (!email)    { document.getElementById("emailError").textContent    = "Email is required";    return; }
+  if (!password) { document.getElementById("passwordError").textContent = "Password is required"; return; }
 
   const btn = document.getElementById("loginSubmitBtn");
   btn.disabled = true;
   btn.textContent = "Signing in…";
+
   try {
     const { user, profile } = await loginWithEmail(email, password);
     const intent = localStorage.getItem("postLoginIntent");
@@ -81,33 +72,46 @@ form?.addEventListener("submit", async e => {
       window.location.href = "./school-setup.html";
       return;
     }
-    window.location.href = getRouteForProfile(profile || await getUserProfile(user.uid));
+    const route = getRouteForProfile(profile || await getUserProfile(user.uid));
+    window.location.href = route;
   } catch (err) {
-    console.error(err);
-    const msg = err.code === "auth/invalid-credential" || err.code === "auth/wrong-password"
-      ? "Invalid email or password."
-      : err.code === "auth/too-many-requests"
-      ? "Too many attempts. Try again later."
-      : err.message || "Login failed";
+    const code = err.code || "";
+    const msg =
+      code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found"
+        ? "Invalid email or password."
+        : code === "auth/too-many-requests"
+        ? "Too many attempts. Try again later or reset your password."
+        : err.message || "Login failed. Try again.";
     showToast(msg, "error");
     btn.disabled = false;
     btn.textContent = "Sign In";
   }
 });
 
-/* Auto-redirect if already logged in */
+/*
+  observeAuth fires once when Firebase confirms auth state.
+  - If user NOT logged in  → just hide the loader, show the page
+  - If user IS logged in   → redirect to their dashboard
+  This is the ONLY place hideLoader() is called on index.html.
+*/
 observeAuth(async user => {
   clearLoaderSafetyNet();
-  hideLoader();
-  if (!user) return;
+  hideLoader(); /* Always hide loader when auth state is known */
+
+  if (!user) return; /* Not logged in — page is ready */
+
+  /* Logged in → redirect */
   const intent = localStorage.getItem("postLoginIntent");
-  if (intent === "school-setup") return;
+  if (intent === "school-setup") return; /* Let them finish setup */
+
   try {
     const profile = await getUserProfile(user.uid);
-    if (profile && (window.location.pathname.endsWith("index.html") || window.location.pathname === "/" || window.location.pathname.endsWith("/"))) {
+    if (profile) {
       window.location.href = getRouteForProfile(profile);
     }
   } catch (err) {
+    /* Firebase read failed — just stay on login page */
     console.error("Auto-redirect failed:", err);
+    showToast("Could not load profile. Check your connection.", "warn");
   }
 });

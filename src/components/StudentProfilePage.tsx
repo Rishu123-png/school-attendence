@@ -69,17 +69,29 @@ export default function StudentProfilePage() {
 
   const marksChart = useMemo(() => studentMarks.map((m: any) => ({ date: (m.date ?? "").slice(5), subject: m.subject, pct: Math.round((m.score / (m.maxScore || 1)) * 100) })), [studentMarks]);
 
+  // ✅ FIXED: Build real attendance days array instead of fake Array.from
   const aiPred = useMemo(() => {
     if (!student) return null;
-    const att = Array.from({ length: attendance.total }, (_, i) => ({ present: i < attendance.present }));
-    return predict(att, studentMarks.map((m: any) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })));
-  }, [student, attendance, studentMarks]);
+    const attDays: any[] = [];
+    if (attendanceData) {
+      for (const date in attendanceData) {
+        for (const cls in attendanceData[date]) {
+          for (const period in attendanceData[date][cls]) {
+            const rec = attendanceData[date][cls][period][student.id];
+            if (!rec) continue;
+            attDays.push({ present: rec.status === "present", date, subject: rec.subject ?? "General" });
+          }
+        }
+      }
+    }
+    return predict(attDays, studentMarks.map((m: any) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })));
+  }, [student, attendanceData, studentMarks]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><User className="w-6 h-6 text-primary-600" />Student Profile</h1>
-        <p className="text-gray-500 text-sm">Search and explore individual student details</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><User className="w-6 h-6 text-primary-600" />Student Profile</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Search and explore individual student details</p>
       </motion.div>
 
       {/* search */}
@@ -92,10 +104,10 @@ export default function StudentProfilePage() {
           <div className="mt-3 flex flex-wrap gap-2">
             {matches.map((s) => (
               <button key={s.id} onClick={() => { setSelectedId(s.id); setSearchTerm(""); }}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-primary-50 hover:text-primary-700 transition-colors text-sm">
-                <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[10px] font-bold">{s.rollNo}</span>
-                <span className="font-medium">{s.name}</span>
-                <span className="text-xs text-gray-400">{s.class}</span>
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-400 transition-colors text-sm">
+                <span className="w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center justify-center text-[10px] font-bold">{s.rollNo}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">{s.name}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">{s.class}</span>
               </button>
             ))}
           </div>
@@ -103,7 +115,7 @@ export default function StudentProfilePage() {
       </div>
 
       {!student && (
-        <div className={cn(S.card, "text-center py-12 text-gray-400")}>
+        <div className={cn(S.card, "text-center py-12 text-gray-400 dark:text-gray-500")}>
           <User className="w-12 h-12 mx-auto mb-3 opacity-40" />
           <p className="text-sm">Search and select a student to view their profile</p>
         </div>
@@ -112,16 +124,16 @@ export default function StudentProfilePage() {
       {student && (
         <>
           {/* profile header */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={cn(S.card, "bg-gradient-to-br from-primary-50 via-white to-accent-50")}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={cn(S.card, "bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-primary-900/10 dark:via-gray-900 dark:to-accent-900/10")}>
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg shrink-0">{student.name.charAt(0).toUpperCase()}</div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-gray-900">{student.name}</h2>
-                <p className="text-sm text-gray-500">{student.class}{student.section ? ` · Section ${student.section}` : ""} · Roll {student.rollNo}</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{student.name}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{student.class}{student.section ? ` · Section ${student.section}` : ""} · Roll {student.rollNo}</p>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {student.email && <p className="flex items-center gap-2 text-xs text-gray-600"><Mail className="w-3.5 h-3.5" />{student.email}</p>}
-                  {student.phone && <p className="flex items-center gap-2 text-xs text-gray-600"><Phone className="w-3.5 h-3.5" />{student.phone}</p>}
-                  {student.parentName && <p className="flex items-center gap-2 text-xs text-gray-600"><UsersIcon className="w-3.5 h-3.5" />{student.parentName}{student.parentPhone ? ` (${student.parentPhone})` : ""}</p>}
+                  {student.email && <p className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"><Mail className="w-3.5 h-3.5" />{student.email}</p>}
+                  {student.phone && <p className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"><Phone className="w-3.5 h-3.5" />{student.phone}</p>}
+                  {student.parentName && <p className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"><UsersIcon className="w-3.5 h-3.5" />{student.parentName}{student.parentPhone ? ` (${student.parentPhone})` : ""}</p>}
                 </div>
               </div>
               <button onClick={() => setSelectedId(null)} className={cn(S.btnSecondary, "text-xs shrink-0")}>Search again</button>
@@ -130,52 +142,52 @@ export default function StudentProfilePage() {
 
           {/* stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className={cn(S.card, "bg-gradient-to-br from-primary-50 to-white")}>
+            <div className={cn(S.card, "bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/10 dark:to-gray-900")}>
               <ClipboardCheck className="w-5 h-5 text-primary-600 mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{attendance.pct}%</p>
-              <p className="text-xs text-gray-500">Attendance</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{attendance.pct}%</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Attendance</p>
             </div>
-            <div className={cn(S.card, "bg-gradient-to-br from-green-50 to-white")}>
+            <div className={cn(S.card, "bg-gradient-to-br from-green-50 to-white dark:from-green-900/10 dark:to-gray-900")}>
               <Award className="w-5 h-5 text-green-600 mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{attendance.present}</p>
-              <p className="text-xs text-gray-500">Present</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{attendance.present}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Present</p>
             </div>
-            <div className={cn(S.card, "bg-gradient-to-br from-red-50 to-white")}>
+            <div className={cn(S.card, "bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-gray-900")}>
               <AlertTriangle className="w-5 h-5 text-red-600 mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{attendance.absent}</p>
-              <p className="text-xs text-gray-500">Absent</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{attendance.absent}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Absent</p>
             </div>
-            <div className={cn(S.card, "bg-gradient-to-br from-purple-50 to-white")}>
+            <div className={cn(S.card, "bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-900")}>
               <BookOpen className="w-5 h-5 text-purple-600 mb-2" />
-              <p className="text-2xl font-bold text-gray-900">{studentMarks.length}</p>
-              <p className="text-xs text-gray-500">Marks Records</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{studentMarks.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Marks Records</p>
             </div>
           </div>
 
           {/* AI prediction */}
           {aiPred && attendance.total > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50")}>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Prediction</h3>
+              className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50 dark:from-primary-900/10 dark:to-accent-900/10 dark:border-primary-800/30")}>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Prediction</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-white/80 rounded-xl p-3">
-                  <p className="text-xs text-gray-500">Attendance Forecast</p>
+                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Attendance Forecast</p>
                   <p className={cn("text-xl font-bold", aiPred.attendance.risk === "low" ? "text-green-600" : aiPred.attendance.risk === "medium" ? "text-yellow-600" : "text-red-600")}>{aiPred.attendance.predicted}%</p>
-                  <p className="text-[10px] text-gray-400 mt-1 capitalize">Trend: {aiPred.attendance.trend} · Risk: {aiPred.attendance.risk}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 capitalize">Trend: {aiPred.attendance.trend} · Risk: {aiPred.attendance.risk}</p>
                 </div>
-                <div className="bg-white/80 rounded-xl p-3">
-                  <p className="text-xs text-gray-500">Expected Score</p>
+                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Expected Score</p>
                   <p className={cn("text-xl font-bold", aiPred.performance.expected >= 70 ? "text-green-600" : aiPred.performance.expected >= 50 ? "text-yellow-600" : "text-red-600")}>{aiPred.performance.expected}%</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Confidence: {aiPred.performance.confidence}%</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Confidence: {aiPred.performance.confidence}%</p>
                 </div>
-                <div className="bg-white/80 rounded-xl p-3">
-                  <p className="text-xs text-gray-500">Bunk Risk</p>
+                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Bunk Risk</p>
                   <p className={cn("text-xl font-bold", aiPred.bunkRisk.level === "green" ? "text-green-600" : aiPred.bunkRisk.level === "yellow" ? "text-yellow-600" : "text-red-600")}>{aiPred.bunkRisk.probability}%</p>
-                  <p className="text-[10px] text-gray-400 mt-1 capitalize">Level: {aiPred.bunkRisk.level}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 capitalize">Level: {aiPred.bunkRisk.level}</p>
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                {aiPred.tips.map((t, i) => <p key={i} className="text-xs text-gray-700 flex items-start gap-2"><span className="text-primary-600">•</span>{t}</p>)}
+                {aiPred.tips.map((t, i) => <p key={i} className="text-xs text-gray-700 dark:text-gray-300 flex items-start gap-2"><span className="text-primary-600">•</span>{t}</p>)}
               </div>
             </motion.div>
           )}
@@ -183,7 +195,7 @@ export default function StudentProfilePage() {
           {/* charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className={S.card}>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary-600" />Marks Progress</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary-600" />Marks Progress</h3>
               {marksChart.length ? (
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={marksChart}>
@@ -194,11 +206,11 @@ export default function StudentProfilePage() {
                     <Line type="monotone" dataKey="pct" stroke="#6366f1" strokeWidth={2} dot={{ r: 4, fill: "#6366f1" }} />
                   </LineChart>
                 </ResponsiveContainer>
-              ) : <div className="text-center py-12 text-gray-400 text-sm">No marks recorded</div>}
+              ) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No marks recorded</div>}
             </div>
 
             <div className={S.card}>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-accent-600" />Subject-wise Attendance</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-accent-600" />Subject-wise Attendance</h3>
               {attendance.subjectMap.length ? (
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={attendance.subjectMap} layout="vertical">
@@ -209,25 +221,25 @@ export default function StudentProfilePage() {
                     <Bar dataKey="pct" fill="#ec4899" radius={[0, 8, 8, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : <div className="text-center py-12 text-gray-400 text-sm">No attendance data</div>}
+              ) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No attendance data</div>}
             </div>
           </div>
 
           {/* recent marks list */}
           {studentMarks.length > 0 && (
             <div className={cn(S.card, "p-0 overflow-hidden")}>
-              <div className="p-4 border-b border-gray-100"><h3 className="font-semibold text-gray-900">Recent Marks</h3></div>
-              <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+              <div className="p-4 border-b border-gray-100 dark:border-gray-800"><h3 className="font-semibold text-gray-900 dark:text-white">Recent Marks</h3></div>
+              <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-72 overflow-y-auto">
                 {studentMarks.slice().reverse().slice(0, 15).map((m: any, i: number) => {
                   const pct = Math.round((m.score / (m.maxScore || 1)) * 100);
                   return (
                     <div key={i} className="flex items-center justify-between px-4 py-2.5">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{m.subject}</p>
-                        <p className="text-xs text-gray-400">{m.type} · {new Date(m.date).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{m.subject}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{m.type} · {new Date(m.date).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-900">{m.score}/{m.maxScore}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{m.score}/{m.maxScore}</p>
                         <p className={cn("text-xs font-medium", pct >= 80 ? "text-green-600" : pct >= 50 ? "text-yellow-600" : "text-red-600")}>{pct}%</p>
                       </div>
                     </div>

@@ -126,7 +126,7 @@ export default function StudentProfilePage() {
           {/* profile header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={cn(S.card, "bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-primary-900/10 dark:via-gray-900 dark:to-accent-900/10")}>
             <div className="flex flex-col sm:flex-row items-start gap-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg shrink-0">{student.name.charAt(0).toUpperCase()}</div>
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center text-3xl font-bold shadow-lg shrink-0">{student.name?.charAt(0).toUpperCase() || "S"}</div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{student.name}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{student.class}{student.section ? ` · Section ${student.section}` : ""} · Roll {student.rollNo}</p>

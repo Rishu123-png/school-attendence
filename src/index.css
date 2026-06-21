@@ -23,7 +23,7 @@
 }
 
 @layer base {
-  * { @apply border-gray-200; }
+  * { @apply border-gray-200 dark:border-gray-700; }
 
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
@@ -34,9 +34,23 @@
   .dark {
     @apply bg-gray-950 text-gray-100;
   }
-  .dark * {
-    @apply border-gray-700;
-  }
+}
+
+/* ── semantic color helpers for dark mode ─────────────────────── */
+.text-heading {
+  @apply text-gray-900 dark:text-gray-100;
+}
+.text-body {
+  @apply text-gray-600 dark:text-gray-300;
+}
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
+}
+.bg-surface {
+  @apply bg-white dark:bg-gray-900;
+}
+.border-surface {
+  @apply border-gray-100 dark:border-gray-800;
 }
 
 @keyframes pulse-soft {

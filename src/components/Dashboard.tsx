@@ -24,8 +24,15 @@ export default function Dashboard() {
   const todaySlots = timetable.filter((s) => s.day?.toLowerCase() === today).sort((a, b) => a.time.localeCompare(b.time));
 
   const timeStr = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
-  const nextClass = todaySlots.find((s) => s.time > timeStr) ?? todaySlots[0];
+  const nextClass = todaySlots.find((s) => s.time > timeStr) ?? null;
 
+  // clock only
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  // firebase subscriptions - NOT tied to `now`
   useEffect(() => {
     if (!schoolId) return;
     const unsub1 = onValue(ref(db, `schools/${schoolId}/announcements`), (snap) => {
@@ -33,7 +40,7 @@ export default function Dashboard() {
       if (d) setAnnouncements(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })).sort((a: Ann, b: Ann) => b.timestamp - a.timestamp).slice(0, 5));
       else setAnnouncements([]);
     });
-    const todayDate = now.toISOString().split("T")[0];
+    const todayDate = new Date().toISOString().split("T")[0];
     const unsub2 = onValue(ref(db, `schools/${schoolId}/attendance/${todayDate}`), (snap) => {
       const d = snap.val();
       let present = 0, absent = 0, total = 0;
@@ -43,9 +50,8 @@ export default function Dashboard() {
       }
       setStats({ present, absent, total });
     });
-    const t = setInterval(() => setNow(new Date()), 60000);
-    return () => { unsub1(); unsub2(); clearInterval(t); };
-  }, [schoolId, now]);
+    return () => { unsub1(); unsub2(); };
+  }, [schoolId]);
 
   const greeting = now.getHours() < 12 ? "Morning" : now.getHours() < 17 ? "Afternoon" : "Evening";
   const rate = stats.total ? Math.round((stats.present / stats.total) * 100) : 0;
@@ -177,4 +183,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

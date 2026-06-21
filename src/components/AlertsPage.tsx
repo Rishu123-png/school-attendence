@@ -187,7 +187,7 @@ export default function AlertsPage() {
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {notifData.length ? notifData.slice(0, 30).map((n) => (
                 <tr key={n.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-3 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold">{n.studentName.charAt(0)}</div><span className="text-sm font-medium text-gray-900 dark:text-gray-100">{n.studentName}</span></div></td>
+                  <td className="px-3 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold">{n.studentName ? n.studentName.charAt(0) : "?"}</div><span className="text-sm font-medium text-gray-900 dark:text-gray-100">{n.studentName ?? "Unknown"}</span></div></td>
                   <td className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{n.class}</td>
                   <td className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{n.subject}</td>
                   <td className="px-3 py-3 text-center text-xs text-gray-500 dark:text-gray-400">{new Date(n.date).toLocaleDateString()}</td>

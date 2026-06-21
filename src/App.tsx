@@ -63,12 +63,9 @@ function ProtectedRoute() {
 
   if (loading) return <Splash />;
   if (!user) return <Navigate to="/" replace />;
-  // User logged in but no school linked → setup flow
   if (profile && !schoolId) return <SchoolSetup />;
-  // Teacher gate: admin must have invited this teacher's email
   if (!isAdmin) {
     if (dataLoading) return <Splash />;
-    // Only block when school clearly has at least one teacher and we're not in the list.
     if (teachers.length > 0 && !currentTeacher) return <PendingApproval />;
   }
   return <Outlet />;

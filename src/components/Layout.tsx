@@ -147,7 +147,8 @@ export default function Layout() {
             })}
           </nav>
 
-          {schoolId && (
+          {/* ✅ FIXED: Only show school code to admins */}
+          {isAdmin && schoolId && (
             <div className={cn("px-4 py-3 border-t", isDark ? "border-gray-800" : "border-gray-100")}>
               <p className="text-[10px] text-gray-400 mb-1">School Code (share with teachers)</p>
               <button onClick={copySchoolCode}

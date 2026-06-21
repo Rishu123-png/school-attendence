@@ -49,7 +49,7 @@ export default function AnnouncementsPage() {
     switch (t) { case "urgent": return "#ef4444"; case "exam": return "#f59e0b"; case "holiday": return "#10b981"; case "event": return "#8b5cf6"; default: return "#6366f1"; }
   };
   const bgColor = (t: string) => {
-    switch (t) { case "urgent": return "bg-red-50/50"; case "exam": return "bg-yellow-50/50"; case "holiday": return "bg-green-50/50"; case "event": return "bg-purple-50/50"; default: return "bg-primary-50/30"; }
+    switch (t) { case "urgent": return "bg-red-50/50 dark:bg-red-900/10"; case "exam": return "bg-yellow-50/50 dark:bg-yellow-900/10"; case "holiday": return "bg-green-50/50 dark:bg-green-900/10"; case "event": return "bg-purple-50/50 dark:bg-purple-900/10"; default: return "bg-primary-50/30 dark:bg-primary-900/10"; }
   };
   const badgeClass = (t: string) => {
     switch (t) { case "urgent": return S.badgeRed; case "exam": return S.badgeYellow; case "holiday": return S.badgeGreen; case "event": return S.badgePurple; default: return S.badgeBlue; }
@@ -59,7 +59,7 @@ export default function AnnouncementsPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900">📢 Announcements</h1><p className="text-gray-500 text-sm">Stay updated with school news</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📢 Announcements</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Stay updated with school news</p></div>
         {isAdmin && <button onClick={() => setShowCreate(!showCreate)} className={S.btnPrimary}><Plus className="w-4 h-4" />New Announcement</button>}
       </motion.div>
 
@@ -67,17 +67,17 @@ export default function AnnouncementsPage() {
       <AnimatePresence>
         {showCreate && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className={cn(S.card, "space-y-4 bg-gradient-to-br from-primary-50 to-white")}>
+            <div className={cn(S.card, "space-y-4 bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/10 dark:to-gray-900")}>
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Megaphone className="w-4 h-4 text-primary-600" />Post Announcement</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Megaphone className="w-4 h-4 text-primary-600" />Post Announcement</h3>
                 <button onClick={() => setShowCreate(false)} className={cn(S.btnGhost, "p-1")}><X className="w-4 h-4" /></button>
               </div>
               <input type="text" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Title…" className={S.input} />
               <textarea value={form.message} onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))} placeholder="Message…" rows={3} className={cn(S.input, "resize-none")} />
               <div className="flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[140px]"><label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <div className="flex-1 min-w-[140px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type</label>
                   <select value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))} className={cn(S.input, "py-2")}><option value="general">General</option><option value="exam">Exam</option><option value="holiday">Holiday</option><option value="urgent">Urgent</option><option value="event">Event</option></select></div>
-                <div className="flex-1 min-w-[140px]"><label className="block text-xs font-medium text-gray-500 mb-1">Audience</label>
+                <div className="flex-1 min-w-[140px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Audience</label>
                   <select value={form.audience} onChange={(e) => setForm((p) => ({ ...p, audience: e.target.value }))} className={cn(S.input, "py-2")}><option value="all">Everyone</option><option value="teachers">Teachers</option><option value="students">Students</option></select></div>
                 <div className="flex items-end"><button onClick={postAnn} disabled={posting} className={S.btnPrimary}><Send className="w-4 h-4" />{posting ? "Posting…" : "Post"}</button></div>
               </div>
@@ -94,7 +94,7 @@ export default function AnnouncementsPage() {
         ].map(({ v, l }) => (
           <button key={v} onClick={() => setFilter(v)}
             className={cn("px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
-              filter === v ? "bg-primary-100 text-primary-700 shadow-sm" : "bg-gray-50 text-gray-500 hover:bg-gray-100")}>
+              filter === v ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 shadow-sm" : "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700")}>
             {l}
           </button>
         ))}
@@ -107,25 +107,25 @@ export default function AnnouncementsPage() {
             className={cn(S.card, "border-l-4 cursor-pointer hover:shadow-md", bgColor(a.type))}
             style={{ borderLeftColor: borderColor(a.type) }}>
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">{icon(a.type)}</div>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white dark:bg-gray-900 shadow-sm flex items-center justify-center">{icon(a.type)}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{a.title}</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{a.title}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={cn(badgeClass(a.type), "text-[10px]")}>{a.type}</span>
                       <span className={cn(S.badgeBlue, "text-[10px]")}>{a.audience}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] text-gray-400 whitespace-nowrap flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(a.timestamp)}</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(a.timestamp)}</span>
                 </div>
-                <p className="text-sm text-gray-600 mt-2 leading-relaxed">{a.message}</p>
-                <div className="flex items-center gap-2 mt-3 text-xs text-gray-400"><User className="w-3 h-3" />{a.author}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">{a.message}</p>
+                <div className="flex items-center gap-2 mt-3 text-xs text-gray-400 dark:text-gray-500"><User className="w-3 h-3" />{a.author}</div>
               </div>
             </div>
           </motion.div>
         )) : (
-          <div className="text-center py-16 text-gray-400"><Bell className="w-12 h-12 mx-auto mb-3 opacity-40" /><p className="text-base font-medium">No announcements yet</p></div>
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500"><Bell className="w-12 h-12 mx-auto mb-3 opacity-40" /><p className="text-base font-medium">No announcements yet</p></div>
         )}
       </div>
     </div>

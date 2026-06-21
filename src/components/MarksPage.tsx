@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ref, onValue, push, set } from "firebase/database";
+import { ref, onValue, push, set, update } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
@@ -24,7 +24,7 @@ export default function MarksPage() {
   const [maxScore, setMaxScore] = useState(100);
   const [saving, setSaving] = useState(false);
   const [showAI, setShowAI] = useState(false);
-  const [attendanceData, setAttendanceData] = useState<any>(null);   // ✅ NEW: real attendance for AI
+  const [attendanceData, setAttendanceData] = useState<any>(null);
 
   useEffect(() => { if (classes.length && !selectedClass) setSelectedClass(classes[0].name); }, [classes, selectedClass]);
   useEffect(() => { if (subjects.length && !selectedSubject) setSelectedSubject(subjects[0].name); }, [subjects, selectedSubject]);
@@ -39,7 +39,6 @@ export default function MarksPage() {
     return () => unsub();
   }, [schoolId]);
 
-  // ✅ NEW: fetch attendance for real AI predictions
   useEffect(() => {
     if (!schoolId) return;
     const unsub = onValue(ref(db, `schools/${schoolId}/attendance`), (snap) => {
@@ -58,12 +57,37 @@ export default function MarksPage() {
     if (!schoolId || !selectedSubject) return;
     setSaving(true);
     try {
+      const dateStr = new Date().toISOString().split("T")[0];
       const entries = Object.entries(scores).filter(([, v]) => v !== "");
+      
+      // Build index of existing marks to upsert instead of duplicate-push
+      const existingIndex = new Map<string,string>();
+      marks.forEach(m => {
+        if (m.subject === selectedSubject && m.type === selectedType && m.date === dateStr) {
+          existingIndex.set(m.studentId, m.id);
+        }
+      });
+
+      const updates: Record<string, any> = {};
+      let savedCount = 0;
       for (const [sid, score] of entries) {
-        const newRef = push(ref(db, `schools/${schoolId}/marks`));
-        await set(newRef, { studentId: sid, subject: selectedSubject, score: Number(score), maxScore, type: selectedType, date: new Date().toISOString().split("T")[0], markedBy: profile?.uid, timestamp: Date.now() });
+        const payload = { studentId: sid, subject: selectedSubject, score: Number(score), maxScore, type: selectedType, date: dateStr, markedBy: profile?.uid, timestamp: Date.now() };
+        const existingId = existingIndex.get(sid);
+        if (existingId) {
+          updates[`schools/${schoolId}/marks/${existingId}`] = payload;
+        } else {
+          const newRef = push(ref(db, `schools/${schoolId}/marks`));
+          updates[`schools/${schoolId}/marks/${newRef.key}`] = payload;
+        }
+        savedCount++;
       }
-      toast.success(`Marks saved for ${entries.length} students! 📝`); setScores({});
+      if (savedCount > 0) {
+        await update(ref(db), updates);
+        toast.success(`Marks saved for ${savedCount} students! 📝`);
+        setScores({});
+      } else {
+        toast.error("No scores entered");
+      }
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     setSaving(false);
   };
@@ -85,7 +109,6 @@ export default function MarksPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.slice(0, 6).map((s) => {
               const sm = studentMarks(s.id);
-              // ✅ FIXED: build real attendance days
               const attDays: any[] = [];
               if (attendanceData) {
                 for (const date in attendanceData) {

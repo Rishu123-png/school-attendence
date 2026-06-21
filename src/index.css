@@ -30,3 +30,4 @@
 .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
 .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
 .scrollbar-hide::-webkit-scrollbar { display:none; }
+

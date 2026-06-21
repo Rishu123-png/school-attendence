@@ -21,7 +21,7 @@ export default function SchedulePage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900">📅 Timetable</h1><p className="text-gray-500 text-sm">Weekly class schedule</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📅 Timetable</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Weekly class schedule</p></div>
         <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className={cn(S.input, "py-2 w-auto")}>
           <option value="">All Classes</option>
           {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -31,14 +31,14 @@ export default function SchedulePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className={S.card}>
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => dayIdx > 0 && setSelectedDay(days[dayIdx - 1])} disabled={dayIdx <= 0} className={cn(S.btnGhost, "p-2")}><ChevronLeft className="w-5 h-5" /></button>
-          <div className="text-center"><h2 className="text-lg font-bold text-gray-900 capitalize">{selectedDay}</h2><p className="text-xs text-gray-400">{slots.length} periods</p></div>
+          <div className="text-center"><h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">{selectedDay}</h2><p className="text-xs text-gray-400 dark:text-gray-500">{slots.length} periods</p></div>
           <button onClick={() => dayIdx < days.length - 1 && setSelectedDay(days[dayIdx + 1])} disabled={dayIdx >= days.length - 1} className={cn(S.btnGhost, "p-2")}><ChevronRight className="w-5 h-5" /></button>
         </div>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
           {days.map((d) => (
             <button key={d} onClick={() => setSelectedDay(d)}
               className={cn("px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
-                selectedDay === d ? "bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md" : "bg-gray-50 text-gray-600 hover:bg-gray-100")}>
+                selectedDay === d ? "bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md" : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700")}>
               {d.charAt(0).toUpperCase() + d.slice(1, 3)}
             </button>
           ))}
@@ -49,19 +49,19 @@ export default function SchedulePage() {
         {slots.length ? slots.map((slot, i) => (
           <motion.div key={slot.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
             className={cn(S.cardHover, "flex items-center gap-4")}>
-            <div className="flex flex-col items-center min-w-[60px]"><span className="text-xs text-gray-400">{slot.period}</span><span className="text-sm font-bold text-gray-900">{slot.time}</span></div>
+            <div className="flex flex-col items-center min-w-[60px]"><span className="text-xs text-gray-400 dark:text-gray-500">{slot.period}</span><span className="text-sm font-bold text-gray-900 dark:text-white">{slot.time}</span></div>
             <div className={cn("px-3 py-2 rounded-lg border text-sm font-semibold", pColor(slot.period))}>{slot.period}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{slot.subject}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{slot.subject}</p>
               <div className="flex items-center gap-3 mt-1">
-                <span className="flex items-center gap-1 text-xs text-gray-500"><Users className="w-3 h-3" />{slot.class || "—"}</span>
-                <span className="flex items-center gap-1 text-xs text-gray-500"><MapPin className="w-3 h-3" />Room {slot.room || "—"}</span>
+                <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><Users className="w-3 h-3" />{slot.class || "—"}</span>
+                <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><MapPin className="w-3 h-3" />Room {slot.room || "—"}</span>
                 {slot.type && <span className={S.badgeBlue + " text-[10px]"}>{slot.type}</span>}
               </div>
             </div>
           </motion.div>
         )) : (
-          <div className="text-center py-16 text-gray-400"><CalendarDays className="w-12 h-12 mx-auto mb-3 opacity-40" /><p className="text-base font-medium">No classes scheduled</p></div>
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500"><CalendarDays className="w-12 h-12 mx-auto mb-3 opacity-40" /><p className="text-base font-medium">No classes scheduled</p></div>
         )}
       </motion.div>
     </div>

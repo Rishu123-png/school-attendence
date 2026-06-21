@@ -28,7 +28,6 @@ export default function LeaderboardPage() {
 
   const rankings: Rank[] = useMemo(() => {
     if (!attendanceData || !selectedClass) return [];
-    // attendance per student
     const att = new Map<string, { p: number; t: number }>();
     for (const date in attendanceData) {
       const cls = attendanceData[date]?.[selectedClass];
@@ -41,7 +40,6 @@ export default function LeaderboardPage() {
         }
       }
     }
-    // marks per student
     const marks = new Map<string, number[]>();
     marksData.forEach((m: any) => {
       if (!marks.has(m.studentId)) marks.set(m.studentId, []);
@@ -53,7 +51,7 @@ export default function LeaderboardPage() {
       const ms = marks.get(s.id) ?? [];
       const attPct = a.t ? Math.round((a.p / a.t) * 100) : 0;
       const marksPct = ms.length ? Math.round(ms.reduce((x, y) => x + y, 0) / ms.length) : 0;
-      const score = Math.round(attPct * 0.4 + marksPct * 0.6); // weighted: marks 60%, attendance 40%
+      const score = Math.round(attPct * 0.4 + marksPct * 0.6);
       const status = score >= 85 ? "Excellent" : score >= 70 ? "Good" : score >= 50 ? "Average" : score > 0 ? "Needs Help" : "No Data";
       return { id: s.id, rollNo: s.rollNo, name: s.name, section: s.section, attPct, marksPct, score, status };
     }).sort((a, b) => b.score - a.score);
@@ -70,7 +68,7 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Trophy className="w-6 h-6 text-yellow-500" />Class Leaderboard</h1><p className="text-gray-500 text-sm">Ranked by attendance (40%) + marks (60%)</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Trophy className="w-6 h-6 text-yellow-500" />Class Leaderboard</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Ranked by attendance (40%) + marks (60%)</p></div>
         <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className={cn(S.input, "py-2 w-auto")}>
           {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
@@ -81,16 +79,16 @@ export default function LeaderboardPage() {
         <div className="grid grid-cols-3 gap-3">
           {[1, 0, 2].map((podiumIdx) => {
             const r = top3[podiumIdx]; if (!r) return <div key={podiumIdx} />;
-            const heights = ["pt-8", "pt-2", "pt-12"]; // center is shortest visually for top1
+            const heights = ["pt-8", "pt-2", "pt-12"];
             return (
               <motion.div key={r.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * podiumIdx }} className={cn("text-center", podiumIdx === 0 && "order-2", podiumIdx === 1 && "order-1", podiumIdx === 2 && "order-3")}>
                 <div className={cn("inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br text-white shadow-lg mb-2", podiumColor(podiumIdx))}>
                   {medalIcon(podiumIdx)}
                 </div>
                 <div className={cn(S.card, "py-4", heights[podiumIdx])}>
-                  <p className="text-2xl font-bold text-gray-900">#{podiumIdx + 1}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1 truncate">{r.name}</p>
-                  <p className="text-xs text-gray-500">Roll {r.rollNo}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">#{podiumIdx + 1}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1 truncate">{r.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Roll {r.rollNo}</p>
                   <p className="text-lg font-bold text-primary-600 mt-2">{r.score}</p>
                 </div>
               </motion.div>
@@ -101,31 +99,31 @@ export default function LeaderboardPage() {
 
       {/* full rankings */}
       <div className={cn(S.card, "p-0 overflow-hidden")}>
-        <div className="p-4 border-b border-gray-100"><h3 className="font-semibold text-gray-900 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary-600" />Full Rankings</h3></div>
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800"><h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary-600" />Full Rankings</h3></div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead><tr className="bg-gray-50">
-              <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500">Rank</th>
-              <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500">Student</th>
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500">Roll</th>
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500">Att %</th>
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500">Marks %</th>
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500">Score</th>
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500">Status</th>
+            <thead><tr className="bg-gray-50 dark:bg-gray-800">
+              <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Rank</th>
+              <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Student</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Roll</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Att %</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Marks %</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Score</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Status</th>
             </tr></thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {rest.length ? rest.map((r, i) => (
-                <motion.tr key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.01 }} className="hover:bg-gray-50">
-                  <td className="px-3 py-3 text-sm font-semibold text-gray-500">#{i + 4}</td>
-                  <td className="px-3 py-3 text-sm font-medium text-gray-900">{r.name}</td>
-                  <td className="px-3 py-3 text-center text-sm text-gray-600">{r.rollNo}</td>
-                  <td className="px-3 py-3 text-center text-sm font-medium text-gray-700">{r.attPct}%</td>
-                  <td className="px-3 py-3 text-center text-sm font-medium text-gray-700">{r.marksPct}%</td>
+                <motion.tr key={r.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.01 }} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="px-3 py-3 text-sm font-semibold text-gray-500 dark:text-gray-400">#{i + 4}</td>
+                  <td className="px-3 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{r.name}</td>
+                  <td className="px-3 py-3 text-center text-sm text-gray-600 dark:text-gray-300">{r.rollNo}</td>
+                  <td className="px-3 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">{r.attPct}%</td>
+                  <td className="px-3 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">{r.marksPct}%</td>
                   <td className="px-3 py-3 text-center"><span className={cn("text-sm font-bold", r.score >= 70 ? "text-green-600" : r.score >= 50 ? "text-yellow-600" : "text-red-600")}>{r.score}</span></td>
                   <td className="px-3 py-3 text-center"><span className={cn(statusColor(r.status), "text-[10px]")}>{r.status}</span></td>
                 </motion.tr>
               )) : top3.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm"><Trophy className="w-10 h-10 mx-auto mb-2 opacity-40" />Select a class with data to see rankings</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm"><Trophy className="w-10 h-10 mx-auto mb-2 opacity-40" />Select a class with data to see rankings</td></tr>
               ) : null}
             </tbody>
           </table>

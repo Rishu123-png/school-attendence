@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
+import { DarkModeInitializer } from "@/components/DarkModeInitializer";
 import LoginPage from "@/components/LoginPage";
 import SchoolSetup from "@/components/SchoolSetup";
 import Layout from "@/components/Layout";
@@ -24,12 +25,12 @@ import StudentProfilePage from "@/components/StudentProfilePage";
 /* ── Loading screen ─────────────────────────────── */
 function Splash() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-lg shadow-primary-200 mx-auto animate-pulse-soft">
           <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5" /></svg>
         </div>
-        <p className="text-gray-500 text-sm animate-pulse">Loading School OS…</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm animate-pulse">Loading School OS…</p>
       </div>
     </div>
   );
@@ -39,14 +40,14 @@ function Splash() {
 function PendingApproval() {
   const { logout, profile } = useAuth();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
       <div className="w-full max-w-md text-center space-y-5">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg mb-2">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Awaiting Admin Approval</h1>
-          <p className="text-gray-500 text-sm">Your account (<span className="font-medium text-gray-700">{profile?.email}</span>) is registered, but your school admin hasn't added you to the teacher list yet.</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Awaiting Admin Approval</h1>
+          <p className="text-gray-500 text-sm">Your account (<span className="font-medium text-gray-700 dark:text-gray-300">{profile?.email}</span>) is registered, but your school admin hasn't added you to the teacher list yet.</p>
           <p className="text-gray-400 text-xs mt-4">Ask your admin to add a teacher with this exact email in the Admin Panel → Teachers.</p>
         </div>
         <button onClick={logout} className="text-sm text-primary-600 font-medium hover:underline">Sign out</button>
@@ -108,6 +109,7 @@ export default function App() {
   return (
     <HashRouter>
       <AuthProvider>
+        <DarkModeInitializer />
         <AppRoutes />
         <Toaster
           position="top-right"

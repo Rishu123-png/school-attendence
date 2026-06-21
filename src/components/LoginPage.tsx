@@ -44,102 +44,92 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary-50 via-white to-accent-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
       {/* decorative blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary-200/30 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent-200/30 blur-3xl" />
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-40 -right-20 w-80 h-80 bg-accent-200/30 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative flex-1 flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-lg shadow-primary-200 mb-4">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </motion.div>
-            <h1 className="text-2xl font-bold text-gray-900">School OS</h1>
-            <p className="text-gray-500 mt-1 text-sm">Smart Education Management Platform</p>
+      <div className="relative w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-lg mb-4">
+            <GraduationCap className="w-8 h-8 text-white" />
           </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">School OS</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Smart Education Management Platform</p>
+        </div>
 
-          {/* Card */}
-          <motion.div layout className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <Sparkles className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">{mode === "login" ? "Welcome Back" : "Create Account"}</h2>
+        {/* Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{mode === "login" ? "Welcome Back" : "Create Account"}</h2>
+
+          <form onSubmit={submit} className="space-y-4">
+            {mode === "register" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} className={S.input} placeholder="Your full name" required />
+                </div>
+
+                {/* Role */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button type="button" onClick={() => setRole("teacher")}
+                      className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                        role === "teacher" ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800")}>
+                      <UserCheck className="w-4 h-4" />Teacher
+                    </button>
+                    <button type="button" onClick={() => setRole("schoolAdmin")}
+                      className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                        role === "schoolAdmin" ? "border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-400 dark:border-accent-500" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800")}>
+                      <Building2 className="w-4 h-4" />School Admin
+                    </button>
+                  </div>
+                </div>
+
+                {role === "teacher" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">School Code</label>
+                    <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)} className={S.input} placeholder="Enter code from your admin" required />
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">⚠️ Use the exact email your admin invited you with</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={cn(S.input, "pl-10")} placeholder="teacher@school.edu" required />
+              </div>
             </div>
 
-            <form onSubmit={submit} className="space-y-4">
-              {mode === "register" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={S.input} placeholder="Your full name" required />
-                  </div>
-
-                  {/* Role */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button type="button" onClick={() => setRole("teacher")}
-                        className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
-                          role === "teacher" ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-500 hover:bg-gray-50")}>
-                        <UserCheck className="w-4 h-4" /> Teacher
-                      </button>
-                      <button type="button" onClick={() => setRole("schoolAdmin")}
-                        className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
-                          role === "schoolAdmin" ? "border-accent-500 bg-accent-50 text-accent-700" : "border-gray-200 text-gray-500 hover:bg-gray-50")}>
-                        <Building2 className="w-4 h-4" /> School Admin
-                      </button>
-                    </div>
-                  </div>
-
-                  {role === "teacher" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">School Code</label>
-                      <input type="text" value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)} className={S.input} placeholder="Enter code from your admin" required />
-                      <p className="text-[10px] text-gray-400 mt-1.5">⚠️ Use the exact email your admin invited you with</p>
-                    </div>
-                  )}
-                </>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={cn(S.input, "pl-10")} placeholder="teacher@school.edu" required />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className={cn(S.input, "pl-10 pr-10")} placeholder="••••••••" required minLength={6} />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button type="submit" disabled={busy} className={cn(S.btnPrimary, "w-full py-3")}>
-                {busy
-                  ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Processing…</span>
-                  : <span className="flex items-center gap-2">{mode === "login" ? "Sign In" : "Create Account"}<ArrowRight className="w-4 h-4" /></span>}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-              <p className="text-sm text-gray-500">
-                {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-                <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="text-primary-600 font-semibold hover:underline">
-                  {mode === "login" ? "Register" : "Sign In"}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className={cn(S.input, "pl-10 pr-10")} placeholder="••••••••" required minLength={6} />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
-              </p>
+              </div>
             </div>
-          </motion.div>
+
+            <button type="submit" disabled={busy} className={cn(S.btnPrimary, "w-full")}>
+              {busy ? "Processing…" : <>{mode === "login" ? "Sign In" : "Create Account"}<ArrowRight className="w-4 h-4" /></>}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+            {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="text-primary-600 font-semibold hover:underline">
+              {mode === "login" ? "Register" : "Sign In"}
+            </button>
+          </p>
         </motion.div>
       </div>
     </div>

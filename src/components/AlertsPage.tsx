@@ -48,8 +48,8 @@ export default function AlertsPage() {
       const cls = attendanceData?.[slot.class];
       const periodData = cls?.[slot.period];
       if (!periodData || Object.keys(periodData).length === 0) {
-        // ✅ FIXED: look up teacher name via teacherUid instead of slot.teacher
-        const tName = teachers.find((t) => t.id === slot.teacherUid)?.name || slot.teacher || "(unassigned)";
+        // ✅ FIXED: look up teacher name via teacher instead of slot.teacherUid
+        const tName = teachers.find((t) => t.id === slot.teacher)?.name || "(unassigned)";
         alerts.push({ teacher: tName, class: slot.class, subject: slot.subject, period: slot.period, time: slot.time });
       }
     });
@@ -157,7 +157,7 @@ export default function AlertsPage() {
                   <td className="px-3 py-3 text-center"><span className={cn(S.badgeRed, "text-[10px]")}><Clock className="w-3 h-3" />Pending</span></td>
                 </motion.tr>
               )) : (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400 dark:text-gray-500"><CheckCircle className="w-10 h-10 mx-auto mb-2 opacity-40 text-green-400" /><p className="text-sm">All clear! No pending teacher alerts</p></td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400 dark:text-gray-500"><CheckCircle className="w-10 h-10 mx-auto mb-2 opacity-40 text-green-400" /><p className="text-sm">All teachers on time</p></td></tr>
               )}
             </tbody>
           </table>
@@ -187,18 +187,18 @@ export default function AlertsPage() {
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {notifData.length ? notifData.slice(0, 30).map((n) => (
                 <tr key={n.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-3 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold">{n.rollNo}</div><span className="text-sm font-medium text-gray-900 dark:text-gray-100">{n.studentName}</span></div></td>
+                  <td className="px-3 py-3"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold">{n.studentName.charAt(0)}</div><span className="text-sm font-medium text-gray-900 dark:text-gray-100">{n.studentName}</span></div></td>
                   <td className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{n.class}</td>
                   <td className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{n.subject}</td>
                   <td className="px-3 py-3 text-center text-xs text-gray-500 dark:text-gray-400">{new Date(n.date).toLocaleDateString()}</td>
                   <td className="px-3 py-3 text-center text-xs text-gray-700 dark:text-gray-300">{n.period}</td>
                   <td className="px-3 py-3 text-center"><span className={cn(n.status === "sent" ? S.badgeGreen : S.badgeYellow, "text-[10px]")}>{n.status}</span></td>
                   <td className="px-3 py-3 text-center">
-                    {n.status === "queued" && <button onClick={() => markSent(n.id)} className="text-xs text-primary-600 hover:underline font-medium inline-flex items-center gap-1"><Send className="w-3 h-3" />Mark Sent</button>}
+                    {n.status === "queued" && <button onClick={() => markSent(n.id)} className="text-xs text-primary-600 hover:underline font-medium inline-flex items-center gap-1"><Send className="w-3 h-3" />Send</button>}
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={7} className="text-center py-10 text-gray-400 dark:text-gray-500"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p className="text-sm">No parent notifications yet</p>{todayAbsences.length > 0 && <p className="text-xs mt-1 text-yellow-600 dark:text-yellow-400">{todayAbsences.length} pending — click "Run Sweep" above</p>}</td></tr>
+                <tr><td colSpan={7} className="text-center py-10 text-gray-400 dark:text-gray-500"><Users className="w-10 h-10 mx-auto mb-2 opacity-40" /><p className="text-sm">No parent notifications</p></td></tr>
               )}
             </tbody>
           </table>
@@ -211,4 +211,3 @@ export default function AlertsPage() {
     </div>
   );
 }
-

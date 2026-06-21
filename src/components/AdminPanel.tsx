@@ -1,4 +1,4 @@
-mport { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ref, push, set, remove, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";

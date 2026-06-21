@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ref, onValue, set } from "firebase/database";
+import { ref, onValue, update } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
@@ -43,19 +43,23 @@ export default function AttendancePage() {
     return true;
   }), [students, selectedClass, searchTerm]);
 
-  const mark = (sid: string, status: string) => setAttendance((p) => ({ ...p, [sid]: status }));
+  const mark = (sid: string, status: string) => { setSaved(false); setAttendance((p) => ({ ...p, [sid]: status })); };
 
-  const markAll = () => { const m: Record<string, string> = {}; filtered.forEach((s) => { m[s.id] = "present"; }); setAttendance(m); };
+  const markAll = () => { const m: Record<string, string> = {}; filtered.forEach((s) => { m[s.id] = "present"; }); setAttendance(m); setSaved(false); };
 
   const saveAttendance = async () => {
     if (!schoolId) return;
+    if (!selectedSubject || !selectedClass) { toast.error("Select class & subject"); return; }
+    if (!Object.keys(attendance).length) { toast.error("Mark at least one student"); return; }
     setBusy(true);
     try {
       const base = `schools/${schoolId}/attendance/${selectedDate}/${selectedClass}/${selectedPeriod}`;
+      const updates: Record<string, any> = {};
       for (const [sid, status] of Object.entries(attendance)) {
-        await set(ref(db, `${base}/${sid}`), { status, subject: selectedSubject, markedBy: profile?.uid ?? "", timestamp: Date.now() });
+        updates[`${base}/${sid}`] = { status, subject: selectedSubject, markedBy: profile?.uid ?? "", timestamp: Date.now() };
       }
-      await set(ref(db, `schools/${schoolId}/attendanceMeta/${selectedDate}/${selectedClass}/${selectedPeriod}`), { subject: selectedSubject, markedBy: profile?.uid ?? "", markedAt: Date.now(), count: Object.keys(attendance).length });
+      updates[`schools/${schoolId}/attendanceMeta/${selectedDate}/${selectedClass}/${selectedPeriod}`] = { subject: selectedSubject, markedBy: profile?.uid ?? "", markedAt: Date.now(), count: Object.keys(attendance).length };
+      await update(ref(db), updates);
       toast.success("Attendance saved! ✅"); setSaved(true);
     } catch (e: any) { toast.error(e.message ?? "Failed to save"); }
     setBusy(false);
@@ -80,7 +84,6 @@ export default function AttendancePage() {
         <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={cn(S.input, "py-2 w-auto")} />
       </motion.div>
 
-      {/* mini stats */}
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: "Total", val: filtered.length, cls: "" },
@@ -92,7 +95,6 @@ export default function AttendancePage() {
         ))}
       </div>
 
-      {/* controls */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className={S.card}>
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[130px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Class</label>
@@ -119,7 +121,6 @@ export default function AttendancePage() {
         </div>
       </motion.div>
 
-      {/* student list */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={cn(S.card, "p-0 overflow-hidden")}>
         <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Users className="w-4 h-4 text-primary-600" />Students ({filtered.length})</h3>

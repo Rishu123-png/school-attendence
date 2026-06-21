@@ -1,0 +1,147 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { GraduationCap, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight, Building2, UserCheck } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { S } from "@/lib/styles";
+import { cn } from "@/lib/cn";
+import toast from "react-hot-toast";
+
+export default function LoginPage() {
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<"schoolAdmin" | "teacher">("teacher");
+  const [schoolCode, setSchoolCode] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "login") {
+        await login(email, password);
+        toast.success("Welcome back! 👋");
+      } else {
+        const sid = role === "teacher" ? schoolCode : undefined;
+        await register(name, email, password, role, sid);
+        toast.success("Account created! 🎉");
+      }
+      navigate("/dashboard");
+    } catch (err: any) {
+      const msg =
+        err.code === "auth/user-not-found" ? "No account with this email" :
+        err.code === "auth/wrong-password" ? "Incorrect password" :
+        err.code === "auth/email-already-in-use" ? "Email already registered" :
+        err.code === "auth/invalid-credential" ? "Invalid email or password" :
+        err.message || "Something went wrong";
+      toast.error(msg);
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary-50 via-white to-accent-50">
+      {/* decorative blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary-200/30 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent-200/30 blur-3xl" />
+      </div>
+
+      <div className="relative flex-1 flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-lg shadow-primary-200 mb-4">
+              <GraduationCap className="w-8 h-8 text-white" />
+            </motion.div>
+            <h1 className="text-2xl font-bold text-gray-900">School OS</h1>
+            <p className="text-gray-500 mt-1 text-sm">Smart Education Management Platform</p>
+          </div>
+
+          {/* Card */}
+          <motion.div layout className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Sparkles className="w-5 h-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">{mode === "login" ? "Welcome Back" : "Create Account"}</h2>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
+              {mode === "register" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={S.input} placeholder="Your full name" required />
+                  </div>
+
+                  {/* Role */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => setRole("teacher")}
+                        className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                          role === "teacher" ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-500 hover:bg-gray-50")}>
+                        <UserCheck className="w-4 h-4" /> Teacher
+                      </button>
+                      <button type="button" onClick={() => setRole("schoolAdmin")}
+                        className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                          role === "schoolAdmin" ? "border-accent-500 bg-accent-50 text-accent-700" : "border-gray-200 text-gray-500 hover:bg-gray-50")}>
+                        <Building2 className="w-4 h-4" /> School Admin
+                      </button>
+                    </div>
+                  </div>
+
+                  {role === "teacher" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">School Code</label>
+                      <input type="text" value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)} className={S.input} placeholder="Enter code from your admin" required />
+                      <p className="text-[10px] text-gray-400 mt-1.5">⚠️ Use the exact email your admin invited you with</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={cn(S.input, "pl-10")} placeholder="teacher@school.edu" required />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className={cn(S.input, "pl-10 pr-10")} placeholder="••••••••" required minLength={6} />
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" disabled={busy} className={cn(S.btnPrimary, "w-full py-3")}>
+                {busy
+                  ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Processing…</span>
+                  : <span className="flex items-center gap-2">{mode === "login" ? "Sign In" : "Create Account"}<ArrowRight className="w-4 h-4" /></span>}
+              </button>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+              <p className="text-sm text-gray-500">
+                {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+                <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="text-primary-600 font-semibold hover:underline">
+                  {mode === "login" ? "Register" : "Sign In"}
+                </button>
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

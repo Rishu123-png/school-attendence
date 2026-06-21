@@ -57,7 +57,14 @@ export default function AdminPanel() {
   );
 }
 
+const sanitize = (obj: any) => {
+  const result: any = {};
+  Object.entries(obj).forEach(([k, v]) => { if (v !== undefined) result[k] = v; });
+  return result;
+};
+
 /* ═══ CLASSES ═══════════════════════════════════ */
+
 function ClassesTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
   const [section, setSection] = useState("");
@@ -73,8 +80,7 @@ function ClassesTab({ root, items }: { root: string; items: any[] }) {
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
   };
-
-  const del = async (id: string) => {
+const del = async (id: string) => {
     if (!confirm("Delete this class?")) return;
     try { await remove(ref(db, `${root}/classes/${id}`)); toast.success("Deleted"); }
     catch (e: any) { toast.error(e.message); }
@@ -180,8 +186,9 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents }: { ro
         status: editing ? (editing.status || "invited") : "invited",   // ✅ FIXED: preserve existing status
         updatedAt: Date.now()
       };
-      if (editing) await set(ref(db, `${root}/teachers/${editing.id}`), { ...editing, ...data });
-      else { const r = push(ref(db, `${root}/teachers`)); await set(r, { ...data, createdAt: Date.now() }); }
+      if (editing) await set(ref(db, `${root}/teachers/${editing.id}`), sanitize({ ...editing, ...data }));
+      else { const r = push(ref(db, `${root}/teachers`)); await set(r, sanitize({ ...data, createdAt: Date.now() })); }
+
       toast.success(editing ? "Teacher updated" : "Teacher invited"); reset();
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
@@ -194,8 +201,7 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents }: { ro
   };
 
   const toggleIn = (arr: string[], v: string) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
-
-  return (
+return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-gray-400">Add teachers and assign them to classes & subjects. They'll register with the school code.</p>
@@ -371,7 +377,7 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
       if (teacher) {
         const newClasses = teacher.assignedClasses?.includes(selectedClass) ? teacher.assignedClasses : [...(teacher.assignedClasses || []), selectedClass];
         const newSubjects = teacher.assignedSubjects?.includes(subject) ? teacher.assignedSubjects : [...(teacher.assignedSubjects || []), subject];
-        await set(ref(db, `${root}/teachers/${teacherUid}`), { ...teacher, assignedClasses: newClasses, assignedSubjects: newSubjects, updatedAt: Date.now() });
+        await set(ref(db, `${root}/teachers/${teacherUid}`), sanitize({ ...teacher, assignedClasses: newClasses, assignedSubjects: newSubjects, updatedAt: Date.now() }));
       }
       toast.success(`${subject} assigned`);
     } catch (e: any) { toast.error(e.message); }
@@ -404,8 +410,7 @@ const removeAssignment = async (subject: string) => {
           {allClasses.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
       </div>
-
-      {selectedClass && (
+{selectedClass && (
         <div className={cn(S.card, "p-0 overflow-hidden")}>
           <div className="p-4 border-b border-gray-100 dark:border-gray-800"><h3 className="font-semibold text-gray-900 dark:text-white">{selectedClass} — Subject Assignments</h3></div>
           <div className="divide-y divide-gray-50 dark:divide-gray-800">
@@ -443,8 +448,7 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
   const [form, setForm] = useState({ day: "monday", period: "P1", time: "09:00", class: "", subject: "", teacherUid: "", room: "" });
   const [busy, setBusy] = useState(false);
   const [filterDay, setFilterDay] = useState("monday");
-
-  const add = async () => {
+const add = async () => {
     if (!form.class || !form.subject) return toast.error("Class and subject required");
     setBusy(true);
     try {

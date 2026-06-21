@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 
 export default function StudentsPage() {
   const { isAdmin, schoolId, profile } = useAuth();
-  const { students, classes, subjects, currentTeacher } = useSchoolData();
+  const { students, classes, subjects, currentTeacher, allStudents } = useSchoolData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -42,7 +42,7 @@ export default function StudentsPage() {
     if (!isAdmin && currentTeacher?.assignedClasses?.length === 1 && !form.class) {
       setForm(p => ({ ...p, class: currentTeacher.assignedClasses![0] }));
     }
-  }, [currentTeacher, isAdmin, selectedClass, form.class]);
+  }, [currentTeacher, isAdmin]);
 
   const filtered = useMemo(() => students.filter((s) => {
     if (selectedClass && s.class !== selectedClass) return false;
@@ -54,12 +54,16 @@ export default function StudentsPage() {
     if (!form.name.trim() || !form.class) { toast.error("Name and Class required"); return; }
     if (!schoolId) { toast.error("No school"); return; }
 
+    // duplicate roll no check
+    const dup = allStudents.find(s => s.class === form.class && Number(s.rollNo) === Number(form.rollNo));
+    if (dup) { toast.error(`Roll No ${form.rollNo} already exists in ${form.class}`); return; }
+
+    let assignedSubjects = form.assignedSubjects;
     if (!isAdmin && currentTeacher) {
       if (!currentTeacher.assignedClasses?.includes(form.class)) {
         return toast.error("You can only add students to your assigned classes");
       }
-      const autoSubjects = [...new Set([...form.assignedSubjects, ...(currentTeacher.assignedSubjects || [])])];
-      form.assignedSubjects = autoSubjects;
+      assignedSubjects = [...new Set([...form.assignedSubjects, ...(currentTeacher.assignedSubjects || [])])];
     }
 
     setPosting(true);
@@ -74,9 +78,9 @@ export default function StudentsPage() {
         section: form.section,
         parentName: form.parentName,
         parentPhone: form.parentPhone,
-        subjects: form.assignedSubjects,
+        subjects: assignedSubjects,
         createdAt: Date.now(),
-        addedBy: profile?.uid
+        addedBy: profile?.uid ?? null
       };
       await set(newRef, studentData);
 
@@ -112,7 +116,6 @@ export default function StudentsPage() {
         {canAdd && <button onClick={() => setShowAdd(true)} className={S.btnPrimary}><UserPlus className="w-4 h-4" />Add Student</button>}
       </motion.div>
 
-      {/* filter */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className={S.card}>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[150px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Class</label>
@@ -129,7 +132,6 @@ export default function StudentsPage() {
         </div>
       </motion.div>
 
-      {/* grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map((s, i) => (
           <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className={S.cardHover}>
@@ -157,7 +159,6 @@ export default function StudentsPage() {
         ))}
       </div>
 
-      {/* add modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -179,26 +180,26 @@ export default function StudentsPage() {
               {F("Parent Name", "parentName", "text", true)}
               {F("Parent Phone", "parentPhone", "text", true)}
 
-              {/* Subject Assignment */}
               <div className="col-span-2">
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />Assign Subjects</label>
                 {subjects.length ? (
                   <div className="flex flex-wrap gap-2">
                     {subjects.map((s) => {
                       const active = form.assignedSubjects.includes(s.name);
-                      const teacherForSub = subjectTeachers[form.class]?.[s.name];
                       const isOwnSubject = !isAdmin && currentTeacher?.assignedSubjects?.includes(s.name);
+                      const teacherCanAssign = isAdmin || isOwnSubject;
                       return (
                         <button
                           key={s.id}
-                          onClick={() => !isAdmin && !isOwnSubject ? null : toggleSubject(s.name)}
+                          type="button"
+                          onClick={() => teacherCanAssign && toggleSubject(s.name)}
+                          disabled={!teacherCanAssign}
                           className={cn(
                             "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1",
                             active
-                              ? isOwnSubject ? "bg-accent-100 border-accent-300 text-accent-700 dark:bg-accent-900/20 dark:border-accent-700 dark:text-accent-400" : "bg-primary-100 border-primary-300 text-primary-700 dark:bg-primary-900/20 dark:border-primary-700 dark:text-primary-400"
-                              : cn("bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400", (!isAdmin && !isOwnSubject) && "opacity-50 cursor-not-allowed")
+                              ? "bg-primary-100 border-primary-300 text-primary-700 dark:bg-primary-900/20 dark:border-primary-700 dark:text-primary-400"
+                              : cn("bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400", !teacherCanAssign && "opacity-50 cursor-not-allowed")
                           )}
-                          title={teacherForSub ? `Teacher: ${teacherForSub}` : "No teacher assigned"}
                         >
                           {active && <Check className="w-3 h-3" />}{s.name}
                         </button>

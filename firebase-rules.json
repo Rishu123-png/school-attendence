@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "schools": {
+      "$schoolId": {
+        ".read": "auth != null && data.child('admins').hasChild(auth.uid)",
+        ".write": "auth != null && data.child('admins').hasChild(auth.uid)",
+        "teachers": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+        },
+        "attendance": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "announcements": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+        },
+        "holidays": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+        },
+        "teacherAlerts": {
+          ".read": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)",
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,8 @@ export function useSchoolData() {
   const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
-    if (!schoolId) { setLoading(false); return; }
+    if (!schoolId) { setClasses([]); setSubjects([]); setStudents([]); setTimetable([]); setTeachers([]); setLoading(false); return; }
+    setLoading(true);
     const root = `schools/${schoolId}`;
     const unsubs: (() => void)[] = [];
 
@@ -80,19 +81,19 @@ export function useSchoolData() {
 
   const visibleClasses = useMemo(() => {
     if (isAdmin) return classes;
-    if (!currentTeacher?.assignedClasses?.length) return classes;
+    if (!currentTeacher?.assignedClasses?.length) return [];
     return classes.filter((c) => currentTeacher.assignedClasses!.includes(c.name));
   }, [classes, currentTeacher, isAdmin]);
 
   const visibleSubjects = useMemo(() => {
     if (isAdmin) return subjects;
-    if (!currentTeacher?.assignedSubjects?.length) return subjects;
+    if (!currentTeacher?.assignedSubjects?.length) return [];
     return subjects.filter((s) => currentTeacher.assignedSubjects!.includes(s.name));
   }, [subjects, currentTeacher, isAdmin]);
 
   const visibleStudents = useMemo(() => {
     if (isAdmin) return students;
-    if (!currentTeacher?.assignedClasses?.length) return students;
+    if (!currentTeacher?.assignedClasses?.length) return [];
     return students.filter((s) => currentTeacher.assignedClasses!.includes(s.class));
   }, [students, currentTeacher, isAdmin]);
 

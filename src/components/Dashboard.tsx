@@ -23,7 +23,6 @@ export default function Dashboard() {
   const today = days[now.getDay()];
   const todaySlots = timetable.filter((s) => s.day?.toLowerCase() === today).sort((a, b) => a.time.localeCompare(b.time));
 
-  // next class
   const timeStr = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
   const nextClass = todaySlots.find((s) => s.time > timeStr) ?? todaySlots[0];
 
@@ -50,7 +49,7 @@ export default function Dashboard() {
 
   const greeting = now.getHours() < 12 ? "Morning" : now.getHours() < 17 ? "Afternoon" : "Evening";
   const rate = stats.total ? Math.round((stats.present / stats.total) * 100) : 0;
-  const annColor = (t: string) => t === "urgent" ? "border-l-red-500 bg-red-50/50" : t === "exam" ? "border-l-yellow-500 bg-yellow-50/50" : t === "holiday" ? "border-l-green-500 bg-green-50/50" : "border-l-primary-500 bg-primary-50/30";
+  const annColor = (t: string) => t === "urgent" ? "border-l-red-500 bg-red-50/50 dark:bg-red-900/10" : t === "exam" ? "border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10" : t === "holiday" ? "border-l-green-500 bg-green-50/50 dark:bg-green-900/10" : "border-l-primary-500 bg-primary-50/30 dark:bg-primary-900/10";
   const annIcon = (t: string) => t === "urgent" ? "🔴" : t === "exam" ? "📝" : t === "holiday" ? "🎉" : "📢";
 
   return (
@@ -58,10 +57,10 @@ export default function Dashboard() {
       {/* greeting */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Good {greeting}, <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">{profile?.name?.split(" ")[0] ?? "Teacher"}</span></h1>
-          <p className="text-gray-500 flex items-center gap-2 mt-1 text-sm"><Calendar className="w-4 h-4" />{now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Good {greeting}, <span className="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">{profile?.name?.split(" ")[0] ?? "Teacher"}</span></h1>
+          <p className="text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1 text-sm"><Calendar className="w-4 h-4" />{now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-gray-100 shadow-sm"><Clock className="w-5 h-5 text-primary-600" /><span className="text-lg font-semibold text-gray-900">{now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</span></div>
+        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm"><Clock className="w-5 h-5 text-primary-600" /><span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</span></div>
       </motion.div>
 
       {/* next class banner */}
@@ -96,8 +95,8 @@ export default function Dashboard() {
           return (
             <div key={i} className={cn(S.cardHover)} onClick={() => navigate(c.link)}>
               <div className="flex items-center justify-between mb-3"><div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", c.color)}><Icon className="w-5 h-5" /></div>{c.extra}</div>
-              <p className="text-2xl font-bold text-gray-900">{c.val}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{c.label}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{c.val}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.label}</p>
             </div>
           );
         })}
@@ -107,25 +106,25 @@ export default function Dashboard() {
         {/* today schedule */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className={S.card}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary-600" />Today's Schedule</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Calendar className="w-4 h-4 text-primary-600" />Today's Schedule</h3>
             <button onClick={() => navigate("/schedule")} className="text-xs text-primary-600 font-medium hover:underline">View All</button>
           </div>
           <div className="space-y-2">
             {todaySlots.length ? todaySlots.slice(0, 6).map((slot, idx) => (
               <motion.div key={slot.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.04 }}
-                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate("/attendance")}>
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white shadow-sm border border-gray-100"><span className="text-xs font-bold text-primary-600">{slot.period}</span></div>
-                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900 truncate">{slot.subject}</p><p className="text-xs text-gray-500">{slot.class} · Room {slot.room || "—"}</p></div>
-                <span className="text-xs text-gray-400 font-medium">{slot.time}</span>
+                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer" onClick={() => navigate("/attendance")}>
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-700"><span className="text-xs font-bold text-primary-600">{slot.period}</span></div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{slot.subject}</p><p className="text-xs text-gray-500 dark:text-gray-400">{slot.class} · Room {slot.room || "—"}</p></div>
+                <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{slot.time}</span>
               </motion.div>
-            )) : <div className="text-center py-8 text-gray-400"><Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">No classes today</p></div>}
+            )) : <div className="text-center py-8 text-gray-400 dark:text-gray-500"><Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">No classes today</p></div>}
           </div>
         </motion.div>
 
         {/* announcements */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className={S.card}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Bell className="w-4 h-4 text-accent-600" />Announcements</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Bell className="w-4 h-4 text-accent-600" />Announcements</h3>
             <button onClick={() => navigate("/announcements")} className="text-xs text-primary-600 font-medium hover:underline">View All</button>
           </div>
           <div className="space-y-2">
@@ -134,17 +133,17 @@ export default function Dashboard() {
                 className={cn("p-3 rounded-xl border-l-4 cursor-pointer", annColor(a.type))}>
                 <div className="flex items-start gap-2">
                   <span className="text-lg">{annIcon(a.type)}</span>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">{a.title}</p><p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{a.message}</p><p className="text-[10px] text-gray-400 mt-1">{new Date(a.timestamp).toLocaleDateString()} · {a.author}</p></div>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{a.title}</p><p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 line-clamp-2">{a.message}</p><p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{new Date(a.timestamp).toLocaleDateString()} · {a.author}</p></div>
                 </div>
               </motion.div>
-            )) : <div className="text-center py-8 text-gray-400"><Bell className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">No announcements yet</p></div>}
+            )) : <div className="text-center py-8 text-gray-400 dark:text-gray-500"><Bell className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">No announcements yet</p></div>}
           </div>
         </motion.div>
       </div>
 
       {/* Quick Actions */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />Quick Actions</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />Quick Actions</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
             { label: "Report", icon: FileText, color: "from-blue-500 to-blue-600", link: "/report" },
@@ -159,7 +158,7 @@ export default function Dashboard() {
                 <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-sm", a.color)}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-medium text-gray-700">{a.label}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{a.label}</span>
               </button>
             );
           })}
@@ -168,10 +167,10 @@ export default function Dashboard() {
 
       {/* AI insights banner */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-        className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50")}>
+        className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50 dark:from-primary-900/20 dark:to-accent-900/20 dark:border-primary-800/30")}>
         <div className="flex items-start sm:items-center gap-4 flex-col sm:flex-row">
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 shadow-lg shrink-0"><Sparkles className="w-6 h-6 text-white" /></div>
-          <div className="flex-1"><h3 className="font-semibold text-gray-900">AI Smart Insights</h3><p className="text-sm text-gray-600 mt-0.5">Predictive analytics on performance, attendance trends, and early warnings.</p></div>
+          <div className="flex-1"><h3 className="font-semibold text-gray-900 dark:text-white">AI Smart Insights</h3><p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">Predictive analytics on performance, attendance trends, and early warnings.</p></div>
           <button onClick={() => navigate("/analytics")} className={cn(S.btnPrimary, "shrink-0")}><BarChart3 className="w-4 h-4" />View Insights</button>
         </div>
       </motion.div>

@@ -14,7 +14,7 @@ export interface StudentPrediction {
 
 interface AttendanceDay {
   present: boolean;
-  date?: string;    // YYYY-MM-DD
+  date?: string;
   subject?: string;
 }
 
@@ -34,7 +34,7 @@ export function predict(
   const presentCount = attendanceDays.filter((d) => d.present).length;
   const rate = presentCount / total;
 
-  /* ── Trend: compare first half vs second half ── */
+  /* ── Trend ── */
   const half = Math.floor(total / 2);
   const r1 = attendanceDays.slice(0, half).filter((d) => d.present).length / (half || 1);
   const r2 = attendanceDays.slice(half).filter((d) => d.present).length / ((total - half) || 1);
@@ -51,13 +51,13 @@ export function predict(
   const perfTrend: "up" | "down" | "stable" = rAvg > avg + 3 ? "up" : rAvg < avg - 3 ? "down" : "stable";
   const confidence = Math.min(95, 40 + pcts.length * 8 + (rate > 0.8 ? 15 : 0));
 
-  /* ── Bunk risk: weighted recent 14 days more heavily ── */
+  /* ── Bunk risk ── */
   const recent14 = attendanceDays.slice(-14);
   const recentAbsent = recent14.filter((d) => !d.present).length;
   const bunkP = Math.min(100, Math.round((recentAbsent / (recent14.length || 1)) * 100));
   const level: "green" | "yellow" | "red" = bunkP > 50 ? "red" : bunkP > 25 ? "yellow" : "green";
 
-  /* ── Streak detection ── */
+  /* ── Streak ── */
   let streak = 0;
   let streakType: "present" | "absent" | "none" = "none";
   if (attendanceDays.length > 0) {
@@ -69,7 +69,7 @@ export function predict(
     }
   }
 
-  /* ── Day-of-week pattern: which day are they most absent ── */
+  /* ── Day-of-week pattern ── */
   const dayBuckets: Record<string, { total: number; absent: number }> = {};
   for (const d of attendanceDays) {
     if (!d.date) continue;

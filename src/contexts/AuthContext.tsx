@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -37,14 +37,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const profileUnsubRef = useRef<(() => void) | null>(null);   // ✅ FIXED: track cleanup
 
   /* listen to auth + profile */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (fbUser) => {
       setUser(fbUser);
+
+      // ✅ FIXED: clean up previous profile listener before starting a new one
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+        profileUnsubRef.current = null;
+      }
+
       if (fbUser) {
         const pRef = ref(db, `userProfiles/${fbUser.uid}`);
-        onValue(pRef, (snap) => {
+        const unsubProfile = onValue(pRef, (snap) => {
           const d = snap.val();
           if (d) {
             setProfile({
@@ -60,12 +68,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           setLoading(false);
         });
+        profileUnsubRef.current = unsubProfile;
       } else {
         setProfile(null);
         setLoading(false);
       }
     });
-    return () => unsub();
+    return () => {
+      unsub();
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+      }
+    };
   }, []);
 
   /* ── login ─ */

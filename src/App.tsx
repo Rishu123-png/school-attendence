@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { HashRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
@@ -56,6 +57,45 @@ function PendingApproval() {
   );
 }
 
+/* ── Pending Email Verification screen ──────────── */
+function PendingEmailVerification() {
+  const { logout, user, resendVerification } = useAuth();
+  const [sent, setSent] = useState(false);
+  
+  const resend = async () => {
+    if (!user) return;
+    try {
+      await resendVerification();
+      setSent(true);
+      toast.success("Verification email resent!");
+    } catch(e: any) {
+      toast.error(e.message || "Failed to resend");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+      <div className="w-full max-w-md text-center space-y-5">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg mb-2">
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Verify Your Email</h1>
+          <p className="text-gray-500 text-sm">For security, we sent a verification link to <span className="font-medium text-gray-700 dark:text-gray-300">{user?.email}</span>.</p>
+          <p className="text-gray-400 text-xs mt-4">Please check your inbox (and spam folder). Once verified, click the button below to continue.</p>
+        </div>
+        <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <button onClick={() => window.location.reload()} className="w-full py-2.5 bg-primary-600 text-white rounded-xl font-medium shadow hover:bg-primary-700 transition-colors">I've Verified, Refresh</button>
+          <button onClick={resend} disabled={sent} className="text-sm text-gray-600 dark:text-gray-400 font-medium hover:text-gray-900 dark:hover:text-gray-200 transition-colors disabled:opacity-50">
+            {sent ? "Email Sent!" : "Resend Link"}
+          </button>
+        </div>
+        <button onClick={logout} className="text-sm text-red-500 font-medium hover:underline mt-4">Sign out</button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Protected wrapper with teacher gating ─────── */
 function ProtectedRoute() {
   const { user, profile, loading, schoolId, isAdmin } = useAuth();
@@ -63,6 +103,7 @@ function ProtectedRoute() {
 
   if (loading) return <Splash />;
   if (!user) return <Navigate to="/" replace />;
+  if (profile?.role === "teacher" && !user.emailVerified) return <PendingEmailVerification />;
   if (profile && !schoolId) return <SchoolSetup />;
   if (!isAdmin) {
     if (dataLoading) return <Splash />;

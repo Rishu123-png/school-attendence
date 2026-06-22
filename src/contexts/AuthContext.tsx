@@ -16,7 +16,7 @@ import {
   User,
   UserCredential,
   DataSnapshot
-} from "../lib/firebase"; // <-- Corrected relative import path to src/lib/firebase.ts
+} from "../lib/firebase";
 
 // Define strong interfaces for user profiles and roles
 export interface UserProfile {

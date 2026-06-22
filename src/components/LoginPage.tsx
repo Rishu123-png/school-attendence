@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -28,23 +28,58 @@ export default function LoginPage() {
         toast.success("Welcome back! 👋");
       } else {
         const sid = role === "teacher" ? schoolCode.trim() : undefined;
-        if (role === "teacher" && !sid) { toast.error("School ID is required for teachers"); setBusy(false); return; }
+        if (role === "teacher" && !sid) {
+          toast.error("School ID is required for teachers");
+          setBusy(false);
+          return;
+        }
+        if (password.length < 6) {
+          toast.error("Password must be at least 6 characters");
+          setBusy(false);
+          return;
+        }
         await register(name, email, password, role, sid);
-        toast.success(role === "teacher" ? "Account created! Please check your email to verify your identity." : "Account created! 🎉");
+        toast.success(
+          role === "teacher"
+            ? "Account created! Please check your email to verify your identity."
+            : "Account created! 🎉",
+        );
       }
       navigate("/dashboard");
     } catch (err: any) {
       const msg =
-        err.code === "auth/user-not-found" ? "No account with this email" :
-        err.code === "auth/wrong-password" ? "Incorrect password" :
-        err.code === "auth/email-already-in-use" ? "Email already registered" :
-        err.code === "auth/invalid-credential" ? "Invalid email or password" :
-        err.code === "auth/invalid-email" ? "Invalid email address" :
-        err.code === "auth/too-many-requests" ? "Too many attempts, try later" :
-        err.code === "auth/weak-password" ? "Password must be at least 6 characters" :
-        err.message || "Something went wrong";
+        err.code === "auth/user-not-found"
+          ? "No account with this email"
+          : err.code === "auth/wrong-password"
+          ? "Incorrect password"
+          : err.code === "auth/email-already-in-use"
+          ? "Email already registered"
+          : err.code === "auth/invalid-credential"
+          ? "Invalid email or password"
+          : err.code === "auth/invalid-email"
+          ? "Invalid email address"
+          : err.code === "auth/too-many-requests"
+          ? "Too many attempts, try later"
+          : err.code === "auth/weak-password"
+          ? "Password must be at least 6 characters"
+          : err.message || "Something went wrong";
       toast.error(msg);
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error("Enter your email address first");
+      return;
+    }
+    try {
+      await resetPassword(email.trim());
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset email");
+    }
   };
 
   return (
@@ -63,29 +98,55 @@ export default function LoginPage() {
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Smart Education Management Platform</p>
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{mode === "login" ? "Welcome Back" : "Create Account"}</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {mode === "login" ? "Welcome Back" : "Create Account"}
+          </h2>
 
           <form onSubmit={submit} className="space-y-4">
             {mode === "register" && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} className={S.input} placeholder="Your full name" required />
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={S.input}
+                    placeholder="Your full name"
+                    required
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setRole("teacher")}
-                      className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
-                        role === "teacher" ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800")}>
-                      <UserCheck className="w-4 h-4" />Teacher
+                    <button
+                      type="button"
+                      onClick={() => setRole("teacher")}
+                      className={cn(
+                        "flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                        role === "teacher"
+                          ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500"
+                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                      )}
+                    >
+                      <UserCheck className="w-4 h-4" /> Teacher
                     </button>
-                    <button type="button" onClick={() => setRole("schoolAdmin")}
-                      className={cn("flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
-                        role === "schoolAdmin" ? "border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-400 dark:border-accent-500" : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800")}>
-                      <Building2 className="w-4 h-4" />School Admin
+                    <button
+                      type="button"
+                      onClick={() => setRole("schoolAdmin")}
+                      className={cn(
+                        "flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
+                        role === "schoolAdmin"
+                          ? "border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-400 dark:border-accent-500"
+                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                      )}
+                    >
+                      <Building2 className="w-4 h-4" /> School Admin
                     </button>
                   </div>
                 </div>
@@ -93,8 +154,14 @@ export default function LoginPage() {
                 {role === "teacher" && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">School ID</label>
-                    <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)} className={S.input} placeholder="Enter School ID from your admin" required />
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Ask your school admin for the School ID. You must also be invited with this exact email in Admin Panel → Teachers.</p>
+                    <input
+                      value={schoolCode}
+                      onChange={(e) => setSchoolCode(e.target.value)}
+                      className={S.input}
+                      placeholder="Enter School ID from your admin"
+                      required
+                    />
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Ask your school admin for the School ID.</p>
                   </div>
                 )}
               </>
@@ -104,7 +171,14 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={cn(S.input, "pl-10")} placeholder="teacher@school.edu" required />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={cn(S.input, "pl-9")}
+                  placeholder="you@school.com"
+                  required
+                />
               </div>
             </div>
 
@@ -112,24 +186,58 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className={cn(S.input, "pl-10 pr-10")} placeholder="••••••••" required minLength={6} />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <input
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={cn(S.input, "pl-9 pr-10")}
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {mode === "register" && <p className="text-xs text-gray-400 mt-1">Minimum 6 characters</p>}
             </div>
 
-            <button type="submit" disabled={busy} className={cn(S.btnPrimary, "w-full")}>
-              {busy ? "Processing…" : <>{mode === "login" ? "Sign In" : "Create Account"}<ArrowRight className="w-4 h-4" /></>}
+            <button
+              type="submit"
+              disabled={busy}
+              className={cn(S.btnPrimary, "w-full", busy && "opacity-70 cursor-not-allowed")}
+            >
+              {busy ? (mode === "login" ? "Signing in…" : "Creating account…") : mode === "login" ? "Sign In" : "Create Account"}
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+          {mode === "login" && (
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-primary-600 font-medium hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
+          <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
             {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")} className="text-primary-600 font-semibold hover:underline">
-              {mode === "login" ? "Register" : "Sign In"}
+            <button
+              type="button"
+              onClick={() => setMode(mode === "login" ? "register" : "login")}
+              className="text-primary-600 font-medium hover:underline"
+            >
+              {mode === "login" ? "Create one" : "Sign in"}
             </button>
-          </p>
+          </div>
         </motion.div>
       </div>
     </div>

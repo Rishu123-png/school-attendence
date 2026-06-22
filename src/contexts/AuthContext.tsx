@@ -41,7 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingSuperAdmin, setLoadingSuperAdmin] = useState(true);
+  const loading = loadingProfile || loadingSuperAdmin;
   const profileUnsubRef = useRef<(() => void) | null>(null);
   const superAdminUnsubRef = useRef<(() => void) | null>(null);
 
@@ -59,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (fbUser) {
+        setLoadingProfile(true);
+        setLoadingSuperAdmin(true);
+
         const pRef = ref(db, `userProfiles/${fbUser.uid}`);
         const unsubProfile = onValue(pRef, (snap) => {
           const d = snap.val();
@@ -74,19 +79,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } else {
             setProfile(null);
           }
-          setLoading(false);
+          setLoadingProfile(false);
         });
         profileUnsubRef.current = unsubProfile;
 
         const saRef = ref(db, `superAdmins/${fbUser.uid}`);
         const unsubSuperAdmin = onValue(saRef, (snap) => {
           setIsSuperAdmin(snap.exists());
+          setLoadingSuperAdmin(false);
         });
         superAdminUnsubRef.current = unsubSuperAdmin;
       } else {
         setProfile(null);
         setIsSuperAdmin(false);
-        setLoading(false);
+        setLoadingProfile(false);
+        setLoadingSuperAdmin(false);
       }
     });
 
@@ -195,4 +202,3 @@ export function useAuth() {
   if (!c) throw new Error("useAuth must be inside AuthProvider");
   return c;
 }
-

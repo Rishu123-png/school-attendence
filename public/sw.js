@@ -1,9 +1,12 @@
 const CACHE_NAME = "school-os-v1";
-const PRECACHE_URLS = ["/", "/index.html"];
+
+const BASE = self.registration.scope;
+const INDEX_URL = new URL("index.html", BASE).href;
+const PRECACHE_URLS = [BASE, INDEX_URL];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
   );
   self.skipWaiting();
 });
@@ -11,8 +14,8 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
+    ),
   );
   self.clients.claim();
 });
@@ -33,9 +36,9 @@ self.addEventListener("fetch", (event) => {
       .catch(() => {
         return caches.match(event.request).then((cached) => {
           if (cached) return cached;
-          if (event.request.mode === "navigate") return caches.match("/index.html");
+          if (event.request.mode === "navigate") return caches.match(BASE) || caches.match(INDEX_URL);
           return new Response("Offline", { status: 503 });
         });
-      })
+      }),
   );
 });

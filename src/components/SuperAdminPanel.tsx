@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, Building2, Users, GraduationCap, Key, Search, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { useSuperAdmin, type SchoolSummary, type UserSummary } from "@/hooks/useSuperAdmin";
 import { S } from "@/lib/styles";
 import { cn } from "@/lib/cn";
 import toast from "react-hot-toast";
@@ -15,8 +15,8 @@ export default function SuperAdminPanel() {
   const [search, setSearch] = useState("");
   const [sendingReset, setSendingReset] = useState<string | null>(null);
 
-  const filteredUsers = users.filter(
-    (u) =>
+  const filteredUsers: UserSummary[] = users.filter(
+    (u: UserSummary) =>
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase()) ||
       u.schoolName.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,7 +100,7 @@ export default function SuperAdminPanel() {
               </thead>
               <tbody>
                 {schools.length ? (
-                  schools.map((s) => (
+                  schools.map((s: SchoolSummary) => (
                     <tr key={s.id} className="border-t border-gray-100 dark:border-gray-800">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.name}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{s.id}</td>
@@ -150,7 +150,7 @@ export default function SuperAdminPanel() {
               </thead>
               <tbody>
                 {filteredUsers.length ? (
-                  filteredUsers.map((u) => (
+                  filteredUsers.map((u: UserSummary) => (
                     <tr key={u.uid} className="border-t border-gray-100 dark:border-gray-800">
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{u.name}</td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{u.email}</td>

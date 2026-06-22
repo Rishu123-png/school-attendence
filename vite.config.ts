@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  base: "/school-attendence/",
+  base: process.env.VITE_BASE_PATH || "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

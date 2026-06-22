@@ -97,16 +97,23 @@ export function useSchoolData() {
     return students.filter((s) => currentTeacher.assignedClasses!.includes(s.class));
   }, [students, currentTeacher, isAdmin]);
 
+  const visibleTimetable = useMemo(() => {
+    if (isAdmin) return timetable;
+    if (!currentTeacher) return [];
+    return timetable.filter((slot) => slot.teacherUid === currentTeacher.id);
+  }, [timetable, currentTeacher, isAdmin]);
+
   return {
     classes:  visibleClasses,
     subjects: visibleSubjects,
     students: visibleStudents,
-    timetable,
+    timetable: visibleTimetable,
     teachers,
     currentTeacher,
     allClasses: classes,
     allSubjects: subjects,
     allStudents: students,
+    allTimetable: timetable,
     loading,
   };
 }

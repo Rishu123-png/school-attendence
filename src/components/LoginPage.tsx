@@ -30,7 +30,7 @@ export default function LoginPage() {
         const sid = role === "teacher" ? schoolCode.trim() : undefined;
         if (role === "teacher" && !sid) { toast.error("School ID is required for teachers"); setBusy(false); return; }
         await register(name, email, password, role, sid);
-        toast.success("Account created! 🎉");
+        toast.success(role === "teacher" ? "Account created! Please check your email to verify your identity." : "Account created! 🎉");
       }
       navigate("/dashboard");
     } catch (err: any) {

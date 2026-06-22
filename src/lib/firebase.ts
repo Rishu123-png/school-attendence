@@ -7,7 +7,8 @@ import {
   sendPasswordResetEmail, 
   sendEmailVerification,
   Auth,
-  User
+  User,
+  UserCredential
 } from "firebase/auth";
 import { 
   getDatabase, 
@@ -16,23 +17,10 @@ import {
   get, 
   update, 
   onValue,
-  Database
+  push,
+  Database,
+  DataSnapshot
 } from "firebase/database";
-
-// Define the shape of our environment variables for TypeScript
-interface ImportMetaEnv {
-  readonly VITE_FIREBASE_API_KEY: string;
-  readonly VITE_FIREBASE_AUTH_DOMAIN: string;
-  readonly VITE_FIREBASE_DATABASE_URL: string;
-  readonly VITE_FIREBASE_PROJECT_ID: string;
-  readonly VITE_FIREBASE_STORAGE_BUCKET: string;
-  readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
-  readonly VITE_FIREBASE_APP_ID: string;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -59,5 +47,8 @@ export {
   get,
   update,
   onValue,
-  User
+  push,
+  User,
+  UserCredential,
+  DataSnapshot
 };

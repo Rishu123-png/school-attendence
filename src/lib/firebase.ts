@@ -36,7 +36,7 @@ const app: FirebaseApp = initializeApp(firebaseConfig);
 export const auth: Auth = getAuth(app);
 export const db: Database = getDatabase(app);
 
-// 1. Export standard runtime functions/objects
+// Export standard runtime code
 export { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -51,5 +51,5 @@ export {
   push
 };
 
-// 2. Export compile-time types separately using "export type" (Fixes TS1205)
+// Export TypeScript types separately (FIXES TS1205)
 export type { User, UserCredential, DataSnapshot };

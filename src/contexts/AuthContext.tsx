@@ -195,3 +195,4 @@ export function useAuth() {
   if (!c) throw new Error("useAuth must be inside AuthProvider");
   return c;
 }
+

@@ -169,6 +169,3 @@ export default function App() {
     </HashRouter>
   );
 }
-
-
-

@@ -49,7 +49,7 @@ export default function AdminPanel() {
       <AnimatePresence mode="wait">
         {tab === "classes"        && <ClassesTab key="c" root={root} items={classes} />}
         {tab === "subjects"       && <SubjectsTab key="s" root={root} items={subjects} />}
-        {tab === "teachers"       && <TeachersTab key="t" root={root} items={teachers} allClasses={allClasses} allSubjects={allSubjects} allStudents={allStudents} />}
+        {tab === "teachers"       && <TeachersTab key="t" root={root} items={teachers} allClasses={allClasses} allSubjects={allSubjects} allStudents={allStudents} schoolId={schoolId!} />}
         {tab === "subjectTeachers"&& <SubjectTeachersTab key="st" root={root} allClasses={allClasses} allSubjects={allSubjects} allTeachers={teachers} />}
         {tab === "timetable"      && <TimetableTab key="tt" root={root} items={timetable} allClasses={allClasses} allSubjects={allSubjects} teachers={teachers} />}
       </AnimatePresence>
@@ -62,7 +62,6 @@ const sanitize = (obj: any) => {
   Object.entries(obj).forEach(([k, v]) => { if (v !== undefined) result[k] = v; });
   return result;
 };
-
 /* ═══ CLASSES ═══════════════════════════════════ */
 
 function ClassesTab({ root, items }: { root: string; items: any[] }) {
@@ -162,7 +161,7 @@ function SubjectsTab({ root, items }: { root: string; items: any[] }) {
   );
 }
 /* ═══ TEACHERS ══════════════════════════════════ */
-function TeachersTab({ root, items, allClasses, allSubjects, allStudents }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; allStudents: any[] }) {
+function TeachersTab({ root, items, allClasses, allSubjects, allStudents, schoolId }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; allStudents: any[]; schoolId: string }) {
   const [editing, setEditing] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [viewing, setViewing] = useState<any>(null);
@@ -186,10 +185,20 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents }: { ro
         status: editing ? (editing.status || "invited") : "invited",   // ✅ FIXED: preserve existing status
         updatedAt: Date.now()
       };
-      if (editing) await set(ref(db, `${root}/teachers/${editing.id}`), sanitize({ ...editing, ...data }));
-      else { const r = push(ref(db, `${root}/teachers`)); await set(r, sanitize({ ...data, createdAt: Date.now() })); }
+      if (editing) {
+        await set(ref(db, `${root}/teachers/${editing.id}`), sanitize({ ...editing, ...data }));
+        toast.success("Teacher updated");
+      } else {
+        const r = push(ref(db, `${root}/teachers`));
+        await set(r, sanitize({ ...data, createdAt: Date.now() }));
+        toast.success("Teacher added. Opening email client to send invite...");
+        
+        const subject = encodeURIComponent("Invitation to join School OS");
+        const body = encodeURIComponent(`Hello ${data.name},\n\nYou have been invited to join School OS as a teacher.\n\nPlease register using this exact email address (${data.email}) and our School Code: ${schoolId}\n\nWelcome aboard!`);
+        window.location.href = `mailto:${data.email}?subject=${subject}&body=${body}`;
+      }
 
-      toast.success(editing ? "Teacher updated" : "Teacher invited"); reset();
+      reset();
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
   };
@@ -199,8 +208,7 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents }: { ro
     try { await remove(ref(db, `${root}/teachers/${id}`)); toast.success("Removed"); }
     catch (e: any) { toast.error(e.message); }
   };
-
-  const toggleIn = (arr: string[], v: string) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
+const toggleIn = (arr: string[], v: string) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
       <div className="flex items-center justify-between">
@@ -251,8 +259,7 @@ return (
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Teacher must register with this exact email + school code</p></div>
               <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Phone</label>
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={S.input} placeholder="Optional" /></div>
-
-              <div>
+<div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Assign Classes</label>
                 {allClasses.length ? (
                   <div className="flex flex-wrap gap-2">
@@ -294,7 +301,7 @@ return (
           </motion.div>
         </div>
       )}
- {/* View Students per Teacher (class-wise) */}
+{/* View Students per Teacher (class-wise) */}
       {viewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -399,8 +406,7 @@ const removeAssignment = async (subject: string) => {
     }
     catch (e: any) { toast.error(e.message); }
   };
-
-  return (
+return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
       <div className={S.card}>
         <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><UserCheck className="w-4 h-4 text-primary-600" />Assign Teachers to Subjects</h3>
@@ -510,8 +516,7 @@ const add = async () => {
           </button>
         ))}
       </div>
-
-      <div className={cn(S.card, "p-0 overflow-hidden")}>
+<div className={cn(S.card, "p-0 overflow-hidden")}>
         <div className="p-4 border-b border-gray-100 dark:border-gray-800"><h3 className="font-semibold text-gray-900 dark:text-white capitalize">{filterDay} ({filtered.length})</h3></div>
         <div className="divide-y divide-gray-50 dark:divide-gray-800">
           {filtered.length ? filtered.map((s) => (

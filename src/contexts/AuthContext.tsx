@@ -12,10 +12,13 @@ import {
   get,
   update,
   onValue,
-  User
-} from "../config/firebase";
+  push,
+  User,
+  UserCredential,
+  DataSnapshot
+} from "../lib/firebase"; // <-- Corrected relative import path to src/lib/firebase.ts
 
-// 1. Define strong Type Interfaces for User Profile and State
+// Define strong interfaces for user profiles and roles
 export interface UserProfile {
   uid: string;
   name: string;
@@ -34,7 +37,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   schoolId: string;
-  login: (email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<UserCredential>;
   register: (name: string, email: string, password: string, role: "teacher" | "schoolAdmin", schoolId?: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -61,10 +64,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loading = loadingProfile || loadingAdmin;
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    // FIX: Explicitly typed 'currentUser' to resolve TS7006 error
+    const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
       setUser(currentUser);
       
-      // Clean up past database listeners
+      // Clear previous database listeners
       if (profileListenerRef.current) {
         profileListenerRef.current();
         profileListenerRef.current = null;
@@ -80,7 +84,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // 1. Listen to Realtime Database User Profile
         const profileRef = ref(db, `userProfiles/${currentUser.uid}`);
-        const unsubProfile = onValue(profileRef, (snapshot) => {
+        // FIX: Explicitly typed 'snapshot' and 'error' to resolve TS7006 and TS109 errors
+        const unsubProfile = onValue(profileRef, (snapshot: DataSnapshot) => {
           const val = snapshot.val();
           if (val) {
             setProfile({
@@ -95,7 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setProfile(null);
           }
           setLoadingProfile(false);
-        }, (error) => {
+        }, (error: Error) => {
           console.error("Profile subscription error: ", error);
           setLoadingProfile(false);
         });
@@ -103,11 +108,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // 2. Listen to Super Admin status
         const superAdminRef = ref(db, `superAdmins/${currentUser.uid}`);
-        const unsubAdmin = onValue(superAdminRef, (snapshot) => {
+        // FIX: Explicitly typed 'snapshot' and 'error' to resolve TS7006 and TS109 errors
+        const unsubAdmin = onValue(superAdminRef, (snapshot: DataSnapshot) => {
           setIsSuperAdmin(snapshot.exists());
           setLoadingAdmin(false);
-        }, (error) => {
-          console.error("Superadmin check error: ", error);
+        }, (error: Error) => {
+          console.error("Super Admin verification error: ", error);
           setLoadingAdmin(false);
         });
         adminListenerRef.current = unsubAdmin;
@@ -127,7 +133,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<UserCredential> => {
     return await signInWithEmailAndPassword(auth, email, password);
   };
 
@@ -137,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     password: string, 
     role: "teacher" | "schoolAdmin", 
     schoolId?: string
-  ) => {
+  ): Promise<void> => {
     const sId = schoolId ? schoolId.trim() : "";
     if (role === "teacher") {
       if (!sId) throw new Error("School ID is required for teachers");
@@ -166,13 +172,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   };
 
-  const resendVerification = async () => {
+  const resendVerification = async (): Promise<void> => {
     if (auth.currentUser) {
       await sendEmailVerification(auth.currentUser);
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
     await sendPasswordResetEmail(auth, email);
   };
 
@@ -181,16 +187,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (profile.role !== "schoolAdmin") throw new Error("Only school admins can register a school");
     if (profile.schoolId) throw new Error("You are already associated with a school");
 
-    const newSchoolRef = ref(db, "schools");
-    // Generate a unique push key for the new school
-    const pushRef = ref(db, "schools");
-    const newSchoolKey = ref(db, "schools").toString().includes("firebase") ? "school_" + Math.random().toString(36).substr(2, 9) : "school_key";
-    
-    // We get a generated key from push node safely
-    const customKey = await get(profileRef); // safety fallback or generate below:
-    const randomKey = Math.random().toString(36).substring(2, 15);
+    // FIX: Resolved compilation issue TS2552 (proper key generation)
+    const schoolsRef = ref(db, "schools");
+    const newSchoolRef = push(schoolsRef);
+    const randomKey = newSchoolRef.key;
 
-    await set(ref(db, `schools/${randomKey}`), {
+    if (!randomKey) throw new Error("Failed to generate unique school code.");
+
+    // Create school structure
+    await set(newSchoolRef, {
       profile: {
         name: schoolName,
         createdAt: Date.now()
@@ -203,6 +208,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     });
 
+    // Update admin user profile with the new school ID
     await update(ref(db, `userProfiles/${user.uid}`), {
       schoolId: randomKey,
       updatedAt: Date.now()
@@ -211,7 +217,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return randomKey;
   };
 
-  const logout = () => {
+  const logout = (): Promise<void> => {
     return signOut(auth);
   };
 

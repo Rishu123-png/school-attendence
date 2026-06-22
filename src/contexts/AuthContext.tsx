@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
   type User,
 } from "firebase/auth";
 import { ref, onValue, set, push } from "firebase/database";
@@ -27,6 +28,7 @@ interface Ctx {
   schoolId: string;
   login: (e: string, p: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: "schoolAdmin" | "teacher", schoolId?: string) => Promise<void>;
+  resendVerification: () => Promise<void>;
   setupSchool: (schoolName: string) => Promise<string>;
   logout: () => Promise<void>;
 }
@@ -99,6 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const uid = cred.user.uid;
     const schoolId = existingSchoolId ?? "";
 
+    if (role === "teacher") {
+      await sendEmailVerification(cred.user);
+    }
+
     await set(ref(db, `userProfiles/${uid}`), {
       name,
       email,
@@ -106,6 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       schoolId,
       createdAt: Date.now(),
     });
+  };
+
+  const resendVerification = async () => {
+    if (user) {
+      await sendEmailVerification(user);
+    }
   };
 
   /* ── setup school (admin creates a new school) ─ */
@@ -132,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const schoolId = profile?.schoolId ?? "";
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAdmin, schoolId, login, register, setupSchool, logout }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, schoolId, login, register, resendVerification, setupSchool, logout }}>
       {children}
     </AuthContext.Provider>
   );

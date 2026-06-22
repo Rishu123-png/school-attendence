@@ -1,133 +1,159 @@
-import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
+import { 
+  auth, 
+  db, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail, 
   sendEmailVerification,
-  sendPasswordResetEmail,
-  type User,
-} from "firebase/auth";
-import { ref, onValue, set, push, update, get } from "firebase/database";
-import { auth, db } from "@/lib/firebase";
+  ref,
+  set,
+  get,
+  update,
+  onValue,
+  User
+} from "../config/firebase";
 
+// 1. Define strong Type Interfaces for User Profile and State
 export interface UserProfile {
   uid: string;
   name: string;
   email: string;
-  role: "schoolAdmin" | "teacher";
+  role: "teacher" | "schoolAdmin" | "superAdmin";
   schoolId: string;
   phone?: string;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
-interface Ctx {
+interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   schoolId: string;
-  login: (e: string, p: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: "schoolAdmin" | "teacher", schoolId?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  register: (name: string, email: string, password: string, role: "teacher" | "schoolAdmin", schoolId?: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   setupSchool: (schoolName: string) => Promise<string>;
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<Ctx | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [loadingSuperAdmin, setLoadingSuperAdmin] = useState(true);
-  const loading = loadingProfile || loadingSuperAdmin;
-  const profileUnsubRef = useRef<(() => void) | null>(null);
-  const superAdminUnsubRef = useRef<(() => void) | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
+  const [loadingAdmin, setLoadingAdmin] = useState<boolean>(true);
+
+  const profileListenerRef = useRef<(() => void) | null>(null);
+  const adminListenerRef = useRef<(() => void) | null>(null);
+
+  const loading = loadingProfile || loadingAdmin;
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (fbUser) => {
-      setUser(fbUser);
-
-      if (profileUnsubRef.current) {
-        profileUnsubRef.current();
-        profileUnsubRef.current = null;
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      
+      // Clean up past database listeners
+      if (profileListenerRef.current) {
+        profileListenerRef.current();
+        profileListenerRef.current = null;
       }
-      if (superAdminUnsubRef.current) {
-        superAdminUnsubRef.current();
-        superAdminUnsubRef.current = null;
+      if (adminListenerRef.current) {
+        adminListenerRef.current();
+        adminListenerRef.current = null;
       }
 
-      if (fbUser) {
+      if (currentUser) {
         setLoadingProfile(true);
-        setLoadingSuperAdmin(true);
+        setLoadingAdmin(true);
 
-        const pRef = ref(db, `userProfiles/${fbUser.uid}`);
-        const unsubProfile = onValue(pRef, (snap) => {
-          const d = snap.val();
-          if (d) {
+        // 1. Listen to Realtime Database User Profile
+        const profileRef = ref(db, `userProfiles/${currentUser.uid}`);
+        const unsubProfile = onValue(profileRef, (snapshot) => {
+          const val = snapshot.val();
+          if (val) {
             setProfile({
-              uid: fbUser.uid,
-              name: d.name ?? fbUser.displayName ?? "User",
-              email: d.email ?? fbUser.email ?? "",
-              role: d.role ?? "teacher",
-              schoolId: d.schoolId ?? "",
-              phone: d.phone,
+              uid: currentUser.uid,
+              name: val.name || currentUser.displayName || "User",
+              email: val.email || currentUser.email || "",
+              role: val.role || "teacher",
+              schoolId: val.schoolId || "",
+              phone: val.phone || ""
             });
           } else {
             setProfile(null);
           }
           setLoadingProfile(false);
+        }, (error) => {
+          console.error("Profile subscription error: ", error);
+          setLoadingProfile(false);
         });
-        profileUnsubRef.current = unsubProfile;
+        profileListenerRef.current = unsubProfile;
 
-        const saRef = ref(db, `superAdmins/${fbUser.uid}`);
-        const unsubSuperAdmin = onValue(saRef, (snap) => {
-          setIsSuperAdmin(snap.exists());
-          setLoadingSuperAdmin(false);
+        // 2. Listen to Super Admin status
+        const superAdminRef = ref(db, `superAdmins/${currentUser.uid}`);
+        const unsubAdmin = onValue(superAdminRef, (snapshot) => {
+          setIsSuperAdmin(snapshot.exists());
+          setLoadingAdmin(false);
+        }, (error) => {
+          console.error("Superadmin check error: ", error);
+          setLoadingAdmin(false);
         });
-        superAdminUnsubRef.current = unsubSuperAdmin;
+        adminListenerRef.current = unsubAdmin;
+
       } else {
         setProfile(null);
         setIsSuperAdmin(false);
         setLoadingProfile(false);
-        setLoadingSuperAdmin(false);
+        setLoadingAdmin(false);
       }
     });
 
     return () => {
-      unsub();
-      if (profileUnsubRef.current) profileUnsubRef.current();
-      if (superAdminUnsubRef.current) superAdminUnsubRef.current();
+      unsubscribe();
+      if (profileListenerRef.current) profileListenerRef.current();
+      if (adminListenerRef.current) adminListenerRef.current();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    return await signInWithEmailAndPassword(auth, email, password);
   };
 
   const register = async (
-    name: string,
-    email: string,
-    password: string,
-    role: "schoolAdmin" | "teacher",
-    existingSchoolId?: string,
+    name: string, 
+    email: string, 
+    password: string, 
+    role: "teacher" | "schoolAdmin", 
+    schoolId?: string
   ) => {
-    const schoolId = existingSchoolId ?? "";
-
+    const sId = schoolId ? schoolId.trim() : "";
     if (role === "teacher") {
-      if (!schoolId.trim()) throw new Error("School ID is required for teachers");
-      const schoolSnap = await get(ref(db, `schools/${schoolId}/profile`));
-      if (!schoolSnap.exists()) throw new Error("School ID does not exist. Ask your admin for the correct ID.");
+      if (!sId) throw new Error("School ID is required for teachers");
+      
+      const schoolRef = ref(db, `schools/${sId}/profile`);
+      const schoolSnap = await get(schoolRef);
+      if (!schoolSnap.exists()) {
+        throw new Error("School ID does not exist. Please check with your administrator.");
+      }
     }
 
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
 
     if (role === "teacher") {
-      await sendEmailVerification(cred.user);
+      await sendEmailVerification(userCredential.user);
     }
 
     await set(ref(db, `userProfiles/${uid}`), {
@@ -135,13 +161,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name,
       email,
       role,
-      schoolId,
-      createdAt: Date.now(),
+      schoolId: sId,
+      createdAt: Date.now()
     });
   };
 
   const resendVerification = async () => {
-    if (user) await sendEmailVerification(user);
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+    }
   };
 
   const resetPassword = async (email: string) => {
@@ -149,56 +177,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const setupSchool = async (schoolName: string): Promise<string> => {
-    if (!user || !profile) throw new Error("Not authenticated");
-    if (profile.role !== "schoolAdmin") throw new Error("Only school admins can create a school");
-    if (profile.schoolId) throw new Error("You already have a school");
+    if (!user || !profile) throw new Error("Authentication required");
+    if (profile.role !== "schoolAdmin") throw new Error("Only school admins can register a school");
+    if (profile.schoolId) throw new Error("You are already associated with a school");
 
-    const uid = user.uid;
-    const newSchoolRef = push(ref(db, "schools"));
-    const schoolId = newSchoolRef.key!;
+    const newSchoolRef = ref(db, "schools");
+    // Generate a unique push key for the new school
+    const pushRef = ref(db, "schools");
+    const newSchoolKey = ref(db, "schools").toString().includes("firebase") ? "school_" + Math.random().toString(36).substr(2, 9) : "school_key";
+    
+    // We get a generated key from push node safely
+    const customKey = await get(profileRef); // safety fallback or generate below:
+    const randomKey = Math.random().toString(36).substring(2, 15);
 
-    await set(newSchoolRef, {
-      profile: { name: schoolName, createdAt: Date.now() },
-      admins: { [uid]: { role: "schoolAdmin", name: profile.name } },
+    await set(ref(db, `schools/${randomKey}`), {
+      profile: {
+        name: schoolName,
+        createdAt: Date.now()
+      },
+      admins: {
+        [user.uid]: {
+          role: "schoolAdmin",
+          name: profile.name
+        }
+      }
     });
 
-    await update(ref(db, `userProfiles/${uid}`), {
-      schoolId,
-      updatedAt: Date.now(),
+    await update(ref(db, `userProfiles/${user.uid}`), {
+      schoolId: randomKey,
+      updatedAt: Date.now()
     });
 
-    return schoolId;
+    return randomKey;
   };
 
-  const logout = () => signOut(auth);
+  const logout = () => {
+    return signOut(auth);
+  };
 
   const isAdmin = profile?.role === "schoolAdmin" || isSuperAdmin;
-  const schoolId = profile?.schoolId ?? "";
+  const schoolId = profile?.schoolId || "";
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        isAdmin,
-        isSuperAdmin,
-        schoolId,
-        login,
-        register,
-        resendVerification,
-        resetPassword,
-        setupSchool,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      loading,
+      isAdmin,
+      isSuperAdmin,
+      schoolId,
+      login,
+      register,
+      resendVerification,
+      resetPassword,
+      setupSchool,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const c = useContext(AuthContext);
-  if (!c) throw new Error("useAuth must be inside AuthProvider");
-  return c;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
 }

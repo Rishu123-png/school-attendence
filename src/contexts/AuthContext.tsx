@@ -13,6 +13,9 @@ import {
   update,
   onValue,
   push,
+  query,
+  orderByChild,
+  equalTo,
   User,
   UserCredential,
   DataSnapshot
@@ -159,14 +162,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await sendEmailVerification(userCredential.user);
     }
 
+    // Create user profile
     await set(ref(db, `userProfiles/${uid}`), {
       uid,
       name,
-      email,
+      email: email.toLowerCase(),
       role,
       schoolId: sId,
       createdAt: Date.now()
     });
+
+    // ✅ FIX: If teacher, find and update the teacher record to link UID
+    if (role === "teacher" && sId) {
+      try {
+        const teachersRef = ref(db, `schools/${sId}/teachers`);
+        const teachersSnap = await get(teachersRef);
+        if (teachersSnap.exists()) {
+          const teachers = teachersSnap.val();
+          // Find teacher by email (case-insensitive)
+          const teacherEntry = Object.entries(teachers).find(
+            ([_, t]: [string, any]) => (t.email || "").toLowerCase() === email.toLowerCase()
+          );
+          if (teacherEntry) {
+            const [teacherId, teacherData] = teacherEntry as [string, any];
+            // Update teacher record with UID and set status to active
+            await update(ref(db, `schools/${sId}/teachers/${teacherId}`), {
+              uid: uid,
+              status: "active",
+              updatedAt: Date.now()
+            });
+            console.log("Teacher record updated with UID:", uid);
+          } else {
+            console.warn("No teacher invitation found for email:", email);
+          }
+        }
+      } catch (err) {
+        console.error("Error updating teacher record:", err);
+        // Don't throw - registration still succeeds, admin can fix manually
+      }
+    }
   };
 
   const resendVerification = async (): Promise<void> => {

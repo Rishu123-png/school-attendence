@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
-import { 
-  auth, 
-  db, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
+import {
+  auth,
+  db,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
   sendEmailVerification,
   ref,
   set,
@@ -54,9 +54,9 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
-  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
-  const [loadingAdmin, setLoadingAdmin] = useState<boolean>(true);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
 
   const profileListenerRef = useRef<(() => void) | null>(null);
   const adminListenerRef = useRef<(() => void) | null>(null);
@@ -64,10 +64,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loading = loadingProfile || loadingAdmin;
 
   useEffect(() => {
-    // FIX: Explicitly typed 'currentUser' to resolve TS7006 error
     const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
       setUser(currentUser);
-      
+
       // Clear previous database listeners
       if (profileListenerRef.current) {
         profileListenerRef.current();
@@ -84,7 +83,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // 1. Listen to Realtime Database User Profile
         const profileRef = ref(db, `userProfiles/${currentUser.uid}`);
-        // FIX: Explicitly typed 'snapshot' and 'error' to resolve TS7006 and TS109 errors
         const unsubProfile = onValue(profileRef, (snapshot: DataSnapshot) => {
           const val = snapshot.val();
           if (val) {
@@ -108,7 +106,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // 2. Listen to Super Admin status
         const superAdminRef = ref(db, `superAdmins/${currentUser.uid}`);
-        // FIX: Explicitly typed 'snapshot' and 'error' to resolve TS7006 and TS109 errors
         const unsubAdmin = onValue(superAdminRef, (snapshot: DataSnapshot) => {
           setIsSuperAdmin(snapshot.exists());
           setLoadingAdmin(false);
@@ -138,16 +135,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const register = async (
-    name: string, 
-    email: string, 
-    password: string, 
-    role: "teacher" | "schoolAdmin", 
+    name: string,
+    email: string,
+    password: string,
+    role: "teacher" | "schoolAdmin",
     schoolId?: string
   ): Promise<void> => {
     const sId = schoolId ? schoolId.trim() : "";
     if (role === "teacher") {
       if (!sId) throw new Error("School ID is required for teachers");
-      
+
       const schoolRef = ref(db, `schools/${sId}/profile`);
       const schoolSnap = await get(schoolRef);
       if (!schoolSnap.exists()) {
@@ -187,7 +184,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (profile.role !== "schoolAdmin") throw new Error("Only school admins can register a school");
     if (profile.schoolId) throw new Error("You are already associated with a school");
 
-    // FIX: Resolved compilation issue TS2552 (proper key generation)
     const schoolsRef = ref(db, "schools");
     const newSchoolRef = push(schoolsRef);
     const randomKey = newSchoolRef.key;
@@ -225,20 +221,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const schoolId = profile?.schoolId || "";
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      profile,
-      loading,
-      isAdmin,
-      isSuperAdmin,
-      schoolId,
-      login,
-      register,
-      resendVerification,
-      resetPassword,
-      setupSchool,
-      logout
-    }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isSuperAdmin, schoolId, login, register, resendVerification, resetPassword, setupSchool, logout }}>
       {children}
     </AuthContext.Provider>
   );

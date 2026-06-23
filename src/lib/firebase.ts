@@ -1,23 +1,26 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
   sendEmailVerification,
   Auth,
   User,
   UserCredential
 } from "firebase/auth";
-import { 
-  getDatabase, 
-  ref, 
-  set, 
-  get, 
-  update, 
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  update,
   onValue,
   push,
+  query,
+  orderByChild,
+  equalTo,
   Database,
   DataSnapshot
 } from "firebase/database";
@@ -37,18 +40,21 @@ export const auth: Auth = getAuth(app);
 export const db: Database = getDatabase(app);
 
 // Export standard runtime code
-export { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
+export {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
   sendEmailVerification,
   ref,
   set,
   get,
   update,
   onValue,
-  push
+  push,
+  query,
+  orderByChild,
+  equalTo
 };
 
 // Export TypeScript types separately (FIXES TS1205)

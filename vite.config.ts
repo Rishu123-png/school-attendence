@@ -7,8 +7,14 @@ import { defineConfig } from "vite";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Detect if running on Vercel
+const isVercel = !!process.env.VERCEL;
+
 export default defineConfig({
-  base: process.env.VITE_BASE_PATH || "/",
+  // On Vercel: always use "/"
+  // On GitHub Pages: use VITE_BASE_PATH or "/school-attendence/"
+  // Locally: use "/"
+  base: isVercel ? "/" : (process.env.VITE_BASE_PATH || "/"),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

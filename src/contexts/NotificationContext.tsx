@@ -25,7 +25,7 @@ interface Ctx {
 const NotificationContext = createContext<Ctx | undefined>(undefined);
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-const REMINDER_MIN = 10;   // remind teacher 10 min before class
+const REMINDER_MIN = 10; // remind teacher 10 min before class
 const LATE_GRACE_MIN = 10; // alert admin if not marked 10 min after class start
 
 function todayStr() {
@@ -49,7 +49,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [timetable, setTimetable] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [attendanceToday, setAttendanceToday] = useState<any>({});
+  const [attendanceToday, setAttendanceToday] = useState<Record<string, any>>({});
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   // track which keys we've already fired so we don't spam
@@ -74,12 +74,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const u1 = onValue(ref(db, `${root}/timetables`), (s) => {
       const d = s.val();
       setTimetable(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })) : []);
-    });
+    }, (err) => console.error("Timetable listener error:", err));
+
     const u2 = onValue(ref(db, `${root}/teachers`), (s) => {
       const d = s.val();
       setTeachers(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })) : []);
-    });
-    const u3 = onValue(ref(db, `${root}/attendance/${todayStr()}`), (s) => setAttendanceToday(s.val() ?? {}));
+    }, (err) => console.error("Teachers listener error:", err));
+
+    const u3 = onValue(ref(db, `${root}/attendance/${todayStr()}`), (s) => setAttendanceToday(s.val() ?? {}), (err) => console.error("Attendance listener error:", err));
+
     // announcements → notifications
     const u4 = onValue(ref(db, `${root}/announcements`), (s) => {
       const d = s.val();
@@ -94,7 +97,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         firedKeys.current.add(key);
         addNotification({ id: key, kind: "announcement", title: `📢 ${a.title || "Announcement"}`, message: a.message || "", timestamp: a.timestamp || Date.now(), read: false });
       });
-    });
+    }, (err) => console.error("Announcements listener error:", err));
+
     return () => { u1(); u2(); u3(); u4(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId]);
@@ -124,19 +128,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const tick = () => {
       const dayKey = DAYS[new Date().getDay()];
       const nm = nowMinutes();
-      const todaySlots = timetable.filter((s) => (s.day || "").toLowerCase() === dayKey);
+      const todaySlots = timetable.filter((s: any) => (s.day || "").toLowerCase() === dayKey);
 
       /* TEACHER reminders — for slots belonging to current teacher */
       if (!isAdmin && user) {
         const myUid = user.uid;
         // match by teacherUid OR by email→teacher record
-        const myTeacher = teachers.find((t) => t.email?.toLowerCase() === profile.email?.toLowerCase());
-        const mySlots = todaySlots.filter((s) =>
+        const myTeacher = teachers.find((t: any) => t.email?.toLowerCase() === profile.email?.toLowerCase());
+        const mySlots = todaySlots.filter((s: any) =>
           s.teacherUid === myUid ||
           (myTeacher && s.teacherUid === myTeacher.id) ||
           (myTeacher?.assignedClasses?.includes(s.class) && myTeacher?.assignedSubjects?.includes(s.subject)),
         );
-        mySlots.forEach((slot) => {
+        mySlots.forEach((slot: any) => {
           const start = toMin(slot.time);
           if (start < 0) return;
           const diff = start - nm;
@@ -157,7 +161,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       /* ADMIN late-alerts — teacher hasn't marked attendance after grace */
       if (isAdmin) {
-        todaySlots.forEach((slot) => {
+        todaySlots.forEach((slot: any) => {
           const start = toMin(slot.time);
           if (start < 0) return;
           if (nm < start + LATE_GRACE_MIN) return; // grace not passed
@@ -167,7 +171,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           const key = `late-${slot.id}-${todayStr()}`;
           if (firedKeys.current.has(key) || dismissed.has(key)) return;
           firedKeys.current.add(key);
-          const tName = teachers.find((t) => t.id === slot.teacherUid)?.name || slot.teacher || "A teacher";
+          const tName = teachers.find((t: any) => t.id === slot.teacherUid)?.name || slot.teacher || "A teacher";
           addNotification({
             id: key, kind: "late-alert",
             title: `🚨 Teacher Late Alert`,

@@ -18,9 +18,6 @@ import {
   update,
   onValue,
   push,
-  query,
-  orderByChild,
-  equalTo,
   Database,
   DataSnapshot
 } from "firebase/database";
@@ -51,10 +48,7 @@ export {
   get,
   update,
   onValue,
-  push,
-  query,
-  orderByChild,
-  equalTo
+  push
 };
 
 // Export TypeScript types separately (FIXES TS1205)

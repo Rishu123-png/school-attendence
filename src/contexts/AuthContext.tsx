@@ -67,7 +67,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const unsubscribe = auth.onAuthStateChanged((currentUser: User | null) => {
       setUser(currentUser);
 
-      // Clear previous database listeners
       if (profileListenerRef.current) {
         profileListenerRef.current();
         profileListenerRef.current = null;
@@ -81,7 +80,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setLoadingProfile(true);
         setLoadingAdmin(true);
 
-        // 1. Listen to Realtime Database User Profile
         const profileRef = ref(db, `userProfiles/${currentUser.uid}`);
         const unsubProfile = onValue(profileRef, (snapshot: DataSnapshot) => {
           const val = snapshot.val();
@@ -104,7 +102,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
         profileListenerRef.current = unsubProfile;
 
-        // 2. Listen to Super Admin status
         const superAdminRef = ref(db, `superAdmins/${currentUser.uid}`);
         const unsubAdmin = onValue(superAdminRef, (snapshot: DataSnapshot) => {
           setIsSuperAdmin(snapshot.exists());
@@ -146,16 +143,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (role === "teacher") {
       if (!sId) throw new Error("School ID is required for teachers");
 
-      // ✅ CRITICAL FIX: Verify that admin has already added this teacher
+      // Check if admin has added this teacher
       const teachersRef = ref(db, `schools/${sId}/teachers`);
       const teachersSnap = await get(teachersRef);
-      
+
       if (!teachersSnap.exists()) {
         throw new Error("This school has no teachers added yet. Please contact your school admin.");
       }
 
       const teachersData = teachersSnap.val();
-      const teacherExists = Object.values(teachersData).some((t: any) => 
+      const teacherExists = Object.values(teachersData).some((t: any) =>
         t && t.email && t.email.toLowerCase() === email.toLowerCase()
       );
 
@@ -169,17 +166,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const uid = userCredential.user.uid;
     const authEmail = userCredential.user.email || email.toLowerCase();
 
-    // Create user profile (this must satisfy Firebase rules)
+    // Create user profile - using minimal required fields
     await set(ref(db, `userProfiles/${uid}`), {
       uid,
-      name,
+      name: name.trim(),
       email: authEmail,
       role,
       schoolId: sId,
       createdAt: Date.now()
     });
 
-    // Send verification email only for teachers
+    // Send verification for teachers
     if (role === "teacher") {
       await sendEmailVerification(userCredential.user);
     }
@@ -206,7 +203,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (!randomKey) throw new Error("Failed to generate unique school code.");
 
-    // Create school structure
     await set(newSchoolRef, {
       profile: {
         name: schoolName,
@@ -220,7 +216,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     });
 
-    // Update admin user profile with the new school ID
     await update(ref(db, `userProfiles/${user.uid}`), {
       schoolId: randomKey,
       updatedAt: Date.now()
@@ -237,7 +232,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const schoolId = profile?.schoolId || "";
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isSuperAdmin, schoolId, login, register, resendVerification, resetPassword, setupSchool, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        isAdmin,
+        isSuperAdmin,
+        schoolId,
+        login,
+        register,
+        resendVerification,
+        resetPassword,
+        setupSchool,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

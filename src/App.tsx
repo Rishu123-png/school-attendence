@@ -25,6 +25,7 @@ import TopBunkersPage from "@/components/TopBunkersPage";
 import AlertsPage from "@/components/AlertsPage";
 import StudentProfilePage from "@/components/StudentProfilePage";
 import SuperAdminPanel from "@/components/SuperAdminPanel";
+import DebugBadge from "@/components/DebugBadge";
 
 function Splash() {
   return (
@@ -137,6 +138,7 @@ function SuperAdminRoute() {
 function AppRoutes() {
   const { user, loading } = useAuth();
   if (loading) return <Splash />;
+        
 
   return (
     <Routes>
@@ -176,6 +178,7 @@ export default function App() {
       <AuthProvider>
         <DarkModeInitializer />
         <AppRoutes />
+        <DebugBadge />
         <Toaster
           position="top-right"
           toastOptions={{

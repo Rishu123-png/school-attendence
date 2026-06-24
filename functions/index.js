@@ -98,3 +98,4 @@ exports.registerTeacher = onCall(async (req) => {
 
   return { ok: true, uid };
 });
+

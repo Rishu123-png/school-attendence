@@ -37,7 +37,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   schoolId: string;
-  login: (email: string, password: string) => Promise<UserCredential>;
+  login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: "teacher" | "schoolAdmin", schoolId?: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -127,10 +127,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<UserCredential> => {
+  const login = async (email: string, password: string): Promise<void> => {
     return await signInWithEmailAndPassword(auth, email, password);
   };
 
+  // ════════════════════════════════════════════════════════════════
+  //  FIXED register()
+  //  Previous bug: the teacher-invite check did `get(schools/.../teachers)`
+  //  BEFORE the user was signed in (auth == null) → Firebase returned
+  //  PERMISSION_DENIED. Also the teacher-record link write was fatal.
+  //
+  //  Fix: create the Auth user FIRST (so reads are authenticated), THEN
+  //       verify the invite, THEN write the profile, and make the teacher
+  //       record link NON-FATAL so a rules denial never destroys the account.
+  // ════════════════════════════════════════════════════════════════
   const register = async (
     name: string,
     email: string,
@@ -140,83 +150,85 @@ export function AuthProvider({ children }: AuthProviderProps) {
   ): Promise<void> => {
     const sId = schoolId ? schoolId.trim() : "";
 
-    if (role === "teacher") {
-      if (!sId) throw new Error("School ID is required for teachers");
-
-      // ✅ FIXED: Check if admin has added this teacher to the school
-      const teachersRef = ref(db, `schools/${sId}/teachers`);
-      const teachersSnap = await get(teachersRef);
-
-      if (!teachersSnap.exists()) {
-        throw new Error("This school has no teachers added yet. Please contact your school admin.");
-      }
-
-      const teachersData = teachersSnap.val();
-      const teacherExists = Object.values(teachersData).some((t: any) =>
-        t && t.email && t.email.toLowerCase() === email.toLowerCase()
-      );
-
-      if (!teacherExists) {
-        throw new Error("You have not been added as a teacher by the school admin. Please ask your admin to add you first.");
-      }
-    }
-
-    // ✅ FIXED: Create Firebase Auth user first
+    // 1) Create the Firebase Auth user FIRST.
+    //    After this call the new user is signed in, so all subsequent DB
+    //    reads/writes carry a valid auth token (rules see auth != null).
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-    const authEmail = userCredential.user.email || email.toLowerCase();
+    const authEmail = userCredential.user.email || email; // must match auth.token.email
 
-    // ✅ FIXED: Wait for email to be available in auth token, then create user profile
-    // This ensures auth.token.email is populated for the Firebase rules validation
     try {
-      // Force token refresh to ensure email is in the token
-      const token = await userCredential.user.getIdTokenResult(true);
-      
-      // Create user profile with all required fields
-      const profileData = {
+      // Force a token refresh so auth.token.email is populated for the
+      // userProfiles write rule (newData.child('email').val() == auth.token.email).
+      await userCredential.user.getIdTokenResult(true);
+
+      if (role === "teacher") {
+        if (!sId) throw new Error("School ID is required for teachers");
+
+        // 2) Confirm the admin actually added this teacher.
+        //    Read runs while signed in now. (Requires teachers list .read = "auth != null".)
+        const teachersSnap = await get(ref(db, `schools/${sId}/teachers`));
+        const teachersData = teachersSnap.val() || {};
+        const teacherExists = Object.values(teachersData).some(
+          (t: any) => t && t.email && t.email.toLowerCase() === authEmail.toLowerCase()
+        );
+        if (!teacherExists) {
+          throw new Error(
+            "You have not been added as a teacher by the school admin. Please ask your admin to add you first."
+          );
+        }
+      }
+
+      // 3) Write the user profile (rules validate uid/email/role vs the token).
+      await set(ref(db, `userProfiles/${uid}`), {
         uid,
         name: name.trim(),
-        email: authEmail,
+        email: authEmail, // kept EXACTLY as auth.token.email
         role,
         schoolId: sId,
         createdAt: Date.now()
-      };
+      });
 
-      await set(ref(db, `userProfiles/${uid}`), profileData);
-
-      // ✅ FIXED: If teacher, also update the teacher record in schools with the Firebase UID
+      // 4) Link the new uid back into the admin's teacher record — NON-FATAL.
+      //    Only superAdmin/school-admin may write here, so this MAY be denied
+      //    by rules for a brand-new teacher. We catch & continue so the
+      //    registration still succeeds. (For guaranteed linking, use the
+      //    Cloud Function version.)
       if (role === "teacher" && sId) {
-        const teachersRef = ref(db, `schools/${sId}/teachers`);
-        const teachersSnap = await get(teachersRef);
-        
-        if (teachersSnap.exists()) {
-          const teachersData = teachersSnap.val();
-          // Find the teacher record by email and update it with the Firebase UID
+        try {
+          const teachersSnap = await get(ref(db, `schools/${sId}/teachers`));
+          const teachersData = teachersSnap.val() || {};
           for (const [teacherId, teacherData] of Object.entries(teachersData)) {
             if ((teacherData as any)?.email?.toLowerCase() === authEmail.toLowerCase()) {
               await update(ref(db, `schools/${sId}/teachers/${teacherId}`), {
-                uid: uid,  // Link Firebase Auth UID to teacher record
+                uid,
                 status: "active",
                 updatedAt: Date.now()
               });
               break;
             }
           }
+        } catch (linkErr: any) {
+          console.warn("Teacher record link skipped (rules blocked it):", linkErr?.message);
         }
       }
 
-      // Send verification email for teachers
+      // 5) Send verification email for teachers — NON-FATAL.
       if (role === "teacher") {
-        await sendEmailVerification(userCredential.user);
+        try {
+          await sendEmailVerification(userCredential.user);
+        } catch {
+          /* non-fatal */
+        }
       }
     } catch (error: any) {
-      // If profile creation fails, delete the auth user to maintain consistency
+      // Clean up the half-created Auth account so the email is free to retry.
       try {
         await userCredential.user.delete();
-      } catch (deleteError) {
-        console.error("Failed to clean up auth user after profile creation error:", deleteError);
+      } catch {
+        /* ignore */
       }
-      throw new Error(`Failed to create profile: ${error.message}`);
+      throw new Error(error.message || "Failed to create profile");
     }
   };
 
@@ -270,22 +282,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const schoolId = profile?.schoolId || "";
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        isAdmin,
-        isSuperAdmin,
-        schoolId,
-        login,
-        register,
-        resendVerification,
-        resetPassword,
-        setupSchool,
-        logout
-      }}
-    >
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isSuperAdmin, schoolId, login, register, resendVerification, resetPassword, setupSchool, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -294,5 +291,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
-return context;
+  return context;
 }

@@ -143,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (role === "teacher") {
       if (!sId) throw new Error("School ID is required for teachers");
 
-      // Check if admin has added this teacher
+      // ✅ FIXED: Check if admin has added this teacher to the school
       const teachersRef = ref(db, `schools/${sId}/teachers`);
       const teachersSnap = await get(teachersRef);
 
@@ -161,24 +161,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
 
-    // Create Firebase Auth user
+    // ✅ FIXED: Create Firebase Auth user first
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
     const authEmail = userCredential.user.email || email.toLowerCase();
 
-    // Create user profile - using minimal required fields
-    await set(ref(db, `userProfiles/${uid}`), {
-      uid,
-      name: name.trim(),
-      email: authEmail,
-      role,
-      schoolId: sId,
-      createdAt: Date.now()
-    });
+    // ✅ FIXED: Wait for email to be available in auth token, then create user profile
+    // This ensures auth.token.email is populated for the Firebase rules validation
+    try {
+      // Force token refresh to ensure email is in the token
+      const token = await userCredential.user.getIdTokenResult(true);
+      
+      // Create user profile with all required fields
+      const profileData = {
+        uid,
+        name: name.trim(),
+        email: authEmail,
+        role,
+        schoolId: sId,
+        createdAt: Date.now()
+      };
 
-    // Send verification for teachers
-    if (role === "teacher") {
-      await sendEmailVerification(userCredential.user);
+      await set(ref(db, `userProfiles/${uid}`), profileData);
+
+      // ✅ FIXED: If teacher, also update the teacher record in schools with the Firebase UID
+      if (role === "teacher" && sId) {
+        const teachersRef = ref(db, `schools/${sId}/teachers`);
+        const teachersSnap = await get(teachersRef);
+        
+        if (teachersSnap.exists()) {
+          const teachersData = teachersSnap.val();
+          // Find the teacher record by email and update it with the Firebase UID
+          for (const [teacherId, teacherData] of Object.entries(teachersData)) {
+            if ((teacherData as any)?.email?.toLowerCase() === authEmail.toLowerCase()) {
+              await update(ref(db, `schools/${sId}/teachers/${teacherId}`), {
+                uid: uid,  // Link Firebase Auth UID to teacher record
+                status: "active",
+                updatedAt: Date.now()
+              });
+              break;
+            }
+          }
+        }
+      }
+
+      // Send verification email for teachers
+      if (role === "teacher") {
+        await sendEmailVerification(userCredential.user);
+      }
+    } catch (error: any) {
+      // If profile creation fails, delete the auth user to maintain consistency
+      try {
+        await userCredential.user.delete();
+      } catch (deleteError) {
+        console.error("Failed to clean up auth user after profile creation error:", deleteError);
+      }
+      throw new Error(`Failed to create profile: ${error.message}`);
     }
   };
 
@@ -256,5 +294,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
+return context;
 }

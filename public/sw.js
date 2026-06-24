@@ -1,44 +1,74 @@
-const CACHE_NAME = "school-os-v1";
+// public/sw.js — updated to prevent stale-cache problems
+// Bump CACHE_VERSION on every deploy. The activate step deletes any
+// cache that doesn't match, so old users automatically get flushed.
+
+const CACHE_VERSION = "school-os-v3"; // <- was v1; bumped to purge old caches
+const CACHE_NAME = CACHE_VERSION;
 
 const BASE = self.registration.scope;
 const INDEX_URL = new URL("index.html", BASE).href;
 const PRECACHE_URLS = [BASE, INDEX_URL];
 
+// Install: precache the app shell only.
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // new SW activates immediately
 });
 
+// Activate: delete ALL old caches so stale code can't survive a deploy.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
-    ),
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME)
+          .map((k) => {
+            return caches.delete(k);
+          })
+      )
+    )
   );
-  self.clients.claim();
+  self.clients.claim(); // take control of open tabs immediately
 });
 
+// Fetch: network-first for navigations (so users always get the newest HTML
+// and therefore the newest hashed JS bundles). Cache-first fallback offline.
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-  if (!event.request.url.startsWith("http")) return;
+  const req = event.request;
+  if (req.method !== "GET") return;
+  if (!req.url.startsWith("http")) return;
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
+  // Navigations (HTML page loads) → always try network first.
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          if (cached) return cached;
-          if (event.request.mode === "navigate") return caches.match(BASE) || caches.match(INDEX_URL);
-          return new Response("Offline", { status: 503 });
-        });
-      }),
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          return response;
+        })
+        .catch(() =>
+          caches.match(req).then((c) => c || caches.match(BASE) || caches.match(INDEX_URL))
+        )
+    );
+    return;
+  }
+
+  // Other assets → cache-first, fall back to network, then cache new response.
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+      return fetch(req)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return response;
+        })
+        .catch(() => cached);
+    })
   );
 });

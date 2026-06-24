@@ -142,27 +142,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     schoolId?: string
   ): Promise<void> => {
     const sId = schoolId ? schoolId.trim() : "";
+
     if (role === "teacher") {
       if (!sId) throw new Error("School ID is required for teachers");
 
-      const schoolRef = ref(db, `schools/${sId}/profile`);
-      const schoolSnap = await get(schoolRef);
-      if (!schoolSnap.exists()) {
-        throw new Error("School ID does not exist. Please check with your administrator.");
+      // ✅ CRITICAL FIX: Verify that admin has already added this teacher
+      const teachersRef = ref(db, `schools/${sId}/teachers`);
+      const teachersSnap = await get(teachersRef);
+      
+      if (!teachersSnap.exists()) {
+        throw new Error("This school has no teachers added yet. Please contact your school admin.");
+      }
+
+      const teachersData = teachersSnap.val();
+      const teacherExists = Object.values(teachersData).some((t: any) => 
+        t && t.email && t.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!teacherExists) {
+        throw new Error("You have not been added as a teacher by the school admin. Please ask your admin to add you first.");
       }
     }
 
+    // Create Firebase Auth user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-
-    if (role === "teacher") {
-      await sendEmailVerification(userCredential.user);
-    }
-
-    // Create user profile
-    // IMPORTANT: Use the exact email from Firebase Auth (auth.token.email)
-    // to satisfy the Firebase rule: newData.child('email').val() == auth.token.email
     const authEmail = userCredential.user.email || email.toLowerCase();
+
+    // Create user profile (this must satisfy Firebase rules)
     await set(ref(db, `userProfiles/${uid}`), {
       uid,
       name,
@@ -172,9 +179,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       createdAt: Date.now()
     });
 
-    // NOTE: Teacher record linking happens automatically via email matching
-    // in useSchoolData hook — no need to update the teachers node here
-    // (that would require admin permissions)
+    // Send verification email only for teachers
+    if (role === "teacher") {
+      await sendEmailVerification(userCredential.user);
+    }
   };
 
   const resendVerification = async (): Promise<void> => {

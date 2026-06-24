@@ -1,34 +1,11 @@
 {
-  "name": "school-os",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
-  },
+  "name": "school-attendance-functions",
+  "description": "Cloud Functions for School OS (teacher registration)",
+  "main": "index.js",
+  "engines": { "node": "20" },
   "dependencies": {
-    "clsx": "2.1.1",
-    "date-fns": "^4.4.0",
-    "firebase": "^12.15.0",
-    "framer-motion": "^12.40.0",
-    "lucide-react": "^1.21.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.18.0",
-    "recharts": "^3.8.1",
-    "tailwind-merge": "3.4.0"
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.0"
   },
-  "devDependencies": {
-    "@tailwindcss/vite": "4.1.17",
-    "@types/node": "22.19.17",
-    "@types/react": "19.2.7",
-    "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "5.1.1",
-    "tailwindcss": "4.1.17",
-    "typescript": "5.9.3",
-    "vite": "7.3.2"
-  }
+  "private": true
 }

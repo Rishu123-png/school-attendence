@@ -1,34 +1,132 @@
 {
   "rules": {
-    "userProfiles": {
+    ".read": false,
+    ".write": false,
+
+    "superAdmins": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+        ".read": "auth != null && (auth.uid == $uid || root.child('superAdmins').child(auth.uid).exists())",
+        ".write": "auth != null && root.child('superAdmins').child(auth.uid).exists()"
       }
     },
+
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('superAdmins').child(auth.uid).exists())",
+        ".write": "auth != null && auth.uid == $uid && newData.exists() && newData.hasChildren(['uid', 'name', 'email', 'role']) && newData.child('uid').val() == $uid && newData.child('email').val() == auth.token.email && (newData.child('role').val() == 'teacher' || newData.child('role').val() == 'schoolAdmin')"
+      }
+    },
+
     "schools": {
       "$schoolId": {
-        ".read": "auth != null && data.child('admins').hasChild(auth.uid)",
-        ".write": "auth != null && data.child('admins').hasChild(auth.uid)",
+        ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+        ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' && (!root.child('userProfiles').child(auth.uid).child('schoolId').exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == '') && !data.exists() && newData.child('admins').child(auth.uid).exists()))",
+
+        "profile": {
+          ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+          ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' && (!root.child('userProfiles').child(auth.uid).child('schoolId').exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == '') && !data.exists() && newData.parent().child('admins').child(auth.uid).exists()))"
+        },
+
+        "admins": {
+          "$uid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' && (!root.child('userProfiles').child(auth.uid).child('schoolId').exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == '') && !data.parent().exists() && newData.parent().parent().child('admins').child(auth.uid).exists()))"
+          }
+        },
+
         "teachers": {
           ".read": "auth != null",
-          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+          "$tid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
         },
-        "attendance": {
-          ".read": "auth != null",
-          ".write": "auth != null"
+
+        "classes": {
+          "$cid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
         },
-        "announcements": {
-          ".read": "auth != null",
-          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+
+        "subjects": {
+          "$sid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
         },
+
+        "students": {
+          "$sid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
+        },
+
+        "timetables": {
+          "$tid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
+        },
+
+        "subjectTeachers": {
+          "$stid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
+        },
+
         "holidays": {
-          ".read": "auth != null",
-          ".write": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)"
+          "$hid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
         },
+
+        "announcements": {
+          "$aid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+          }
+        },
+
+        "attendance": {
+          "$date": {
+            "$class": {
+              "$period": {
+                "$studentId": {
+                  ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+                  ".write": "auth != null && root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId && (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' || root.child('userProfiles').child(auth.uid).child('role').val() == 'teacher')"
+                }
+              }
+            }
+          }
+        },
+
+        "attendanceMeta": {
+          "$date": {
+            "$class": {
+              "$period": {
+                ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+                ".write": "auth != null && root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId && (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' || root.child('userProfiles').child(auth.uid).child('role').val() == 'teacher')"
+              }
+            }
+          }
+        },
+
+        "marks": {
+          "$mid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
+            ".write": "auth != null && root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId && (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' || root.child('userProfiles').child(auth.uid).child('role').val() == 'teacher')"
+          }
+        },
+
         "teacherAlerts": {
-          ".read": "auth != null && root.child('schools').child($schoolId).child('admins').hasChild(auth.uid)",
-          ".write": "auth != null"
+          "$aid": {
+            ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (root.child('userProfiles').child(auth.uid).child('role').val() == 'teacher' && root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId))",
+            ".write": "auth != null && root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId && (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' || root.child('userProfiles').child(auth.uid).child('role').val() == 'teacher')"
+          }
         }
       }
     }

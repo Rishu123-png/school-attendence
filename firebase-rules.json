@@ -11,6 +11,7 @@
     },
 
     "userProfiles": {
+      ".read": "auth != null && root.child('superAdmins').child(auth.uid).exists()",
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('superAdmins').child(auth.uid).exists())",
         ".write": "auth != null && auth.uid == $uid && newData.exists() && newData.hasChildren(['uid', 'name', 'email', 'role']) && newData.child('uid').val() == $uid && newData.child('email').val() == auth.token.email && (newData.child('role').val() == 'teacher' || newData.child('role').val() == 'schoolAdmin')"
@@ -18,6 +19,7 @@
     },
 
     "schools": {
+      ".read": "auth != null && root.child('superAdmins').child(auth.uid).exists()",
       "$schoolId": {
         ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
         ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (root.child('userProfiles').child(auth.uid).child('role').val() == 'schoolAdmin' && (!root.child('userProfiles').child(auth.uid).child('schoolId').exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == '') && !data.exists() && newData.child('admins').child(auth.uid).exists()))",

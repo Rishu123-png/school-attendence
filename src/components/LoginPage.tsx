@@ -1,15 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, Mail, Lock, Eye, EyeOff, ArrowRight, Building2, UserCheck } from "lucide-react";
+import {
+  GraduationCap,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Building2,
+  UserCheck
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { S } from "@/lib/styles";
 import { cn } from "@/lib/cn";
 import toast from "react-hot-toast";
+import FloatingCampus from "@/components/FloatingCampus";
 
 export default function LoginPage() {
   const { login, register, resetPassword } = useAuth();
   const navigate = useNavigate();
+
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,48 +33,62 @@ export default function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+
     try {
+      const cleanEmail = email.trim();
+
       if (mode === "login") {
-        await login(email, password);
+        await login(cleanEmail, password);
         toast.success("Welcome back! 👋");
       } else {
         const sid = role === "teacher" ? schoolCode.trim() : undefined;
+
+        if (!name.trim()) {
+          toast.error("Full name is required");
+          setBusy(false);
+          return;
+        }
+
         if (role === "teacher" && !sid) {
           toast.error("School ID is required for teachers");
           setBusy(false);
           return;
         }
+
         if (password.length < 6) {
           toast.error("Password must be at least 6 characters");
           setBusy(false);
           return;
         }
-        await register(name, email, password, role, sid);
+
+        await register(name.trim(), cleanEmail, password, role, sid);
+
         toast.success(
           role === "teacher"
             ? "Account created! Please check your email to verify your identity."
-            : "Account created! 🎉",
+            : "Account created! 🎉"
         );
       }
+
       navigate("/dashboard");
     } catch (err: any) {
-      console.error("Auth error:", err);
       const msg =
         err.code === "auth/user-not-found"
           ? "No account with this email. Please register first."
           : err.code === "auth/wrong-password"
-          ? "Incorrect password"
-          : err.code === "auth/email-already-in-use"
-          ? "This email is already registered. Try logging in instead."
-          : err.code === "auth/invalid-credential"
-          ? "Invalid email or password. If you just registered, try logging in."
-          : err.code === "auth/invalid-email"
-          ? "Invalid email address"
-          : err.code === "auth/too-many-requests"
-          ? "Too many attempts, try later"
-          : err.code === "auth/weak-password"
-          ? "Password must be at least 6 characters"
-          : err.message || "Something went wrong";
+            ? "Incorrect password"
+            : err.code === "auth/email-already-in-use"
+              ? "This email is already registered. Try logging in instead."
+              : err.code === "auth/invalid-credential"
+                ? "Invalid email or password. If you just registered, try logging in."
+                : err.code === "auth/invalid-email"
+                  ? "Invalid email address"
+                  : err.code === "auth/too-many-requests"
+                    ? "Too many attempts, try later"
+                    : err.code === "auth/weak-password"
+                      ? "Password must be at least 6 characters"
+                      : err.message || "Something went wrong";
+
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -75,6 +100,7 @@ export default function LoginPage() {
       toast.error("Enter your email address first");
       return;
     }
+
     try {
       await resetPassword(email.trim());
       toast.success("Password reset email sent! Check your inbox.");
@@ -84,23 +110,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+      <FloatingCampus />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        initial={{
+          opacity: 0,
+          y: 20
+        }}
+        animate={{
+          opacity: 1,
+          y: 0
+        }}
+        className="relative z-10 w-full max-w-md"
       >
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-200 dark:shadow-primary-900/30 mb-4">
+          <motion.div
+            initial={{
+              scale: 0.9,
+              rotate: -4
+            }}
+            animate={{
+              scale: 1,
+              rotate: 0
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 180,
+              damping: 14
+            }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-200 dark:shadow-primary-900/30 mb-4"
+          >
             <GraduationCap className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">School OS</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Smart Education Management Platform</p>
+          </motion.div>
+
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            School OS
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Smart Education Management Platform
+          </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-6">
+        <div className="bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-2xl border border-white/60 dark:border-gray-800 p-6 backdrop-blur-xl">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             {mode === "login" ? "Welcome Back" : "Create Account"}
           </h2>
@@ -108,9 +160,10 @@ export default function LoginPage() {
           <form onSubmit={submit} className="space-y-4">
             {mode === "register" && (
               <>
-                {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     value={name}
@@ -121,9 +174,11 @@ export default function LoginPage() {
                   />
                 </div>
 
-                {/* Role Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Role
+                  </label>
+
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -132,12 +187,13 @@ export default function LoginPage() {
                         "flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
                         role === "teacher"
                           ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-500"
-                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                       )}
                     >
                       <UserCheck className="w-4 h-4" />
                       Teacher
                     </button>
+
                     <button
                       type="button"
                       onClick={() => setRole("schoolAdmin")}
@@ -145,7 +201,7 @@ export default function LoginPage() {
                         "flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all",
                         role === "schoolAdmin"
                           ? "border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-400 dark:border-accent-500"
-                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800",
+                          : "border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                       )}
                     >
                       <Building2 className="w-4 h-4" />
@@ -154,10 +210,11 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* School Code for Teacher */}
                 {role === "teacher" && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School ID</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      School ID
+                    </label>
                     <input
                       type="text"
                       value={schoolCode}
@@ -166,15 +223,19 @@ export default function LoginPage() {
                       placeholder="Enter School ID from your admin"
                       required
                     />
-                    <p className="text-xs text-gray-400 mt-1">Ask your school admin for the School ID.</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Ask your school admin for the School ID.
+                    </p>
                   </div>
                 )}
               </>
             )}
 
-            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Email
+              </label>
+
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -188,9 +249,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Password
+              </label>
+
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -202,6 +265,7 @@ export default function LoginPage() {
                   required
                   minLength={6}
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
@@ -210,12 +274,14 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+
               {mode === "register" && (
-                <p className="text-xs text-gray-400 mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Minimum 6 characters
+                </p>
               )}
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={busy}
@@ -235,7 +301,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Forgot Password */}
           {mode === "login" && (
             <div className="mt-4 text-center">
               <button
@@ -248,7 +313,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Toggle Mode */}
           <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
             {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
@@ -261,15 +325,21 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Helper text */}
         {mode === "register" && role === "teacher" && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-4 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800"
+            initial={{
+              opacity: 0
+            }}
+            animate={{
+              opacity: 1
+            }}
+            className="mt-4 p-4 bg-primary-50/90 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800 backdrop-blur-xl"
           >
             <p className="text-xs text-primary-700 dark:text-primary-300">
-              <strong>📌 Important:</strong> Your school admin must first add you as a teacher in the Admin Panel before you can register. Use the <strong>exact same email</strong> and <strong>School ID</strong> provided by your admin.
+              <strong>📌 Important:</strong> Your school admin must first add you as a teacher
+              in the Admin Panel before you can register. Use the{" "}
+              <strong>exact same email</strong> and <strong>School ID</strong> provided by
+              your admin.
             </p>
           </motion.div>
         )}

@@ -26,8 +26,7 @@ import {
   X,
   Moon,
   Sun,
-  PlusCircle,
-} from "lucide-react";
+  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -306,17 +305,31 @@ export default function Layout() {
 
         <nav className={cn("sticky bottom-0 z-30 border-t backdrop-blur-xl lg:hidden", isDark ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100")}>
           <div className="relative flex items-center justify-around px-2 py-1.5">
-            {MOBILE_NAV.map((item, index) => {
+            {MOBILE_NAV.map((item) => {
               const Icon = item.icon;
               const active = location.pathname === item.path;
-              const isCenter = index === 2;
               return (
-                <button key={item.path} onClick={() => navigate(item.path)} className={cn("relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-2 transition-all", active ? "text-primary-600" : isDark ? "text-gray-500" : "text-gray-400", isCenter && "-mt-6") }>
-                  <div className={cn("relative rounded-xl p-1.5 transition-all", active && (isDark ? "bg-primary-900/30" : "bg-primary-50"), isCenter && "bg-gradient-to-br from-primary-600 to-accent-600 p-3 text-white shadow-lg shadow-primary-500/30") }>
-                    {isCenter ? <PlusCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                    {active && !isCenter && <motion.span layoutId="mobile-active-dot" className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary-600" />}
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-2 transition-all",
+                    active ? "-mt-6 text-primary-600" : isDark ? "text-gray-500" : "text-gray-400",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "relative rounded-xl p-1.5 transition-all",
+                      active
+                        ? "bg-gradient-to-br from-primary-600 to-accent-600 p-3 text-white shadow-lg shadow-primary-500/30"
+                        : isDark
+                          ? "hover:bg-gray-800"
+                          : "hover:bg-gray-100",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <span className={cn("text-[10px] font-medium", active && "font-semibold", isCenter && "text-gray-500 dark:text-gray-400")}>{item.label}</span>
+                  <span className={cn("text-[10px] font-medium", active && "font-semibold text-gray-500 dark:text-gray-400")}>{item.label}</span>
                 </button>
               );
             })}

@@ -31,7 +31,7 @@ interface Ann { id: string; title: string; message: string; type: string; timest
 
 export default function Dashboard() {
   const { profile, schoolId } = useAuth();
-  const { timetable, students } = useSchoolData();
+  const { timetable, students, loading } = useSchoolData();
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState<Ann[]>([]);
   const [stats, setStats] = useState({ present: 0, absent: 0, total: 0 });
@@ -111,6 +111,23 @@ export default function Dashboard() {
           ? "border-l-green-500 bg-green-50/50 dark:bg-green-900/10"
           : "border-l-primary-500 bg-primary-50/30 dark:bg-primary-900/10";
   const annIcon = (t: string) => t === "urgent" ? "🔴" : t === "exam" ? "📝" : t === "holiday" ? "🎉" : "📢";
+
+  if (loading) {
+    return (
+      <div className="relative mx-auto max-w-5xl space-y-6 pb-24 lg:pb-0">
+        <div className="h-32 w-full rounded-3xl bg-gray-200/70 dark:bg-gray-800/50 animate-pulse" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-28 rounded-2xl bg-gray-200/70 dark:bg-gray-800/50 animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="h-64 rounded-3xl bg-gray-200/70 dark:bg-gray-800/50 animate-pulse" />
+          <div className="h-64 rounded-3xl bg-gray-200/70 dark:bg-gray-800/50 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto max-w-5xl space-y-6 pb-24 lg:pb-0">

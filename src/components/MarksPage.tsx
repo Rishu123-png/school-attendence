@@ -4,7 +4,7 @@ import { ref, onValue, push, update, remove } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { TrendingUp, TrendingDown, Search, Users, Sparkles, Download, History, Trash2, Pencil, X, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, Users, Sparkles, Download, History, Trash2, Pencil, X, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import { getAttendanceSummary, predictNextMark } from "@/lib/marks-ai";
@@ -37,7 +37,7 @@ const safe = (v: string) => `"${String(v ?? "").replaceAll('"', '""')}"`;
 
 export default function MarksPage() {
   const { profile, schoolId } = useAuth();
-  const { students, subjects, classes } = useSchoolData();
+  const { students, subjects, classes, loading } = useSchoolData();
   const [marks, setMarks] = useState<MarkRec[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedAssessment, setSelectedAssessment] = useState(DEFAULT_ASSESSMENTS[0].name);
@@ -53,6 +53,10 @@ export default function MarksPage() {
   const [customMax, setCustomMax] = useState(25);
   const [customAssessments, setCustomAssessments] = useState<{ name: string; max: number }[]>([]);
   const [editing, setEditing] = useState<MarkRec | null>(null);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const assessments = useMemo(() => [...DEFAULT_ASSESSMENTS, ...customAssessments], [customAssessments]);
 
@@ -88,6 +92,18 @@ export default function MarksPage() {
     }
     return true;
   }), [students, selectedClass, searchTerm]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedClass, searchTerm]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
   const studentMarks = (sid: string, subject = selectedSubject) => marks
     .filter((m) => m.studentId === sid && (!subject || m.subject === subject))
@@ -232,6 +248,19 @@ export default function MarksPage() {
     window.print();
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-5 max-w-5xl mx-auto pb-28 lg:pb-0 print:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
+          <div className="h-10 w-48 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+          <div className="h-10 w-80 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+        </div>
+        <div className="h-28 bg-gray-200/70 dark:bg-gray-800/50 rounded-2xl animate-pulse print:hidden" />
+        <div className="h-96 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-28 lg:pb-0 print:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
@@ -295,7 +324,7 @@ export default function MarksPage() {
           <table className="w-full min-w-[640px]">
             <thead><tr className="bg-gray-50 dark:bg-gray-800"><th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">Roll</th><th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">Name</th><th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 print:hidden">Score / {maxScore}</th><th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">Avg %</th><th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">Trend</th><th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">Latest</th></tr></thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-              {filtered.map((s, i) => {
+              {paginated.map((s, i) => {
                 const avg = studentAvg(s.id);
                 const t = trend(s.id);
                 const latest = studentMarks(s.id)[0];
@@ -313,6 +342,40 @@ export default function MarksPage() {
             </tbody>
           </table>
         </div>
+{/* Pagination Bar */}
+        {filtered.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50/50 dark:bg-gray-900/50 print:hidden">
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span>Show</span>
+              <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className={cn(S.input, "py-1 px-2 text-xs w-auto")}>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>per page</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className={cn(S.btnGhost, "px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed")}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1 inline" /> Prev
+              </button>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className={cn(S.btnGhost, "px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed")}
+              >
+                Next <ChevronRight className="w-4 h-4 ml-1 inline" />
+              </button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {showHistory && (
@@ -321,7 +384,7 @@ export default function MarksPage() {
           <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[420px] overflow-y-auto">
             {marks.filter((m) => !selectedClass || !m.className || m.className === selectedClass).filter((m) => !selectedSubject || m.subject === selectedSubject).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).map((m) => {
               const stu = students.find((s) => s.id === m.studentId);
-              return <div key={m.id} className="flex items-center justify-between gap-3 px-4 py-3"><div className="min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{stu?.name || "Student"} · {m.examName || m.type}</p><p className="text-xs text-gray-500">{m.subject} · {m.score}/{m.maxScore} · {Math.round((m.score / m.maxScore) * 100)}% · {m.date}</p></div><div className="flex gap-1"><button onClick={() => startEdit(m)} className="p-2 rounded-lg text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"><Pencil className="w-4 h-4" /></button><button onClick={() => deleteMark(m.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></button></div></div>;
+              return <div key={m.id} className="flex items-center justify-between gap-3 px-4 py-3"><div className="min-w-0"><p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{stu?.name || "Student"} · {m.examName || m.type}</p><p className="text-xs text-gray-500">{m.subject} · {m.score}/{m.maxScore} · {Math.round((m.score / m.maxScore) * 100)}% · {m.date}</p></div><div className="flex gap-1"><button onClick={() => startEdit(m)} className="p-2 rounded-lg text-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/20 dark:hover:bg-primary-900/40"><Pencil className="w-4 h-4" /></button><button onClick={() => deleteMark(m.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></button></div></div>;
             })}
             {!marks.length && <div className="py-10 text-center text-gray-400 text-sm">No saved marks yet</div>}
           </div>

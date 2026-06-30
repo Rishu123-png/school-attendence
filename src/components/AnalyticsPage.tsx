@@ -4,7 +4,7 @@ import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { BarChart3, TrendingDown, AlertTriangle, Sparkles, Award, BookOpen, Clock, CheckCircle, XCircle } from "lucide-react";
+import { BarChart3, TrendingDown, AlertTriangle, Sparkles, Award, BookOpen, Clock, CheckCircle, XCircle, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import { predict } from "@/lib/ai-predictions";
@@ -18,8 +18,21 @@ export default function AnalyticsPage() {
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; rate: number }[]>([]);
   const [subjectRates, setSubjectRates] = useState<{ name: string; rate: number }[]>([]);
   const [marks, setMarks] = useState<{ studentId: string; subject: string; score: number; maxScore: number }[]>([]);
+  const [holidays, setHolidays] = useState<{ date: string; reason: string }[]>([]);
   const [period, setPeriod] = useState("7d");
   const [attendanceData, setAttendanceData] = useState<any>(null);
+
+  // Load from Local Cache immediately for instant rendering
+  useEffect(() => {
+    const cached = localStorage.getItem(`analytics_summary_cache_${schoolId}`);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.attendanceTrend) setAttendanceTrend(parsed.attendanceTrend);
+        if (parsed.subjectRates) setSubjectRates(parsed.subjectRates);
+      } catch { /* ignore */ }
+    }
+  }, [schoolId]);
 
   useEffect(() => {
     if (!schoolId) return;
@@ -50,15 +63,30 @@ export default function AnalyticsPage() {
       const days = parseInt(period);
       const trend = Array.from(daily.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-days)
         .map(([date, { p, t }]) => ({ date: date.slice(5), rate: t ? Math.round((p / t) * 100) : 0 }));
+      const sRates = Array.from(subjMap.entries()).map(([name, { p, t }]) => ({ name, rate: t ? Math.round((p / t) * 100) : 0 }));
+      
       setAttendanceTrend(trend);
-      setSubjectRates(Array.from(subjMap.entries()).map(([name, { p, t }]) => ({ name, rate: t ? Math.round((p / t) * 100) : 0 })));
+      setSubjectRates(sRates);
+
+      // Save summary cache to localStorage
+      try {
+        localStorage.setItem(`analytics_summary_cache_${schoolId}`, JSON.stringify({ attendanceTrend: trend, subjectRates: sRates, timestamp: Date.now() }));
+      } catch { /* ignore */ }
     });
+
     const unsub2 = onValue(ref(db, `schools/${schoolId}/marks`), (snap) => {
       const d = snap.val();
       if (d) setMarks(Object.values(d) as any[]);
       else setMarks([]);
     });
-    return () => { unsub1(); unsub2(); };
+
+    const unsub3 = onValue(ref(db, `schools/${schoolId}/holidays`), (snap) => {
+      const d = snap.val();
+      if (d) setHolidays(Object.values(d) as any[]);
+      else setHolidays([]);
+    });
+
+    return () => { unsub1(); unsub2(); unsub3(); };
   }, [schoolId, period]);
 
   const predictions = useMemo(() => {
@@ -76,12 +104,12 @@ export default function AnalyticsPage() {
           }
         }
       }
-      const p = predict(attDays, sm.map((m) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })));
+      const p = predict(attDays, sm.map((m) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })), holidays);
       return { ...s, ...p };
     });
-  }, [students, marks, attendanceData]);
+  }, [students, marks, attendanceData, holidays]);
 
-  const atRisk = predictions.filter((p) => p.attendance.risk === "high").length;
+  const atRisk = predictions.filter((p) => p.attendance.risk === "high" || p.bunkRisk.level === "red").length;
   const topPerf = predictions.filter((p) => p.performance.expected >= 80).length;
   const avgHealth = predictions.length ? Math.round(predictions.reduce((s, p) => s + p.performance.expected, 0) / predictions.length) : 0;
 
@@ -112,7 +140,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📈 Analytics</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Data-driven insights with AI predictions</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📈 Analytics</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Data-driven insights with AI predictions & pre-holiday proximity</p></div>
         <div className="flex items-center gap-2">
           {["7","14","30"].map((p) => (
             <button key={p} onClick={() => setPeriod(p + "d")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all", period === p + "d" ? "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400" : "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700")}>{p} Days</button>
@@ -124,7 +152,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Class Health", val: `${avgHealth}%`, icon: BarChart3, bg: "from-primary-50", bar: avgHealth },
-          { label: "At-Risk", val: atRisk, icon: AlertTriangle, bg: "from-red-50" },
+          { label: "At-Risk / High Bunk", val: atRisk, icon: AlertTriangle, bg: "from-red-50" },
           { label: "Top Performers", val: topPerf, icon: Award, bg: "from-green-50" },
           { label: "AI Predictions", val: predictions.length, icon: Sparkles, bg: "from-purple-50" },
         ].map((c, i) => {
@@ -174,7 +202,7 @@ export default function AnalyticsPage() {
       {/* AI risk table */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className={cn(S.card, "p-0 overflow-hidden")}>
         <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-purple-600" />AI Student Risk Analysis</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Sparkles className="w-4 h-4 text-purple-600" />AI Student Risk Analysis & Parent Alerts</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -184,6 +212,7 @@ export default function AnalyticsPage() {
               <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Bunk Risk</th>
               <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Status</th>
               <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Recommendation</th>
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400">Action</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {predictions.length ? predictions.slice(0, 15).map((p, i) => (
@@ -192,10 +221,22 @@ export default function AnalyticsPage() {
                   <td className="px-3 py-3 text-center"><span className={cn("text-sm font-semibold", p.performance.expected >= 80 ? "text-green-600" : p.performance.expected >= 50 ? "text-yellow-600" : "text-red-600")}>{p.performance.expected}%</span></td>
                   <td className="px-3 py-3 text-center"><span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", p.bunkRisk.level === "green" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : p.bunkRisk.level === "yellow" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400")}>{p.bunkRisk.probability}%</span></td>
                   <td className="px-3 py-3 text-center"><span className={cn("inline-flex items-center gap-1 text-xs font-medium capitalize", p.attendance.risk === "low" ? "text-green-600" : p.attendance.risk === "medium" ? "text-yellow-600" : "text-red-600")}>{p.attendance.risk === "low" ? <CheckCircle className="w-3 h-3" /> : p.attendance.risk === "medium" ? <Clock className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}{p.attendance.risk}</span></td>
-                  <td className="px-3 py-3 text-xs text-gray-500 dark:text-gray-400 max-w-[200px] truncate">{p.tips[0]}</td>
+                  <td className="px-3 py-3 text-xs text-gray-500 dark:text-gray-400 max-w-[220px] truncate">{p.tips[0]}</td>
+                  <td className="px-3 py-3 text-center">
+                    {p.parentPhone ? (
+                      <button
+                        onClick={() => window.open(`https://wa.me/${p.parentPhone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Urgent notice from School OS: ${p.name} has an active alert: ${p.tips[0]}. Please ensure regular attendance.`)}`, "_blank")}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium shadow-sm transition-all"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 dark:text-gray-600">No parent phone</span>
+                    )}
+                  </td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-400 dark:text-gray-500"><Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">Add marks & attendance to see AI insights</p></td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-gray-400 dark:text-gray-500"><Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-sm">Add marks & attendance to see AI insights</p></td></tr>
               )}
             </tbody>
           </table>
@@ -205,9 +246,9 @@ export default function AnalyticsPage() {
       {/* recommendations */}
       {(atRisk > 0 || avgHealth < 80) && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50 dark:from-primary-900/10 dark:to-accent-900/10 dark:border-primary-800/30")}>
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Recommendations</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Recommendations & Actions</h3>
           <div className="space-y-2">
-            {atRisk > 0 && <div className="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-gray-800/50"><AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" /><div><p className="text-sm font-medium text-gray-900 dark:text-gray-100">{atRisk} At-Risk Students</p><p className="text-xs text-gray-600 dark:text-gray-300">Schedule intervention meetings.</p></div></div>}
+            {atRisk > 0 && <div className="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-gray-800/50"><AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" /><div><p className="text-sm font-medium text-gray-900 dark:text-gray-100">{atRisk} At-Risk / High Bunk Students</p><p className="text-xs text-gray-600 dark:text-gray-300">Use the WhatsApp action button above to notify parents instantly.</p></div></div>}
             {avgHealth < 80 && <div className="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-gray-800/50"><TrendingDown className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" /><div><p className="text-sm font-medium text-gray-900 dark:text-gray-100">Overall Health Below Target</p><p className="text-xs text-gray-600 dark:text-gray-300">Score is {avgHealth}%. Consider engagement initiatives.</p></div></div>}
             {topPerf > 0 && <div className="flex items-start gap-3 p-3 rounded-xl bg-white/80 dark:bg-gray-800/50"><Award className="w-5 h-5 text-green-500 shrink-0 mt-0.5" /><div><p className="text-sm font-medium text-gray-900 dark:text-gray-100">{topPerf} Top Performers</p><p className="text-xs text-gray-600 dark:text-gray-300">Keep encouraging excellence!</p></div></div>}
           </div>

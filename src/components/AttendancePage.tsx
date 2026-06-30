@@ -4,7 +4,7 @@ import { ref, onValue, update } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { CheckCircle, Search, Users, CheckCheck, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { CheckCircle, Search, Users, CheckCheck, ChevronLeft, ChevronRight, Sparkles, WifiOff, RefreshCw, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
@@ -21,6 +21,10 @@ export default function AttendancePage() {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Offline support state
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [queuedOffline, setQueuedOffline] = useState<Record<string, any> | null>(null);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -32,6 +36,40 @@ export default function AttendancePage() {
 
   useEffect(() => { if (classes.length && !selectedClass) setSelectedClass(classes[0].name); }, [classes, selectedClass]);
   useEffect(() => { if (subjects.length && !selectedSubject) setSelectedSubject(subjects[0].name); }, [subjects, selectedSubject]);
+
+  // Offline event listeners
+  useEffect(() => {
+    const onOnline = () => { setIsOffline(false); checkOfflineQueue(); };
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    checkOfflineQueue();
+    return () => { window.removeEventListener("online", onOnline); window.removeEventListener("offline", onOffline); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schoolId]);
+
+  const checkOfflineQueue = () => {
+    try {
+      const q = localStorage.getItem(`offline_attendance_queue_${schoolId}`);
+      if (q) setQueuedOffline(JSON.parse(q));
+      else setQueuedOffline(null);
+    } catch { /* ignore */ }
+  };
+
+  const syncOfflineQueue = async () => {
+    if (!queuedOffline || !schoolId) return;
+    setBusy(true);
+    try {
+      await update(ref(db), queuedOffline);
+      localStorage.removeItem(`offline_attendance_queue_${schoolId}`);
+      setQueuedOffline(null);
+      toast.success("Offline queue synchronized successfully! 🟢");
+      setSaved(true);
+    } catch (e: any) {
+      toast.error("Sync failed: " + (e.message || "Network error"));
+    }
+    setBusy(false);
+  };
 
   useEffect(() => {
     if (!schoolId || !selectedClass || !selectedPeriod) return;
@@ -64,23 +102,55 @@ export default function AttendancePage() {
 
   const mark = (sid: string, status: string) => { setSaved(false); setAttendance((p) => ({ ...p, [sid]: status })); };
 
-  const markAll = () => { const m: Record<string, string> = {}; filtered.forEach((s) => { m[s.id] = "present"; }); setAttendance(m); setSaved(false); };
+  // Batch Quick Actions
+  const markAll = (status: "present" | "absent" | "late") => {
+    const m: Record<string, string> = { ...attendance };
+    filtered.forEach((s) => { m[s.id] = status; });
+    setAttendance(m);
+    setSaved(false);
+    toast.success(`Marked all ${filtered.length} students ${status}!`);
+  };
 
   const saveAttendance = async () => {
     if (!schoolId) return;
     if (!selectedSubject || !selectedClass) { toast.error("Select class & subject"); return; }
     if (!Object.keys(attendance).length) { toast.error("Mark at least one student"); return; }
     setBusy(true);
+    
+    const base = `schools/${schoolId}/attendance/${selectedDate}/${selectedClass}/${selectedPeriod}`;
+    const updates: Record<string, any> = {};
+    for (const [sid, status] of Object.entries(attendance)) {
+      updates[`${base}/${sid}`] = { status, subject: selectedSubject, markedBy: profile?.uid ?? "", timestamp: Date.now() };
+    }
+    updates[`schools/${schoolId}/attendanceMeta/${selectedDate}/${selectedClass}/${selectedPeriod}`] = { subject: selectedSubject, markedBy: profile?.uid ?? "", markedAt: Date.now(), count: Object.keys(attendance).length };
+
+    if (isOffline) {
+      // Store in offline cache
+      try {
+        const existing = localStorage.getItem(`offline_attendance_queue_${schoolId}`);
+        const currentQueue = existing ? JSON.parse(existing) : {};
+        const newQueue = { ...currentQueue, ...updates };
+        localStorage.setItem(`offline_attendance_queue_${schoolId}`, JSON.stringify(newQueue));
+        setQueuedOffline(newQueue);
+        toast.success("Offline! Saved to local storage queue 🟡");
+        setSaved(true);
+      } catch (e: any) { toast.error("Failed to queue offline: " + e.message); }
+      setBusy(false);
+      return;
+    }
+
     try {
-      const base = `schools/${schoolId}/attendance/${selectedDate}/${selectedClass}/${selectedPeriod}`;
-      const updates: Record<string, any> = {};
-      for (const [sid, status] of Object.entries(attendance)) {
-        updates[`${base}/${sid}`] = { status, subject: selectedSubject, markedBy: profile?.uid ?? "", timestamp: Date.now() };
-      }
-      updates[`schools/${schoolId}/attendanceMeta/${selectedDate}/${selectedClass}/${selectedPeriod}`] = { subject: selectedSubject, markedBy: profile?.uid ?? "", markedAt: Date.now(), count: Object.keys(attendance).length };
       await update(ref(db), updates);
       toast.success("Attendance saved! ✅"); setSaved(true);
-    } catch (e: any) { toast.error(e.message ?? "Failed to save"); }
+    } catch (e: any) {
+      // Fallback to offline queue on network failure
+      try {
+        localStorage.setItem(`offline_attendance_queue_${schoolId}`, JSON.stringify(updates));
+        setQueuedOffline(updates);
+        toast.success("Network error. Saved to local storage queue 🟡");
+        setSaved(true);
+      } catch { toast.error(e.message ?? "Failed to save"); }
+    }
     setBusy(false);
   };
 
@@ -117,8 +187,16 @@ export default function AttendancePage() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📋 Attendance</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Mark and manage student attendance</p></div>
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={cn(S.input, "py-2 w-auto")} />
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📋 Attendance</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Mark and manage student attendance with offline-first support</p></div>
+        <div className="flex items-center gap-2">
+          {isOffline && <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold"><WifiOff className="w-3.5 h-3.5" /> Offline Mode</span>}
+          {queuedOffline && (
+            <button onClick={syncOfflineQueue} disabled={busy || isOffline} className={cn(S.btnPrimary, "text-xs py-1.5 px-3 bg-amber-600 hover:bg-amber-700")}>
+              <RefreshCw className={cn("w-3.5 h-3.5 mr-1 inline", busy && "animate-spin")} /> Sync Queued ({Object.keys(queuedOffline).length})
+            </button>
+          )}
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={cn(S.input, "py-2 w-auto")} />
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-4 gap-3">
@@ -153,8 +231,12 @@ export default function AttendancePage() {
             <Search className="absolute left-3 bottom-2.5 w-4 h-4 text-gray-400" />
             <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Name / Roll…" className={cn(S.input, "py-2 pl-9")} />
           </div>
-          <button onClick={markAll} className={cn(S.btnSecondary, "text-xs py-2")}><CheckCheck className="w-4 h-4" />All Present</button>
-          <button onClick={saveAttendance} disabled={busy || !Object.keys(attendance).length} className={cn(S.btnPrimary, "text-xs py-2")}>{saved ? "✅ Saved" : busy ? "Saving…" : "Save"}</button>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => markAll("present")} className={cn(S.btnSecondary, "text-xs py-2 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400")}><CheckCheck className="w-3.5 h-3.5 mr-1 inline" />All Present</button>
+            <button onClick={() => markAll("absent")} className={cn(S.btnSecondary, "text-xs py-2 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400")}><XCircle className="w-3.5 h-3.5 mr-1 inline" />All Absent</button>
+            <button onClick={() => markAll("late")} className={cn(S.btnSecondary, "text-xs py-2 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400")}><Clock className="w-3.5 h-3.5 mr-1 inline" />All Late</button>
+          </div>
+          <button onClick={saveAttendance} disabled={busy || !Object.keys(attendance).length} className={cn(S.btnPrimary, "text-xs py-2 min-w-[80px]")}>{saved ? "✅ Saved" : busy ? "Saving…" : "Save"}</button>
         </div>
       </motion.div>
 

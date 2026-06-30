@@ -14,18 +14,18 @@ const COLORS = ["#6366f1","#ec4899","#10b981","#f59e0b","#3b82f6","#8b5cf6","#ef
 
 export default function AnalyticsPage() {
   const { schoolId } = useAuth();
-  const { subjects, students } = useSchoolData();
+  const { subjects, students, loading } = useSchoolData();
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; rate: number }[]>([]);
   const [subjectRates, setSubjectRates] = useState<{ name: string; rate: number }[]>([]);
   const [marks, setMarks] = useState<{ studentId: string; subject: string; score: number; maxScore: number }[]>([]);
   const [period, setPeriod] = useState("7d");
-  const [attendanceData, setAttendanceData] = useState<any>(null);   // ✅ NEW: real attendance for AI
+  const [attendanceData, setAttendanceData] = useState<any>(null);
 
   useEffect(() => {
     if (!schoolId) return;
     const unsub1 = onValue(ref(db, `schools/${schoolId}/attendance`), (snap) => {
       const d = snap.val();
-      setAttendanceData(d);   // ✅ store raw attendance for AI
+      setAttendanceData(d);
       if (!d) { setAttendanceTrend([]); setSubjectRates([]); return; }
       const daily = new Map<string, { p: number; t: number }>();
       const subjMap = new Map<string, { p: number; t: number }>();
@@ -61,11 +61,9 @@ export default function AnalyticsPage() {
     return () => { unsub1(); unsub2(); };
   }, [schoolId, period]);
 
-  // ✅ FIXED: Build real attendance days per student for AI predictions
   const predictions = useMemo(() => {
     return students.slice(0, 20).map((s) => {
       const sm = marks.filter((m) => m.studentId === s.id);
-      // Build real attendance history
       const attDays: any[] = [];
       if (attendanceData) {
         for (const date in attendanceData) {
@@ -89,6 +87,27 @@ export default function AnalyticsPage() {
 
   const chartData = attendanceTrend.length ? attendanceTrend : Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return { date: `${d.getMonth() + 1}/${d.getDate()}`, rate: 75 + Math.floor(Math.random() * 20) }; });
   const subjChart = subjectRates.length ? subjectRates : subjects.map((s) => ({ name: s.name, rate: 70 + Math.floor(Math.random() * 25) }));
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="h-10 w-48 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+          <div className="h-10 w-32 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-24 bg-gray-200/70 dark:bg-gray-800/50 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-72 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+          <div className="h-72 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+        </div>
+        <div className="h-96 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">

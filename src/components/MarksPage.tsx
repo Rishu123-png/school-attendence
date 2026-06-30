@@ -208,7 +208,7 @@ export default function MarksPage() {
     const rows = filtered.flatMap((s) => {
       const sm = studentMarks(s.id);
       if (!sm.length) {
-        return [{ Roll: s.rollNo, Name: s.name, Class: selectedClass, Subject: selectedSubject, Assessment: "", Score: "", Max: "", Percent: "", Date: "" }];
+        return [{ Roll: s.rollNo, Name: s.name, Class: selectedClass, Subject: selectedSubject, Assessment: "", Score: "" as number | string, Max: "" as number | string, Percent: "" as number | string, Date: "" }];
       }
       return sm.map((m) => ({
         Roll: s.rollNo,
@@ -216,9 +216,9 @@ export default function MarksPage() {
         Class: m.className || selectedClass,
         Subject: m.subject,
         Assessment: m.examName || m.type,
-        Score: m.score,
-        Max: m.maxScore,
-        Percent: Math.round((m.score / m.maxScore) * 100),
+        Score: m.score as number | string,
+        Max: m.maxScore as number | string,
+        Percent: Math.round((m.score / m.maxScore) * 100) as number | string,
         Date: m.date,
       }));
     });

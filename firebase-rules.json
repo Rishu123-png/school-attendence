@@ -40,7 +40,7 @@
           ".read": "auth != null",
           "$tid": {
             ".read": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || root.child('userProfiles').child(auth.uid).child('schoolId').val() == $schoolId)",
-            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists())"
+            ".write": "auth != null && (root.child('superAdmins').child(auth.uid).exists() || root.child('schools').child($schoolId).child('admins').child(auth.uid).exists() || (auth.token.email != null && data.child('email').val().toLowerCase() == auth.token.email.toLowerCase() && (!data.child('uid').exists() || data.child('uid').val() == auth.uid) && newData.child('uid').val() == auth.uid))"
           }
         },
 

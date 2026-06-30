@@ -4,7 +4,7 @@ import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { Search, User, Mail, Phone, Users as UsersIcon, BookOpen, ClipboardCheck, TrendingUp, Sparkles, AlertTriangle, Award } from "lucide-react";
+import { Search, User, Mail, Phone, Users as UsersIcon, BookOpen, ClipboardCheck, TrendingUp, Sparkles, AlertTriangle, Award, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import { predict } from "@/lib/ai-predictions";
@@ -17,12 +17,14 @@ export default function StudentProfilePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [attendanceData, setAttendanceData] = useState<any>(null);
   const [marksData, setMarksData] = useState<any[]>([]);
+  const [holidays, setHolidays] = useState<any[]>([]);
 
   useEffect(() => {
     if (!schoolId) return;
     const u1 = onValue(ref(db, `schools/${schoolId}/attendance`), (s) => setAttendanceData(s.val() ?? {}));
     const u2 = onValue(ref(db, `schools/${schoolId}/marks`), (s) => setMarksData(s.val() ? Object.values(s.val()) : []));
-    return () => { u1(); u2(); };
+    const u3 = onValue(ref(db, `schools/${schoolId}/holidays`), (s) => setHolidays(s.val() ? Object.values(s.val()) : []));
+    return () => { u1(); u2(); u3(); };
   }, [schoolId]);
 
   const matches = useMemo(() => {
@@ -69,7 +71,6 @@ export default function StudentProfilePage() {
 
   const marksChart = useMemo(() => studentMarks.map((m: any) => ({ date: (m.date ?? "").slice(5), subject: m.subject, pct: Math.round((m.score / (m.maxScore || 1)) * 100) })), [studentMarks]);
 
-  // ✅ FIXED: Build real attendance days array instead of fake Array.from
   const aiPred = useMemo(() => {
     if (!student) return null;
     const attDays: any[] = [];
@@ -84,14 +85,14 @@ export default function StudentProfilePage() {
         }
       }
     }
-    return predict(attDays, studentMarks.map((m: any) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })));
-  }, [student, attendanceData, studentMarks]);
+    return predict(attDays, studentMarks.map((m: any) => ({ pct: (m.score / (m.maxScore || 1)) * 100 })), holidays);
+  }, [student, attendanceData, studentMarks, holidays]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><User className="w-6 h-6 text-primary-600" />Student Profile</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Search and explore individual student details</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Search and explore individual student details with automated parent alerts</p>
       </motion.div>
 
       {/* search */}
@@ -136,7 +137,17 @@ export default function StudentProfilePage() {
                   {student.parentName && <p className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300"><UsersIcon className="w-3.5 h-3.5" />{student.parentName}{student.parentPhone ? ` (${student.parentPhone})` : ""}</p>}
                 </div>
               </div>
-              <button onClick={() => setSelectedId(null)} className={cn(S.btnSecondary, "text-xs shrink-0")}>Search again</button>
+              <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto">
+                {student.parentPhone && (
+                  <button
+                    onClick={() => window.open(`https://wa.me/${student.parentPhone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Urgent notice from School OS: ${student.name} (${student.class}) requires your attention regarding attendance and performance.`)}`, "_blank")}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-semibold shadow-sm transition-all w-full sm:w-auto"
+                  >
+                    <MessageCircle className="w-4 h-4" /> WhatsApp Parent
+                  </button>
+                )}
+                <button onClick={() => setSelectedId(null)} className={cn(S.btnSecondary, "text-xs w-full sm:w-auto")}>Search again</button>
+              </div>
             </div>
           </motion.div>
 
@@ -168,7 +179,7 @@ export default function StudentProfilePage() {
           {aiPred && attendance.total > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className={cn(S.card, "bg-gradient-to-r from-primary-50 to-accent-50 border-primary-100/50 dark:from-primary-900/10 dark:to-accent-900/10 dark:border-primary-800/30")}>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Prediction</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary-600" />AI Prediction & Alerts</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-3">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Attendance Forecast</p>
@@ -189,6 +200,16 @@ export default function StudentProfilePage() {
               <div className="mt-3 space-y-1">
                 {aiPred.tips.map((t, i) => <p key={i} className="text-xs text-gray-700 dark:text-gray-300 flex items-start gap-2"><span className="text-primary-600">•</span>{t}</p>)}
               </div>
+              {student.parentPhone && aiPred.tips.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-primary-100 dark:border-primary-800/50 flex justify-end">
+                  <button
+                    onClick={() => window.open(`https://wa.me/${student.parentPhone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Urgent notice from School OS: ${student.name} has an active AI alert: "${aiPred.tips[0]}". Please ensure regular attendance.`)}`, "_blank")}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-semibold shadow-sm transition-all"
+                  >
+                    <MessageCircle className="w-4 h-4" /> Send AI Alert to Parent via WhatsApp
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 

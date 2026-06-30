@@ -29,7 +29,7 @@ export default function DebugBadge() {
     }
     check();
     return () => { cancelled = true; };
-  }, [user?.uid]);
+  }, [user]);
 
   if (!user) return null; // don't show on login screen
 

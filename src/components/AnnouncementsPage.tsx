@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, push, set } from "firebase/database";
+import { ref, onValue, push, set, remove } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Megaphone, Bell, Plus, X, Send, Clock, User, AlertCircle, GraduationCap, Calendar, Award } from "lucide-react";
+import { Megaphone, Bell, Plus, X, Send, Clock, User, AlertCircle, GraduationCap, Calendar, Award, Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
@@ -40,6 +40,14 @@ export default function AnnouncementsPage() {
       toast.success("Posted! 📢"); setForm({ title: "", message: "", type: "general", audience: "all" }); setShowCreate(false);
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     setPosting(false);
+  };
+
+  const deleteAnn = async (id: string) => {
+    if (!confirm("Delete this announcement?")) return;
+    try {
+      await remove(ref(db, `schools/${schoolId}/announcements/${id}`));
+      toast.success("Deleted announcement");
+    } catch (e: any) { toast.error(e.message ?? "Failed to delete"); }
   };
 
   const icon = (t: string) => {
@@ -117,7 +125,10 @@ export default function AnnouncementsPage() {
                       <span className={cn(S.badgeBlue, "text-[10px]")}>{a.audience}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(a.timestamp)}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(a.timestamp)}</span>
+                    {isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteAnn(a.id); }} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>}
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">{a.message}</p>
                 <div className="flex items-center gap-2 mt-3 text-xs text-gray-400 dark:text-gray-500"><User className="w-3 h-3" />{a.author}</div>

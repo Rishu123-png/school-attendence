@@ -4,14 +4,14 @@ import { ref, push, set, onValue, remove } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { Users, Search, Mail, Phone, X, UserPlus, BookOpen, Check } from "lucide-react";
+import { Users, Search, Mail, Phone, X, UserPlus, BookOpen, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
 
 export default function StudentsPage() {
   const { isAdmin, schoolId, profile } = useAuth();
-  const { students, classes, subjects, currentTeacher, allStudents } = useSchoolData();
+  const { students, classes, subjects, currentTeacher, allStudents, loading } = useSchoolData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -23,6 +23,10 @@ export default function StudentsPage() {
   });
   const [posting, setPosting] = useState(false);
   const [subjectTeachers, setSubjectTeachers] = useState<Record<string, Record<string, string>>>({});
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(21);
 
   useEffect(() => {
     if (!schoolId) return;
@@ -51,6 +55,18 @@ export default function StudentsPage() {
     if (searchTerm) { const q = searchTerm.toLowerCase(); return s.name.toLowerCase().includes(q) || String(s.rollNo).includes(q) || (s.email ?? "").toLowerCase().includes(q); }
     return true;
   }), [students, selectedClass, searchTerm]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedClass, searchTerm]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
   const saveStudent = async () => {
     if (!form.name.trim() || !form.class) { toast.error("Name and Class required"); return; }
@@ -138,6 +154,26 @@ export default function StudentsPage() {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="space-y-2">
+            <div className="h-8 w-40 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+            <div className="h-4 w-60 bg-gray-200/70 dark:bg-gray-800/50 rounded-lg animate-pulse" />
+          </div>
+          <div className="h-10 w-32 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+        </div>
+        <div className="h-20 bg-gray-200/70 dark:bg-gray-800/50 rounded-2xl animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-36 bg-gray-200/70 dark:bg-gray-800/50 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -157,12 +193,14 @@ export default function StudentsPage() {
             <Search className="absolute left-3 bottom-2.5 w-4 h-4 text-gray-400" />
             <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Name, roll, email…" className={cn(S.input, "py-2 pl-9")} />
           </div>
-          <span className="text-sm text-gray-500 dark:text-gray-400">{filtered.length} students</span>
+          <div className="flex items-center gap-2 pt-5">
+            <span className="text-sm text-gray-500 dark:text-gray-400">{filtered.length} students</span>
+          </div>
         </div>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filtered.map((s, i) => {
+        {paginated.map((s, i) => {
           const canManage = isAdmin || (currentTeacher?.assignedClasses?.includes(s.class));
           return (
             <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className={S.cardHover}>
@@ -198,6 +236,41 @@ export default function StudentsPage() {
           );
         })}
       </div>
+
+      {/* Pagination Bar */}
+      {filtered.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 dark:border-gray-800 pt-4 mt-6">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>Show</span>
+            <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className={cn(S.input, "py-1 px-2 text-xs w-auto")}>
+              <option value={12}>12</option>
+              <option value={21}>21</option>
+              <option value={42}>42</option>
+              <option value={100}>100</option>
+            </select>
+            <span>per page</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={cn(S.btnGhost, "px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed")}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1 inline" /> Prev
+            </button>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={cn(S.btnGhost, "px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed")}
+            >
+              Next <ChevronRight className="w-4 h-4 ml-1 inline" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">

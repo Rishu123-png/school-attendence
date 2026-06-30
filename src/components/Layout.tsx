@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,6 +32,7 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { cn } from "@/lib/cn";
 import PageBackdrop from "@/components/PageBackdrop";
+import toast from "react-hot-toast";
 
 interface NavItem { path: string; label: string; icon: any; adminOnly?: boolean }
 interface NavGroup { label: string; items: NavItem[] }
@@ -92,6 +93,38 @@ export default function Layout() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstallBanner(false);
+      setDeferredPrompt(null);
+    }
+  };
+
+  const requestSystemNotifications = () => {
+    if (typeof Notification !== "undefined") {
+      Notification.requestPermission().then((perm) => {
+        if (perm === "granted") toast.success("System notifications enabled! 🔔");
+      });
+    }
+  };
+
   const timeAgo = (ts: number) => {
     const diff = Date.now() - ts;
     const m = Math.floor(diff / 60000);
@@ -132,10 +165,10 @@ export default function Layout() {
   }
 
   return (
-    <div className={cn("flex h-screen", isDark ? "bg-gray-950" : "bg-gray-50")}>
+    <div className={cn("flex h-screen", isDark ? "bg-gray-955" : "bg-gray-50")}>
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r shadow-sm transform transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r shadow-sm transform transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto print:hidden",
           sidebar ? "translate-x-0" : "-translate-x-full",
           isDark ? "bg-gray-900/95 border-gray-800" : "bg-white/95 border-gray-100",
         )}
@@ -217,10 +250,10 @@ export default function Layout() {
         </div>
       </aside>
 
-      {sidebar && <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebar(false)} />}
+      {sidebar && <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden print:hidden" onClick={() => setSidebar(false)} />}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className={cn("sticky top-0 z-30 border-b shadow-sm backdrop-blur-lg", isDark ? "bg-gray-900/80 border-gray-800" : "bg-white/80 border-gray-100")}>
+        <header className={cn("sticky top-0 z-30 border-b shadow-sm backdrop-blur-lg print:hidden", isDark ? "bg-gray-900/80 border-gray-800" : "bg-white/80 border-gray-100")}>
           <div className="flex h-14 items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-3">
               <button onClick={() => setSidebar(true)} className={cn("rounded-xl p-2 lg:hidden", isDark ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100")}><Menu className="h-5 w-5" /></button>
@@ -245,7 +278,7 @@ export default function Layout() {
                         <h3 className={cn("flex items-center gap-2 font-semibold", isDark ? "text-white" : "text-gray-900")}><Bell className="h-4 w-4 text-primary-600" />Notifications</h3>
                         {notifications.length > 0 && <button onClick={clearAll} className="text-xs text-red-500 hover:underline">Clear all</button>}
                       </div>
-                      <div className="max-h-96 divide-y divide-gray-50 overflow-y-auto dark:divide-gray-800">
+                      <div className="max-h-80 divide-y divide-gray-50 overflow-y-auto dark:divide-gray-800">
                         {notifications.length ? notifications.map((n) => {
                           const st = notifStyle(n.kind);
                           return (
@@ -263,7 +296,8 @@ export default function Layout() {
                           <div className="py-10 text-center text-gray-400"><Bell className="mx-auto mb-2 h-9 w-9 opacity-40" /><p className="text-sm">No notifications</p><p className="mt-1 text-[11px]">Class reminders & alerts appear here</p></div>
                         )}
                       </div>
-                      <div className={cn("border-t p-2", isDark ? "border-gray-700" : "border-gray-100")}>
+                      <div className={cn("border-t p-2 space-y-1", isDark ? "border-gray-700" : "border-gray-100")}>
+                        <button onClick={requestSystemNotifications} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20">🔔 Enable System Push Alerts</button>
                         <button onClick={() => { setNotifOpen(false); navigate("/alerts"); }} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20">Open Alert Center</button>
                       </div>
                     </motion.div>
@@ -296,14 +330,29 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className={cn("relative flex-1 overflow-y-auto p-4 lg:p-6", isDark ? "bg-gray-950" : "bg-gray-50")}>
+        <AnimatePresence>
+          {showInstallBanner && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-gradient-to-r from-primary-600 via-primary-700 to-accent-600 text-white px-4 py-3 flex items-center justify-between gap-3 shadow-md relative z-20 print:hidden">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-white/20 backdrop-blur-md shrink-0"><GraduationCap className="w-5 h-5 text-white" /></div>
+                <div><p className="text-sm font-bold">Install School OS App</p><p className="text-xs text-white/80">Add to your home screen for lightning-fast native access</p></div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={handleInstallApp} className="px-3 py-1.5 rounded-xl bg-white text-primary-700 font-bold text-xs shadow hover:scale-105 transition-transform">Install</button>
+                <button onClick={() => setShowInstallBanner(false)} className="p-1.5 rounded-lg text-white/80 hover:bg-white/10"><X className="w-4 h-4" /></button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <main className={cn("relative flex-1 overflow-y-auto p-4 lg:p-6 print:p-0 print:overflow-visible", isDark ? "bg-gray-950" : "bg-gray-50")}>
           <PageBackdrop />
-          <div className="relative z-10">
+          <div className="relative z-10 print:w-full print:max-w-none">
             <Outlet />
           </div>
         </main>
 
-        <nav className={cn("sticky bottom-0 z-30 border-t backdrop-blur-xl lg:hidden", isDark ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100")}>
+       <nav className={cn("sticky bottom-0 z-30 border-t backdrop-blur-xl lg:hidden print:hidden", isDark ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100")}>
           <div className="relative flex items-center justify-around px-2 py-1.5">
             {MOBILE_NAV.map((item) => {
               const Icon = item.icon;

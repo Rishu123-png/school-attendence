@@ -128,7 +128,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
-    return await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   // ════════════════════════════════════════════════════════════════

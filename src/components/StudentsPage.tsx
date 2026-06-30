@@ -43,6 +43,7 @@ export default function StudentsPage() {
     if (!isAdmin && currentTeacher?.assignedClasses?.length === 1 && !form.class) {
       setForm(p => ({ ...p, class: currentTeacher.assignedClasses![0] }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTeacher, isAdmin]);
 
   const filtered = useMemo(() => students.filter((s) => {

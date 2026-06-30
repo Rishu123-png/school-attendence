@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 
 export default function SchedulePage() {
-  const { timetable, classes } = useSchoolData();
+  const { timetable, classes, loading } = useSchoolData();
   const [selectedDay, setSelectedDay] = useState(["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()]);
   const [selectedClass, setSelectedClass] = useState("");
 
@@ -17,6 +17,23 @@ export default function SchedulePage() {
 
   const colors = ["bg-primary-100 text-primary-700 border-primary-200","bg-accent-100 text-accent-700 border-accent-200","bg-green-100 text-green-700 border-green-200","bg-orange-100 text-orange-700 border-orange-200","bg-purple-100 text-purple-700 border-purple-200","bg-teal-100 text-teal-700 border-teal-200","bg-cyan-100 text-cyan-700 border-cyan-200","bg-pink-100 text-pink-700 border-pink-200"];
   const pColor = (p: string) => colors[(parseInt(p.replace(/\D/g, "")) - 1) % colors.length];
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="h-10 w-48 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+          <div className="h-10 w-32 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+        </div>
+        <div className="h-32 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-20 bg-gray-200/70 dark:bg-gray-800/50 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">

@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface ClassItem { id: string; name: string; section?: string }
 export interface SubjectItem { id: string; name: string; code?: string }
 export interface StudentItem { id: string; name: string; rollNo: number; class: string; section?: string; email?: string; phone?: string; parentName?: string; parentPhone?: string; subjects?: string[] }
-export interface SlotItem { id: string; day: string; period: string; time: string; class: string; subject: string; teacher: string; teacherUid: string; room: string; type?: string }
+export interface SlotItem { id: string; day: string; period: string; time: string; class: string; subject: string; teacher: string; teacherUid: string; room: string; type?: string; classId?: string; subjectId?: string; teacherId?: string }
 export interface TeacherItem { id: string; name: string; email: string; phone?: string; status: "invited" | "active"; assignedClasses?: string[]; assignedSubjects?: string[] }
 
 export function useSchoolData() {
@@ -50,13 +50,16 @@ export function useSchoolData() {
         id,
         day: v.day ?? "",
         period: v.period ?? "",
-        time: v.time ?? "",
-        class: v.class ?? "",
-        subject: v.subject ?? "",
-        teacher: v.teacher ?? "",
-        teacherUid: v.teacherUid ?? "",
-        room: v.room ?? "",
-        type: v.type
+        time: v.time ?? "09:00",
+        class: v.class ?? v.classId ?? "",
+        subject: v.subject ?? v.subjectId ?? "",
+        teacher: v.teacher ?? v.teacherId ?? "",
+        teacherUid: v.teacherUid ?? v.teacherId ?? "",
+        room: v.room ?? "101",
+        type: v.type ?? "Lecture",
+        classId: v.classId ?? "",
+        subjectId: v.subjectId ?? "",
+        teacherId: v.teacherId ?? v.teacher ?? v.teacherUid ?? ""
       })) : []);
     }, (err) => { console.error("Timetable listener error:", err); }));
 

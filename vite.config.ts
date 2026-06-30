@@ -7,13 +7,9 @@ import { defineConfig } from "vite";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Detect if running on Vercel
 const isVercel = !!process.env.VERCEL;
 
 export default defineConfig({
-  // On Vercel: always use "/"
-  // On GitHub Pages: use VITE_BASE_PATH or "/school-attendence/"
-  // Locally: use "/"
   base: isVercel ? "/" : (process.env.VITE_BASE_PATH || "/"),
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -24,12 +20,15 @@ export default defineConfig({
   build: {
     target: "es2021",
     sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
           firebase: ["firebase/app", "firebase/auth", "firebase/database"],
           charts: ["recharts"],
           motion: ["framer-motion"],
+          excel: ["xlsx"],
+          vendor: ["react", "react-dom", "react-router-dom", "lucide-react"],
         },
       },
     },

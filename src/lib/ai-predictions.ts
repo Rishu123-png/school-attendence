@@ -1,6 +1,6 @@
 /**
  * AI Prediction Engine — trend analysis & risk assessment
- * Enhanced with day-of-week patterns, subject-wise analysis, streaks
+ * Enhanced with day-of-week patterns, subject-wise analysis, streaks, and pre-holiday proximity weighting
  */
 
 export interface StudentPrediction {
@@ -24,11 +24,17 @@ interface MarkEntry {
   date?: string;
 }
 
+interface HolidayEntry {
+  date: string;
+  reason: string;
+}
+
 const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 export function predict(
   attendanceDays: AttendanceDay[],
   marksList: MarkEntry[],
+  holidays: HolidayEntry[] = [],
 ): StudentPrediction {
   const total = attendanceDays.length || 1;
   const presentCount = attendanceDays.filter((d) => d.present).length;
@@ -51,10 +57,26 @@ export function predict(
   const perfTrend: "up" | "down" | "stable" = rAvg > avg + 3 ? "up" : rAvg < avg - 3 ? "down" : "stable";
   const confidence = Math.min(95, 40 + pcts.length * 8 + (rate > 0.8 ? 15 : 0));
 
-  /* ── Bunk risk ── */
+  /* ── Bunk risk & Pre-Holiday Proximity Weighting ── */
   const recent14 = attendanceDays.slice(-14);
   const recentAbsent = recent14.filter((d) => !d.present).length;
-  const bunkP = Math.min(100, Math.round((recentAbsent / (recent14.length || 1)) * 100));
+  let bunkP = Math.min(100, Math.round((recentAbsent / (recent14.length || 1)) * 100));
+  
+  let nearHoliday = false;
+  let holidayName = "";
+  const nowTime = Date.now();
+  for (const h of holidays) {
+    if (!h.date) continue;
+    const hTime = new Date(h.date).getTime();
+    const diffDays = (hTime - nowTime) / (1000 * 60 * 60 * 24);
+    if (diffDays >= 0 && diffDays <= 5) {
+      nearHoliday = true;
+      holidayName = h.reason || "Upcoming Holiday";
+      bunkP = Math.min(100, bunkP + 20); // Increase bunk risk dynamically by 20%
+      break;
+    }
+  }
+
   const level: "green" | "yellow" | "red" = bunkP > 50 ? "red" : bunkP > 25 ? "yellow" : "green";
 
   /* ── Streak ── */
@@ -109,10 +131,11 @@ export function predict(
 
   /* ── Tips ── */
   const tips: string[] = [];
+  if (nearHoliday) tips.push(`⚠️ Pre-Holiday bunking risk high (${holidayName} approaching). Take mandatory roll call.`);
   if (risk === "high") tips.push("⚠️ Schedule parent-teacher meeting immediately");
   if (attTrend === "down") tips.push("📉 Implement daily check-in system");
   if (expected < 50) tips.push("📚 Arrange extra tutoring sessions");
-  if (bunkP > 30) tips.push("👀 Monitor during free periods");
+  if (bunkP > 30 && !nearHoliday) tips.push("👀 Monitor during free periods");
   if (streakType === "absent" && streak >= 3) tips.push(`🚨 ${streak}-day absence streak — contact parents now`);
   if (worstDay) tips.push(`📅 Most absent on ${worstDay}s (${worstDayRate}% absence rate)`);
   if (worstSubject) tips.push(`📖 Frequently skips ${worstSubject} (${worstSubjectRate}% absence rate)`);

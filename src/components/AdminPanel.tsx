@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, push, set, remove, onValue } from "firebase/database";
+import { ref, push, set, remove, onValue, get } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { Building2, BookOpen, Users, CalendarDays, UserCheck, Plus, Trash2, X, Mail, Sparkles, Check } from "lucide-react";
+import { Building2, BookOpen, Users, CalendarDays, UserCheck, Plus, Trash2, X, Mail, Sparkles, Check, ShieldCheck, Download, Upload } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
 import { Navigate } from "react-router-dom";
 
-type Tab = "classes" | "subjects" | "teachers" | "subjectTeachers" | "timetable";
+type Tab = "classes" | "subjects" | "teachers" | "subjectTeachers" | "timetable" | "backup";
 
 export default function AdminPanel() {
   const { isAdmin, schoolId } = useAuth();
@@ -24,7 +24,7 @@ export default function AdminPanel() {
       <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
         <div className="h-12 w-48 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
         <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="h-10 w-28 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
           ))}
         </div>
@@ -41,13 +41,14 @@ export default function AdminPanel() {
     { id: "teachers",       label: "Teachers",       icon: Users },
     { id: "subjectTeachers",label: "Subject Assign", icon: UserCheck },
     { id: "timetable",      label: "Timetable",      icon: CalendarDays },
+    { id: "backup",         label: "Backup & Restore", icon: ShieldCheck },
   ] as const;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Sparkles className="w-6 h-6 text-primary-600" />Admin Panel</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Manage your school's classes, subjects, teachers & timetable</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Manage your school's classes, subjects, teachers, timetable & backups</p>
       </motion.div>
 
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">
@@ -66,6 +67,7 @@ export default function AdminPanel() {
         {tab === "teachers"       && <TeachersTab key="t" root={root} items={teachers} allClasses={allClasses} allSubjects={allSubjects} allStudents={allStudents} schoolId={schoolId!} />}
         {tab === "subjectTeachers"&& <SubjectTeachersTab key="st" root={root} allClasses={allClasses} allSubjects={allSubjects} allTeachers={teachers} />}
         {tab === "timetable"      && <TimetableTab key="tt" root={root} items={timetable} allClasses={allClasses} allSubjects={allSubjects} teachers={teachers} />}
+        {tab === "backup"         && <BackupRestoreTab key="bk" root={root} />}
       </AnimatePresence>
     </div>
   );
@@ -76,8 +78,81 @@ const sanitize = (obj: any) => {
   Object.entries(obj).forEach(([k, v]) => { if (v !== undefined) result[k] = v; });
   return result;
 };
-/* â•â•â• CLASSES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
+/* ═══ BACKUP & RESTORE ═══════════════════════════ */
+function BackupRestoreTab({ root }: { root: string }) {
+  const [busy, setBusy] = useState(false);
+  
+  const handleExport = async () => {
+    setBusy(true);
+    try {
+      const snap = await get(ref(db, root));
+      const data = snap.val();
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `schoolos_backup_${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Database backup exported successfully! 📦");
+    } catch (e: any) { toast.error("Export failed: " + e.message); }
+    setBusy(false);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!confirm("⚠️ WARNING: Restoring a backup will overwrite all existing school data (students, marks, attendance, timetable). Continue?")) return;
+    setBusy(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const content = event.target?.result as string;
+          const parsed = JSON.parse(content);
+          await set(ref(db, root), parsed);
+          toast.success("Database backup restored successfully! 🟢");
+        } catch (err: any) { toast.error("Invalid JSON file: " + err.message); }
+      };
+      reader.readAsText(file);
+    } catch (err: any) { toast.error("Import failed: " + err.message); }
+    setBusy(false);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
+      <div className={S.card}>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-primary-600" />Automated Cloud Backup & Emergency Restore</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Create full JSON snapshots of your entire school database (students, marks, attendance, schedule) or restore from a previous backup file.</p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 flex flex-col justify-between gap-4 shadow-sm">
+            <div>
+              <h4 className="font-bold text-gray-900 dark:text-white text-base mb-1">Export Database Snapshot</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Download a full JSON backup of the current school tree. Recommended before major academic year transitions.</p>
+            </div>
+            <button onClick={handleExport} disabled={busy} className={cn(S.btnPrimary, "w-full justify-center py-3")}><Download className="w-4 h-4 mr-2 inline" />{busy ? "Exporting…" : "Download Full Backup"}</button>
+          </div>
+
+          <div className="p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 flex flex-col justify-between gap-4 shadow-sm">
+            <div>
+              <h4 className="font-bold text-gray-900 dark:text-white text-base mb-1">Emergency Database Restore</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Upload a previously exported JSON backup file to instantly restore or migrate school data.</p>
+            </div>
+            <label className={cn(S.btnSecondary, "w-full justify-center py-3 cursor-pointer text-center bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800/40 hover:bg-red-100 dark:hover:bg-red-900/30")}>
+              <Upload className="w-4 h-4 mr-2 inline" />{busy ? "Restoring…" : "Upload Backup JSON"}
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={busy} />
+            </label>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ═══ CLASSES ═══════════════════════════════════ */
 function ClassesTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
   const [section, setSection] = useState("");
@@ -93,7 +168,8 @@ function ClassesTab({ root, items }: { root: string; items: any[] }) {
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
   };
-const del = async (id: string) => {
+
+  const del = async (id: string) => {
     if (!confirm("Delete this class?")) return;
     try { await remove(ref(db, `${root}/classes/${id}`)); toast.success("Deleted"); }
     catch (e: any) { toast.error(e.message); }
@@ -125,7 +201,8 @@ const del = async (id: string) => {
     </motion.div>
   );
 }
-/* â•â•â• SUBJECTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* ═══ SUBJECTS ══════════════════════════════════ */
 function SubjectsTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -174,7 +251,7 @@ function SubjectsTab({ root, items }: { root: string; items: any[] }) {
     </motion.div>
   );
 }
-/* â•â•â• TEACHERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══ TEACHERS ══════════════════════════════════ */
 function TeachersTab({ root, items, allClasses, allSubjects, allStudents, schoolId }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; allStudents: any[]; schoolId: string }) {
   const [editing, setEditing] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -196,29 +273,27 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
         phone: form.phone.trim(),
         assignedClasses: form.assignedClasses,
         assignedSubjects: form.assignedSubjects,
-        status: editing ? (editing.status || "invited") : "invited",   // âœ… FIXED: preserve existing status
+        status: editing ? (editing.status || "invited") : "invited",
         updatedAt: Date.now()
       };
       if (editing) {
         await set(ref(db, `${root}/teachers/${editing.id}`), sanitize({ ...editing, ...data }));
         toast.success("Teacher updated");
       } else {
-        // âœ… FIXED: Create teacher record with proper structure
         const r = push(ref(db, `${root}/teachers`));
         const teacherRecord = {
           ...data,
           createdAt: Date.now(),
-          status: "invited"  // Mark as invited until they register
+          status: "invited"
         };
         await set(r, sanitize(teacherRecord));
         toast.success("Teacher invitation created! Sending email...");
         
-        // âœ… FIXED: Send invitation email with clear instructions
         const subject = encodeURIComponent("Invitation to join School OS");
         const body = encodeURIComponent(
           `Hello ${data.name},\n\n` +
           `You have been invited to join School OS as a teacher.\n\n` +
-          `ðŸ“‹ Registration Instructions:\n` +
+          `📋 Registration Instructions:\n` +
           `1. Go to the School OS app\n` +
           `2. Click "Create Account"\n` +
           `3. Select "Teacher" as your role\n` +
@@ -226,7 +301,7 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
           `5. Enter the School ID: ${schoolId}\n` +
           `6. Create a password (minimum 6 characters)\n` +
           `7. Click "Create Account"\n\n` +
-          `âš ï¸ Important:\n` +
+          `⚠️ Important:\n` +
           `- Use the EXACT email address: ${data.email}\n` +
           `- Use the EXACT School ID: ${schoolId}\n` +
           `- Your account admin has already added you to the system\n\n` +
@@ -250,9 +325,9 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
     catch (e: any) { toast.error(e.message); }
   };
 
-const toggleIn = (arr: string[], v: string) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
+  const toggleIn = (arr: string[], v: string) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
-return (
+  return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-gray-400">Add teachers and assign them to classes & subjects. They'll register with the school code.</p>
@@ -275,7 +350,6 @@ return (
                       {t.assignedSubjects?.map((s: string) => <span key={s} className={cn(S.badgePurple, "text-[10px]")}>{s}</span>)}
                       {!t.assignedClasses?.length && !t.assignedSubjects?.length && <span className="text-[10px] text-gray-400 dark:text-gray-500">No assignments</span>}
                     </div>
-                    {/* âœ… FIXED: Show status badge */}
                     <div className="mt-2">
                       <span className={cn(
                         "text-[10px] font-medium px-2 py-1 rounded",
@@ -285,7 +359,7 @@ return (
                           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                           : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
                       )}>
-                        {t.status === "active" ? "âœ“ Active" : t.status === "invited" ? "ðŸ“§ Invited" : "Status Unknown"}
+                        {t.status === "active" ? "✓ Active" : t.status === "invited" ? "📧 Invited" : "Status Unknown"}
                       </span>
                     </div>
                   </div>
@@ -301,7 +375,6 @@ return (
         </div>
       </div>
 
-      {/* ✅ FIXED: Teacher Add/Edit Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -359,7 +432,8 @@ return (
           </motion.div>
         </div>
       )}
-{/* View Students per Teacher */}
+
+      {/* View Students per Teacher */}
       {viewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -392,6 +466,7 @@ return (
     </motion.div>
   );
 }
+
 /* ═══ SUBJECT TEACHERS ══════════════════════════ */
 function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { root: string; allClasses: any[]; allSubjects: any[]; allTeachers: any[] }) {
   const [items, setItems] = useState<any[]>([]);
@@ -455,11 +530,12 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
                 </div>
                 <button onClick={() => del(item.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></button>
               </div>
-            );
+);
           }) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No assignments yet</div>}
         </div>
       </div>
-{showAdd && (
+
+      {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg">
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -499,6 +575,7 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
     </motion.div>
   );
 }
+
 /* ═══ TIMETABLE ════════════════════════════════ */
 function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; teachers: any[] }) {
   const [showAdd, setShowAdd] = useState(false);
@@ -636,5 +713,5 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
         </div>
       )}
     </motion.div>
- );
+  );
 }

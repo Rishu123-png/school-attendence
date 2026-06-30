@@ -97,6 +97,11 @@ export default function Layout() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
+  // System Notification Permission State
+  const [notifPermission, setNotifPermission] = useState<string>(
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
@@ -120,7 +125,9 @@ export default function Layout() {
   const requestSystemNotifications = () => {
     if (typeof Notification !== "undefined") {
       Notification.requestPermission().then((perm) => {
+        setNotifPermission(perm);
         if (perm === "granted") toast.success("System notifications enabled! 🔔");
+        else toast.error("System notifications permission denied.");
       });
     }
   };
@@ -297,7 +304,19 @@ export default function Layout() {
                         )}
                       </div>
                       <div className={cn("border-t p-2 space-y-1", isDark ? "border-gray-700" : "border-gray-100")}>
-                        <button onClick={requestSystemNotifications} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20">🔔 Enable System Push Alerts</button>
+                        {notifPermission === "granted" ? (
+                          <div className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-default">
+                            🔔 System Push Alerts Enabled
+                          </div>
+                        ) : notifPermission === "denied" ? (
+                          <div className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-50 dark:bg-gray-800 cursor-not-allowed">
+                            🔕 Push Alerts Blocked by Browser
+                          </div>
+                        ) : (
+                          <button onClick={requestSystemNotifications} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                            🔔 Enable System Push Alerts
+                          </button>
+                        )}
                         <button onClick={() => { setNotifOpen(false); navigate("/alerts"); }} className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20">Open Alert Center</button>
                       </div>
                     </motion.div>
@@ -352,7 +371,7 @@ export default function Layout() {
           </div>
         </main>
 
-       <nav className={cn("sticky bottom-0 z-30 border-t backdrop-blur-xl lg:hidden print:hidden", isDark ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100")}>
+        <nav className={cn("sticky bottom-0 z-30 border-t backdrop-blur-xl lg:hidden print:hidden", isDark ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100")}>
           <div className="relative flex items-center justify-around px-2 py-1.5">
             {MOBILE_NAV.map((item) => {
               const Icon = item.icon;

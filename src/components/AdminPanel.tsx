@@ -14,10 +14,24 @@ type Tab = "classes" | "subjects" | "teachers" | "subjectTeachers" | "timetable"
 
 export default function AdminPanel() {
   const { isAdmin, schoolId } = useAuth();
-  const { classes, subjects, teachers, timetable, allClasses, allSubjects, allStudents } = useSchoolData();
+  const { classes, subjects, teachers, timetable, allClasses, allSubjects, allStudents, loading } = useSchoolData();
   const [tab, setTab] = useState<Tab>("classes");
 
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto pb-20 lg:pb-0">
+        <div className="h-12 w-48 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 w-28 bg-gray-200/70 dark:bg-gray-800/50 rounded-xl animate-pulse" />
+          ))}
+        </div>
+        <div className="h-64 bg-gray-200/70 dark:bg-gray-800/50 rounded-3xl animate-pulse" />
+      </div>
+    );
+  }
 
   const root = `schools/${schoolId}`;
 
@@ -62,7 +76,7 @@ const sanitize = (obj: any) => {
   Object.entries(obj).forEach(([k, v]) => { if (v !== undefined) result[k] = v; });
   return result;
 };
-/* ═══ CLASSES ═══════════════════════════════════ */
+/* â•â•â• CLASSES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function ClassesTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
@@ -111,8 +125,7 @@ const del = async (id: string) => {
     </motion.div>
   );
 }
-
-/* ═══ SUBJECTS ══════════════════════════════════ */
+/* â•â•â• SUBJECTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function SubjectsTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -161,7 +174,7 @@ function SubjectsTab({ root, items }: { root: string; items: any[] }) {
     </motion.div>
   );
 }
-/* ═══ TEACHERS ══════════════════════════════════ */
+/* â•â•â• TEACHERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function TeachersTab({ root, items, allClasses, allSubjects, allStudents, schoolId }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; allStudents: any[]; schoolId: string }) {
   const [editing, setEditing] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -183,14 +196,14 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
         phone: form.phone.trim(),
         assignedClasses: form.assignedClasses,
         assignedSubjects: form.assignedSubjects,
-        status: editing ? (editing.status || "invited") : "invited",   // ✅ FIXED: preserve existing status
+        status: editing ? (editing.status || "invited") : "invited",   // âœ… FIXED: preserve existing status
         updatedAt: Date.now()
       };
       if (editing) {
         await set(ref(db, `${root}/teachers/${editing.id}`), sanitize({ ...editing, ...data }));
         toast.success("Teacher updated");
       } else {
-        // ✅ FIXED: Create teacher record with proper structure
+        // âœ… FIXED: Create teacher record with proper structure
         const r = push(ref(db, `${root}/teachers`));
         const teacherRecord = {
           ...data,
@@ -200,12 +213,12 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
         await set(r, sanitize(teacherRecord));
         toast.success("Teacher invitation created! Sending email...");
         
-        // ✅ FIXED: Send invitation email with clear instructions
+        // âœ… FIXED: Send invitation email with clear instructions
         const subject = encodeURIComponent("Invitation to join School OS");
         const body = encodeURIComponent(
           `Hello ${data.name},\n\n` +
           `You have been invited to join School OS as a teacher.\n\n` +
-          `📋 Registration Instructions:\n` +
+          `ðŸ“‹ Registration Instructions:\n` +
           `1. Go to the School OS app\n` +
           `2. Click "Create Account"\n` +
           `3. Select "Teacher" as your role\n` +
@@ -213,7 +226,7 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
           `5. Enter the School ID: ${schoolId}\n` +
           `6. Create a password (minimum 6 characters)\n` +
           `7. Click "Create Account"\n\n` +
-          `⚠️ Important:\n` +
+          `âš ï¸ Important:\n` +
           `- Use the EXACT email address: ${data.email}\n` +
           `- Use the EXACT School ID: ${schoolId}\n` +
           `- Your account admin has already added you to the system\n\n` +
@@ -222,7 +235,8 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
         );
         window.location.href = `mailto:${data.email}?subject=${subject}&body=${body}`;
       }
-reset();
+
+      reset();
     } catch (e: any) { 
       console.error("Error saving teacher:", e);
       toast.error(e.message || "Failed to save teacher"); 
@@ -261,7 +275,7 @@ return (
                       {t.assignedSubjects?.map((s: string) => <span key={s} className={cn(S.badgePurple, "text-[10px]")}>{s}</span>)}
                       {!t.assignedClasses?.length && !t.assignedSubjects?.length && <span className="text-[10px] text-gray-400 dark:text-gray-500">No assignments</span>}
                     </div>
-                    {/* ✅ FIXED: Show status badge */}
+                    {/* âœ… FIXED: Show status badge */}
                     <div className="mt-2">
                       <span className={cn(
                         "text-[10px] font-medium px-2 py-1 rounded",
@@ -271,7 +285,7 @@ return (
                           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                           : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
                       )}>
-                        {t.status === "active" ? "✓ Active" : t.status === "invited" ? "📧 Invited" : "Status Unknown"}
+                        {t.status === "active" ? "âœ“ Active" : t.status === "invited" ? "ðŸ“§ Invited" : "Status Unknown"}
                       </span>
                     </div>
                   </div>
@@ -286,7 +300,8 @@ return (
           )) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No teachers yet</div>}
         </div>
       </div>
-{/* ✅ FIXED: Teacher Add/Edit Modal */}
+
+      {/* ✅ FIXED: Teacher Add/Edit Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">

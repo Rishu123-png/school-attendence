@@ -111,6 +111,7 @@ const del = async (id: string) => {
     </motion.div>
   );
 }
+
 /* ═══ SUBJECTS ══════════════════════════════════ */
 function SubjectsTab({ root, items }: { root: string; items: any[] }) {
   const [name, setName] = useState("");
@@ -221,8 +222,7 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
         );
         window.location.href = `mailto:${data.email}?subject=${subject}&body=${body}`;
       }
-
-      reset();
+reset();
     } catch (e: any) { 
       console.error("Error saving teacher:", e);
       toast.error(e.message || "Failed to save teacher"); 
@@ -286,8 +286,7 @@ return (
           )) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No teachers yet</div>}
         </div>
       </div>
-
-      {/* ✅ FIXED: Teacher Add/Edit Modal */}
+{/* ✅ FIXED: Teacher Add/Edit Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -445,8 +444,7 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
           }) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No assignments yet</div>}
         </div>
       </div>
-
-      {showAdd && (
+{showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg">
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -489,7 +487,7 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
 /* ═══ TIMETABLE ════════════════════════════════ */
 function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; teachers: any[] }) {
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState<{ classId: string; day: string; period: string; subjectId: string; teacherId: string }>({ classId: "", day: "", period: "", subjectId: "", teacherId: "" });
+  const [form, setForm] = useState<{ classId: string; day: string; period: string; subjectId: string; teacherId: string; time: string; room: string; type: string }>({ classId: "", day: "", period: "", subjectId: "", teacherId: "", time: "09:00", room: "101", type: "Lecture" });
   const [busy, setBusy] = useState(false);
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -499,10 +497,22 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
     if (!form.classId || !form.day || !form.period || !form.subjectId || !form.teacherId) return toast.error("All fields required");
     setBusy(true);
     try {
+      const cls = allClasses.find((c) => c.id === form.classId);
+      const subj = allSubjects.find((s) => s.id === form.subjectId);
+      const teacher = teachers.find((t) => t.id === form.teacherId);
+
       const r = push(ref(db, `${root}/timetables`));
-      await set(r, { ...form, createdAt: Date.now() });
+      await set(r, {
+        ...form,
+        class: cls?.name || form.classId,
+        subject: subj?.name || form.subjectId,
+        teacher: form.teacherId,
+        teacherUid: form.teacherId,
+        teacherName: teacher?.name || "",
+        createdAt: Date.now()
+      });
       toast.success("Timetable entry added");
-      setForm({ classId: "", day: "", period: "", subjectId: "", teacherId: "" });
+      setForm({ classId: "", day: "", period: "", subjectId: "", teacherId: "", time: "09:00", room: "101", type: "Lecture" });
       setShowAdd(false);
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
@@ -540,8 +550,7 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
           }) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No timetable entries yet</div>}
         </div>
       </div>
-
-      {showAdd && (
+{showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
@@ -583,6 +592,25 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
                   <option value="">Select teacher</option>
                   {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Start Time</label>
+                  <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className={S.input} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Room</label>
+                  <input type="text" placeholder="e.g. 101" value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} className={S.input} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Type</label>
+                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={S.input}>
+                    <option value="Lecture">Lecture</option>
+                    <option value="Lab">Lab</option>
+                    <option value="Exam">Exam</option>
+                    <option value="Seminar">Seminar</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">

@@ -4,7 +4,7 @@ import { ref, onValue, push, update, remove } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolData } from "@/hooks/useSchoolData";
-import { TrendingUp, TrendingDown, Search, Users, Sparkles, Download, History, Trash2, Pencil, X, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, Users, Sparkles, Download, History, Trash2, Pencil, X, Plus, ChevronLeft, ChevronRight, CheckCheck, Trash } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import { getAttendanceSummary, predictNextMark } from "@/lib/marks-ai";
@@ -119,6 +119,19 @@ export default function MarksPage() {
     const sm = studentMarks(sid);
     if (sm.length < 2) return 0;
     return (sm[0].score / sm[0].maxScore) - (sm[1].score / sm[1].maxScore);
+  };
+
+  // Batch Quick Actions
+  const setAllMax = () => {
+    const s: Record<string, string> = { ...scores };
+    filtered.forEach((stu) => { s[stu.id] = String(maxScore); });
+    setScores(s);
+    toast.success(`Set score to ${maxScore} for all ${filtered.length} students!`);
+  };
+
+  const clearAllScores = () => {
+    setScores({});
+    toast.success("Cleared input scores");
   };
 
   const save = async () => {
@@ -264,7 +277,7 @@ export default function MarksPage() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto pb-28 lg:pb-0 print:pb-0">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
-        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📊 Marks</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Record, edit, export and predict student performance</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">📊 Marks</h1><p className="text-gray-500 dark:text-gray-400 text-sm">Record, edit, export and predict student performance with batch grading</p></div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <button onClick={() => setShowAI(!showAI)} className={cn(S.btnSecondary, showAI && "bg-primary-50 border-primary-200 dark:bg-primary-900/20 dark:border-primary-700")}><Sparkles className="w-4 h-4" />AI</button>
           <button onClick={() => setShowHistory(!showHistory)} className={S.btnSecondary}><History className="w-4 h-4" />History</button>
@@ -312,6 +325,11 @@ export default function MarksPage() {
           <div className="flex items-end"><button onClick={save} disabled={saving || !selectedSubject || !Object.values(scores).some((v) => v)} className={cn(S.btnPrimary, "w-full text-xs py-2")}>{saving ? "Saving…" : "Save"}</button></div>
           <div className="col-span-2 md:col-span-3 relative"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Search Student</label><Search className="absolute left-3 bottom-2.5 w-4 h-4 text-gray-400" /><input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search name / roll…" className={cn(S.input, "py-2 pl-9")} /></div>
           <div className="col-span-2 md:col-span-3 grid grid-cols-[1fr_90px_auto] gap-2 items-end"><div><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Add custom block</label><input value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="e.g. Unit Test 5" className={cn(S.input, "py-2")} /></div><input type="number" value={customMax} onChange={(e) => setCustomMax(Number(e.target.value))} className={cn(S.input, "py-2")} /><button onClick={addAssessment} className={cn(S.btnSecondary, "py-2 px-3")}><Plus className="w-4 h-4" /></button></div>
+        </div>
+        <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 print:hidden">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mr-auto">⚡ Quick Actions:</span>
+          <button onClick={setAllMax} className={cn(S.btnSecondary, "text-xs py-1.5 px-3 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300")}><CheckCheck className="w-3.5 h-3.5 mr-1 inline" />Set All Max ({maxScore})</button>
+          <button onClick={clearAllScores} className={cn(S.btnSecondary, "text-xs py-1.5 px-3 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400")}><Trash className="w-3.5 h-3.5 mr-1 inline" />Clear Inputs</button>
         </div>
       </motion.div>
 

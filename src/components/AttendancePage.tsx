@@ -9,6 +9,9 @@ import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
 
+const classLabel = (c: any) => c?.section ? `${c.name} - ${c.section}` : (c?.name ?? "");
+const studentClassLabel = (s: any) => [s.class, s.section].filter(Boolean).join(" - ");
+
 export default function AttendancePage() {
   const { profile, schoolId } = useAuth();
   const { students, subjects, classes, loading } = useSchoolData();
@@ -34,7 +37,7 @@ export default function AttendancePage() {
 
   const periods = ["P1","P2","P3","P4","P5","P6","P7","P8"];
 
-  useEffect(() => { if (classes.length && !selectedClass) setSelectedClass(classes[0].name); }, [classes, selectedClass]);
+  useEffect(() => { if (classes.length && !selectedClass) setSelectedClass(classLabel(classes[0])); }, [classes, selectedClass]);
   useEffect(() => { if (subjects.length && !selectedSubject) setSelectedSubject(subjects[0].name); }, [subjects, selectedSubject]);
 
   // Offline event listeners
@@ -83,7 +86,7 @@ export default function AttendancePage() {
   }, [schoolId, selectedDate, selectedClass, selectedPeriod]);
 
   const filtered = useMemo(() => students.filter((s) => {
-    if (selectedClass && s.class !== selectedClass) return false;
+    if (selectedClass && s.classId !== selectedClass && studentClassLabel(s) !== selectedClass && s.class !== selectedClass) return false;
     if (searchTerm) { const q = searchTerm.toLowerCase(); return s.name.toLowerCase().includes(q) || String(s.rollNo).includes(q); }
     return true;
   }), [students, selectedClass, searchTerm]);
@@ -214,7 +217,7 @@ export default function AttendancePage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[130px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Class</label>
             <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className={cn(S.input, "py-2")}>
-              {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              {classes.map((c) => <option key={c.id} value={classLabel(c)}>{classLabel(c)}</option>)}
             </select>
           </div>
           <div><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Period</label>

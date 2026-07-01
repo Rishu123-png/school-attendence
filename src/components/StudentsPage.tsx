@@ -9,6 +9,9 @@ import { cn } from "@/lib/cn";
 import { S } from "@/lib/styles";
 import toast from "react-hot-toast";
 
+const classLabel = (c: any) => c?.section ? `${c.name} - ${c.section}` : (c?.name ?? "");
+const studentClassLabel = (s: any) => [s.class, s.section].filter(Boolean).join(" - ");
+
 export default function StudentsPage() {
   const { isAdmin, schoolId, profile } = useAuth();
   const { students, classes, subjects, currentTeacher, allStudents, loading } = useSchoolData();
@@ -18,7 +21,7 @@ export default function StudentsPage() {
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [form, setForm] = useState({
     name: "", email: "", phone: "", rollNo: 0,
-    class: "", section: "", parentName: "", parentPhone: "",
+    classId: "", class: "", section: "", parentName: "", parentPhone: "",
     assignedSubjects: [] as string[]
   });
   const [posting, setPosting] = useState(false);
@@ -41,17 +44,19 @@ export default function StudentsPage() {
   const canAdd = isAdmin || !!currentTeacher;
 
   useEffect(() => {
-    if (!isAdmin && currentTeacher?.assignedClasses?.length === 1 && !selectedClass) {
-      setSelectedClass(currentTeacher.assignedClasses[0]);
-    }
-    if (!isAdmin && currentTeacher?.assignedClasses?.length === 1 && !form.class) {
-      setForm(p => ({ ...p, class: currentTeacher.assignedClasses![0] }));
+    if (!isAdmin && currentTeacher?.assignedClasses?.length === 1) {
+      const assigned = currentTeacher.assignedClasses[0];
+      const cls = classes.find((c) => classLabel(c) === assigned || c.name === assigned);
+      if (!selectedClass) setSelectedClass(cls?.id || assigned);
+      if (!form.class) {
+        setForm(p => ({ ...p, classId: cls?.id || "", class: cls?.name || assigned, section: cls?.section || "" }));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTeacher, isAdmin]);
+  }, [currentTeacher, isAdmin, classes]);
 
   const filtered = useMemo(() => students.filter((s) => {
-    if (selectedClass && s.class !== selectedClass) return false;
+    if (selectedClass && s.classId !== selectedClass && studentClassLabel(s) !== selectedClass && s.class !== selectedClass) return false;
     if (searchTerm) { const q = searchTerm.toLowerCase(); return s.name.toLowerCase().includes(q) || String(s.rollNo).includes(q) || (s.email ?? "").toLowerCase().includes(q); }
     return true;
   }), [students, selectedClass, searchTerm]);
@@ -73,8 +78,8 @@ export default function StudentsPage() {
     if (!schoolId) { toast.error("No school"); return; }
 
     // duplicate roll no check (skip if editing the same student)
-    const dup = allStudents.find(s => s.class === form.class && Number(s.rollNo) === Number(form.rollNo) && s.id !== editingStudent?.id);
-    if (dup) { toast.error(`Roll No ${form.rollNo} already exists in ${form.class}`); return; }
+    const dup = allStudents.find(s => s.class === form.class && (s.section || "") === (form.section || "") && Number(s.rollNo) === Number(form.rollNo) && s.id !== editingStudent?.id);
+    if (dup) { toast.error(`Roll No ${form.rollNo} already exists in ${[form.class, form.section].filter(Boolean).join(" - ")}`); return; }
 
     let assignedSubjects = form.assignedSubjects;
     if (!isAdmin && currentTeacher) {
@@ -91,6 +96,7 @@ export default function StudentsPage() {
         email: form.email.trim(),
         phone: form.phone.trim(),
         rollNo: Number(form.rollNo),
+        classId: form.classId,
         class: form.class,
         section: form.section,
         parentName: form.parentName,
@@ -111,7 +117,7 @@ export default function StudentsPage() {
       
       setShowAdd(false);
       setEditingStudent(null);
-      setForm({ name: "", email: "", phone: "", rollNo: 0, class: "", section: "", parentName: "", parentPhone: "", assignedSubjects: [] });
+      setForm({ name: "", email: "", phone: "", rollNo: 0, classId: "", class: "", section: "", parentName: "", parentPhone: "", assignedSubjects: [] });
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     setPosting(false);
   };
@@ -130,7 +136,7 @@ export default function StudentsPage() {
     setEditingStudent(s);
     setForm({
       name: s.name, email: s.email ?? "", phone: s.phone ?? "", rollNo: s.rollNo ?? 0,
-      class: s.class, section: s.section ?? "", parentName: s.parentName ?? "", parentPhone: s.parentPhone ?? "",
+      classId: s.classId ?? "", class: s.class, section: s.section ?? "", parentName: s.parentName ?? "", parentPhone: s.parentPhone ?? "",
       assignedSubjects: s.subjects ?? []
     });
     setShowAdd(true);
@@ -186,7 +192,7 @@ export default function StudentsPage() {
           <div className="flex-1 min-w-[150px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Class</label>
             <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className={cn(S.input, "py-2")}>
               <option value="">All</option>
-              {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              {classes.map((c) => <option key={c.id} value={c.id}>{classLabel(c)}</option>)}
             </select>
           </div>
           <div className="relative flex-[2] min-w-[200px]"><label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Search</label>
@@ -201,7 +207,7 @@ export default function StudentsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {paginated.map((s, i) => {
-          const canManage = isAdmin || (currentTeacher?.assignedClasses?.includes(s.class));
+          const canManage = isAdmin || currentTeacher?.assignedClasses?.includes(studentClassLabel(s)) || currentTeacher?.assignedClasses?.includes(s.class);
           return (
             <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className={S.cardHover}>
               <div className="flex items-start justify-between gap-3">
@@ -283,11 +289,17 @@ export default function StudentsPage() {
               {F("Full Name *", "name", "text", true)}
               {F("Roll No *", "rollNo", "number")}
               <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Class *</label>
-                <select value={form.class} onChange={(e) => setForm({ ...form, class: e.target.value })} className={S.input} disabled={!isAdmin && currentTeacher?.assignedClasses?.length === 1}>
+                <select value={form.classId || [form.class, form.section].filter(Boolean).join(" - ")} onChange={(e) => {
+                  const c = classes.find((cls) => cls.id === e.target.value);
+                  if (c) setForm({ ...form, classId: c.id, class: c.name, section: c.section || "" });
+                  else setForm({ ...form, classId: "", class: e.target.value, section: "" });
+                }} className={S.input} disabled={!isAdmin && currentTeacher?.assignedClasses?.length === 1}>
                   <option value="">Select</option>
-                  {(isAdmin ? classes : classes.filter(c => currentTeacher?.assignedClasses?.includes(c.name))).map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  {(isAdmin ? classes : classes.filter(c => currentTeacher?.assignedClasses?.includes(classLabel(c)) || currentTeacher?.assignedClasses?.includes(c.name))).map((c) => <option key={c.id} value={c.id}>{classLabel(c)}</option>)}
                 </select></div>
-              {F("Section", "section")}
+              <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Section</label>
+                <input value={form.section} readOnly placeholder="Select class section" className={cn(S.input, "bg-gray-50 dark:bg-gray-800")} />
+              </div>
               {F("Email", "email", "email")}
               {F("Phone", "phone")}
               {F("Parent Name", "parentName", "text", true)}

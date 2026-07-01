@@ -4,11 +4,13 @@ import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 
-export interface ClassItem { id: string; name: string; section?: string }
+export interface ClassItem { id: string; name: string; section?: string; label?: string }
 export interface SubjectItem { id: string; name: string; code?: string }
-export interface StudentItem { id: string; name: string; rollNo: number; class: string; section?: string; email?: string; phone?: string; parentName?: string; parentPhone?: string; subjects?: string[] }
-export interface SlotItem { id: string; day: string; period: string; time: string; class: string; subject: string; teacher: string; teacherUid: string; room: string; type?: string; classId?: string; subjectId?: string; teacherId?: string }
+export interface StudentItem { id: string; name: string; rollNo: number; class: string; section?: string; classId?: string; email?: string; phone?: string; parentName?: string; parentPhone?: string; subjects?: string[] }
+export interface SlotItem { id: string; day: string; period: string; time: string; startTime?: string; endTime?: string; class: string; section?: string; classLabel?: string; subject: string; teacher: string; teacherUid: string; room: string; type?: string; classId?: string; subjectId?: string; teacherId?: string; teacherName?: string }
 export interface TeacherItem { id: string; name: string; email: string; phone?: string; status: "invited" | "active"; assignedClasses?: string[]; assignedSubjects?: string[] }
+
+const classLabel = (c: { name?: string; section?: string }) => c?.section ? `${c.name} - ${c.section}` : (c?.name ?? "");
 
 export function useSchoolData() {
   const { schoolId, profile } = useAuth();
@@ -27,19 +29,36 @@ export function useSchoolData() {
 
     unsubs.push(onValue(ref(db, `${root}/classes`), (snap) => {
       const d = snap.val();
-      setClasses(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, name: v.name ?? id, section: v.section })) : []);
+      setClasses(d ? Object.entries(d).map(([id, v]: [string, any]) => ({
+        id,
+        name: v.name ?? id,
+        section: v.section ?? "",
+        label: classLabel({ name: v.name ?? id, section: v.section ?? "" })
+      })) : []);
     }, (err) => { console.error("Classes listener error:", err); }));
 
     unsubs.push(onValue(ref(db, `${root}/subjects`), (snap) => {
       const d = snap.val();
-      setSubjects(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, name: v.name ?? id, code: v.code })) : []);
+      setSubjects(d ? Object.entries(d).map(([id, v]: [string, any]) => ({
+        id,
+        name: v.name ?? id,
+        code: v.code
+      })) : []);
     }, (err) => { console.error("Subjects listener error:", err); }));
 
     unsubs.push(onValue(ref(db, `${root}/students`), (snap) => {
       const d = snap.val();
       setStudents(d ? Object.entries(d).map(([id, v]: [string, any]) => ({
-        id, name: v.name ?? "—", rollNo: v.rollNo ?? 0, class: v.class ?? "", section: v.section,
-        email: v.email, phone: v.phone, parentName: v.parentName, parentPhone: v.parentPhone,
+        id,
+        name: v.name ?? "—",
+        rollNo: v.rollNo ?? 0,
+        class: v.class ?? "",
+        section: v.section ?? "",
+        classId: v.classId ?? "",
+        email: v.email,
+        phone: v.phone,
+        parentName: v.parentName,
+        parentPhone: v.parentPhone,
         subjects: v.subjects ?? []
       })).sort((a, b) => a.rollNo - b.rollNo) : []);
     }, (err) => { console.error("Students listener error:", err); }));
@@ -50,8 +69,12 @@ export function useSchoolData() {
         id,
         day: v.day ?? "",
         period: v.period ?? "",
-        time: v.time ?? "09:00",
+        time: v.time ?? v.startTime ?? "09:00",
+        startTime: v.startTime ?? v.time ?? "09:00",
+        endTime: v.endTime ?? "",
         class: v.class ?? v.classId ?? "",
+        section: v.section ?? "",
+        classLabel: v.classLabel ?? [v.class, v.section].filter(Boolean).join(" - "),
         subject: v.subject ?? v.subjectId ?? "",
         teacher: v.teacher ?? v.teacherId ?? "",
         teacherUid: v.teacherUid ?? v.teacherId ?? "",
@@ -59,15 +82,21 @@ export function useSchoolData() {
         type: v.type ?? "Lecture",
         classId: v.classId ?? "",
         subjectId: v.subjectId ?? "",
-        teacherId: v.teacherId ?? v.teacher ?? v.teacherUid ?? ""
+        teacherId: v.teacherId ?? v.teacher ?? v.teacherUid ?? "",
+        teacherName: v.teacherName ?? ""
       })) : []);
     }, (err) => { console.error("Timetable listener error:", err); }));
 
     unsubs.push(onValue(ref(db, `${root}/teachers`), (snap) => {
       const d = snap.val();
       setTeachers(d ? Object.entries(d).map(([id, v]: [string, any]) => ({
-        id, name: v.name ?? "", email: (v.email ?? "").toLowerCase(), phone: v.phone,
-        status: v.status ?? "invited", assignedClasses: v.assignedClasses ?? [], assignedSubjects: v.assignedSubjects ?? []
+        id,
+        name: v.name ?? "",
+        email: (v.email ?? "").toLowerCase(),
+        phone: v.phone,
+        status: v.status ?? "invited",
+        assignedClasses: v.assignedClasses ?? [],
+        assignedSubjects: v.assignedSubjects ?? []
       })) : []);
       setLoading(false);
     }, (err) => { console.error("Teachers listener error:", err); setLoading(false); }));
@@ -85,7 +114,10 @@ export function useSchoolData() {
   const visibleClasses = useMemo(() => {
     if (isAdmin) return classes;
     if (!currentTeacher?.assignedClasses?.length) return [];
-    return classes.filter((c) => currentTeacher.assignedClasses!.includes(c.name));
+    return classes.filter((c) =>
+      currentTeacher.assignedClasses!.includes(c.label || classLabel(c)) ||
+      currentTeacher.assignedClasses!.includes(c.name)
+    );
   }, [classes, currentTeacher, isAdmin]);
 
   const visibleSubjects = useMemo(() => {
@@ -97,7 +129,10 @@ export function useSchoolData() {
   const visibleStudents = useMemo(() => {
     if (isAdmin) return students;
     if (!currentTeacher?.assignedClasses?.length) return [];
-    return students.filter((s) => currentTeacher.assignedClasses!.includes(s.class));
+    return students.filter((s) =>
+      currentTeacher.assignedClasses!.includes([s.class, s.section].filter(Boolean).join(" - ")) ||
+      currentTeacher.assignedClasses!.includes(s.class)
+    );
   }, [students, currentTeacher, isAdmin]);
 
   const visibleTimetable = useMemo(() => {

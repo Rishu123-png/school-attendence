@@ -79,6 +79,8 @@ const sanitize = (obj: any) => {
   return result;
 };
 
+const classLabel = (c: any) => c?.section ? `${c.name} - ${c.section}` : (c?.name ?? "");
+
 /* ═══ BACKUP & RESTORE ═══════════════════════════ */
 function BackupRestoreTab({ root }: { root: string }) {
   const [busy, setBusy] = useState(false);
@@ -192,7 +194,7 @@ function ClassesTab({ root, items }: { root: string; items: any[] }) {
           {items.length ? items.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
               <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center"><Building2 className="w-5 h-5 text-primary-600" /></div>
-                <div><p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{c.name}</p>{c.section && <p className="text-xs text-gray-500 dark:text-gray-400">Section {c.section}</p>}</div></div>
+                <div><p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{classLabel(c)}</p>{c.section && <p className="text-xs text-gray-500 dark:text-gray-400">Base class: {c.name} · Section {c.section}</p>}</div></div>
               <button onClick={() => del(c.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></button>
             </div>
           )) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No classes yet</div>}
@@ -395,12 +397,13 @@ function TeachersTab({ root, items, allClasses, allSubjects, allStudents, school
                 {allClasses.length ? (
                   <div className="flex flex-wrap gap-2">
                     {allClasses.map((c) => {
-                      const active = form.assignedClasses.includes(c.name);
+                      const label = classLabel(c);
+                      const active = form.assignedClasses.includes(label) || (!c.section && form.assignedClasses.includes(c.name));
                       return (
-                        <button key={c.id} onClick={() => setForm({ ...form, assignedClasses: toggleIn(form.assignedClasses, c.name) })}
+                        <button key={c.id} onClick={() => setForm({ ...form, assignedClasses: toggleIn(form.assignedClasses, label) })}
                           className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1",
                             active ? "bg-primary-100 border-primary-300 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-400" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700")}>
-                          {active && <Check className="w-3 h-3" />}{c.name}
+                          {active && <Check className="w-3 h-3" />}{label}
                         </button>
                       );
                     })}
@@ -547,7 +550,7 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Class *</label>
                 <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className={S.input}>
                   <option value="">Select class</option>
-                  {allClasses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {allClasses.map((c) => <option key={c.id} value={c.id}>{classLabel(c)}</option>)}
                 </select>
               </div>
               <div>
@@ -578,25 +581,31 @@ function SubjectTeachersTab({ root, allClasses, allSubjects, allTeachers }: { ro
 
 /* ═══ TIMETABLE ════════════════════════════════ */
 function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root: string; items: any[]; allClasses: any[]; allSubjects: any[]; teachers: any[] }) {
+  const emptyForm = { classId: "", day: "", period: "", subjectId: "", teacherId: "", startTime: "09:00", endTime: "09:40", room: "101", type: "Lecture" };
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState<{ classId: string; day: string; period: string; subjectId: string; teacherId: string; time: string; room: string; type: string }>({ classId: "", day: "", period: "", subjectId: "", teacherId: "", time: "09:00", room: "101", type: "Lecture" });
+  const [form, setForm] = useState<typeof emptyForm>(emptyForm);
   const [busy, setBusy] = useState(false);
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const periods = ["Period 1", "Period 2", "Period 3", "Period 4", "Period 5", "Period 6"];
+  const periods = ["Period 1", "Period 2", "Period 3", "Period 4", "Period 5", "Period 6", "Period 7", "Period 8"];
 
   const add = async () => {
-    if (!form.classId || !form.day || !form.period || !form.subjectId || !form.teacherId) return toast.error("All fields required");
+    if (!form.classId || !form.day || !form.period || !form.subjectId || !form.teacherId || !form.startTime || !form.endTime) return toast.error("All required fields must be filled");
+    if (form.endTime <= form.startTime) return toast.error("End time must be after start time");
     setBusy(true);
     try {
       const cls = allClasses.find((c) => c.id === form.classId);
       const subj = allSubjects.find((s) => s.id === form.subjectId);
       const teacher = teachers.find((t) => t.id === form.teacherId);
+      const label = classLabel(cls);
 
       const r = push(ref(db, `${root}/timetables`));
       await set(r, {
         ...form,
+        time: form.startTime, // backward compatibility with old schedule UI/data
         class: cls?.name || form.classId,
+        section: cls?.section || "",
+        classLabel: label,
         subject: subj?.name || form.subjectId,
         teacher: form.teacherId,
         teacherUid: form.teacherId,
@@ -604,7 +613,7 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
         createdAt: Date.now()
       });
       toast.success("Timetable entry added");
-      setForm({ classId: "", day: "", period: "", subjectId: "", teacherId: "", time: "09:00", room: "101", type: "Lecture" });
+      setForm(emptyForm);
       setShowAdd(false);
     } catch (e: any) { toast.error(e.message); }
     setBusy(false);
@@ -619,7 +628,7 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Create the school timetable</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Create section-wise timetable entries with start and end times</p>
         <button onClick={() => setShowAdd(true)} className={S.btnPrimary}>Add Entry</button>
       </div>
 
@@ -630,11 +639,12 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
             const cls = allClasses.find((c) => c.id === item.classId);
             const subj = allSubjects.find((s) => s.id === item.subjectId);
             const teacher = teachers.find((t) => t.id === item.teacherId);
+            const label = item.classLabel || classLabel(cls) || [item.class, item.section].filter(Boolean).join(" - ");
             return (
-              <div key={item.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cls?.name} - {item.day} - {item.period}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{subj?.name} by {teacher?.name}</p>
+              <div key={item.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{label} · {item.day} · {item.period}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{subj?.name || item.subject} by {teacher?.name || item.teacherName || "—"} · {(item.startTime || item.time)} - {item.endTime || "—"} · Room {item.room || "—"}</p>
                 </div>
                 <button onClick={() => del(item.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="w-4 h-4" /></button>
               </div>
@@ -642,34 +652,37 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
           }) : <div className="text-center py-12 text-gray-400 dark:text-gray-500 text-sm">No timetable entries yet</div>}
         </div>
       </div>
-{showAdd && (
+      {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Add Timetable Entry</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Add Section-wise Timetable Entry</h3>
               <button onClick={() => setShowAdd(false)} className={cn(S.btnGhost, "p-1")}><X className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Class *</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Class & Section *</label>
                 <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className={S.input}>
-                  <option value="">Select class</option>
-                  {allClasses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="">Select class / section</option>
+                  {allClasses.map((c) => <option key={c.id} value={c.id}>{classLabel(c)}</option>)}
                 </select>
+                <p className="text-[10px] text-gray-400 mt-1">Add one class record per section (for example: Class 12 - A1, Class 12 - A2, Class 12 - B).</p>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Day *</label>
-                <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className={S.input}>
-                  <option value="">Select day</option>
-                  {days.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Period *</label>
-                <select value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value })} className={S.input}>
-                  <option value="">Select period</option>
-                  {periods.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Day *</label>
+                  <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className={S.input}>
+                    <option value="">Select day</option>
+                    {days.map((d) => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Period *</label>
+                  <select value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value })} className={S.input}>
+                    <option value="">Select period</option>
+                    {periods.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Subject *</label>
@@ -685,11 +698,17 @@ function TimetableTab({ root, items, allClasses, allSubjects, teachers }: { root
                   {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Start Time</label>
-                  <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className={S.input} />
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Start Time *</label>
+                  <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className={S.input} />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">End Time *</label>
+                  <input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} className={S.input} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Room</label>
                   <input type="text" placeholder="e.g. 101" value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} className={S.input} />
